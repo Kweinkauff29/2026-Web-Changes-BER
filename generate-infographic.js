@@ -214,44 +214,26 @@ const htmlContent = `<!DOCTYPE html>
         }
 
         function detectMetricType(filename, rows) {
-            const name = filename.toLowerCase();
-            // Try filename first
+            // Remove extension and normalize
+            const name = filename.split('.')[0].toLowerCase().trim();
+            
+            // Strict matching for user's new naming convention (closedSales.xlsx -> closedSales)
+            if (name === 'closedsales') return 'closedSales';
+            if (name === 'mediandays') return 'medianDays';
+            if (name === 'pendingsales') return 'pendingSales';
+            if (name === 'newlistings') return 'newListings';
+            if (name === 'inventory') return 'inventory';
+            if (name === 'price') return 'price';
+            
+            // Robust fallback matching (e.g. "closedSales (1).xlsx" or "Closed Sales.xlsx")
             if (name.includes('closed') && name.includes('sales')) return 'closedSales';
-            if (name.includes('days') || name.includes('dom')) return 'medianDays';
-            if (name.includes('pending')) return 'pendingSales';
+            if (name.includes('median') && name.includes('days')) return 'medianDays';
+            if (name.includes('pending') && name.includes('sales')) return 'pendingSales';
             if (name.includes('new') && name.includes('listing')) return 'newListings';
-            if (name.includes('inventory') || name.includes('active')) return 'inventory';
-            if (name.includes('price') || name.includes('median')) return 'price';
+            if (name.includes('inventory')) return 'inventory';
+            if (name.includes('price')) return 'price';
             
-            // If filename is UUID-like, try to detect from data patterns
-            if (rows.length > 2) {
-                // Get sample values from last column (typically the value column)
-                const sampleValues = [];
-                for (let i = 1; i < Math.min(10, rows.length); i++) {
-                    const row = rows[i];
-                    if (!row) continue;
-                    // Find last non-null value
-                    for (let j = row.length - 1; j >= 0; j--) {
-                        if (row[j] !== null && row[j] !== undefined && row[j] !== '') {
-                            const val = parseFloat(String(row[j]).replace(/[,$%]/g, ''));
-                            if (!isNaN(val)) sampleValues.push(val);
-                            break;
-                        }
-                    }
-                }
-                
-                if (sampleValues.length > 0) {
-                    const avg = sampleValues.reduce((a,b) => a+b, 0) / sampleValues.length;
-                    // Price data: typically large numbers > 100000
-                    if (avg > 100000) return 'price';
-                    // Days on market: typically 20-150
-                    if (avg > 10 && avg < 200) return 'medianDays';
-                    // Inventory: typically 500-3000
-                    if (avg > 200 && avg < 10000) return 'inventory';
-                }
-            }
-            
-            return null; // Will prompt user
+            return null;
         }
 
         function askUserForType(filename, rows) {
@@ -279,9 +261,14 @@ const htmlContent = `<!DOCTYPE html>
             
             const monAbbr = month.substring(0,3).toLowerCase();
             
-            // Data structure: { region: { year: value } }
+            // Data structure: { region: { year: { sum: 0, count: 0, values: [] } } }
             const regionData = { naples: {}, fortmyers: {}, bonita: {} };
             
+            // Helper to init year obj
+            const initYear = (reg, yr) => {
+                if (!regionData[reg][yr]) regionData[reg][yr] = { sum: 0, count: 0, values: [] };
+            };
+
             // Skip header row, process data rows
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
@@ -299,7 +286,7 @@ const htmlContent = `<!DOCTYPE html>
                 const cityName = String(row[1] || '').toUpperCase();
                 let region = null;
                 if (cityName.includes('NAPLES') && !cityName.includes('MARCO')) region = 'naples';
-                else if (cityName.includes('FORT MYERS') || cityName.includes('CAPE CORAL') || cityName.includes('LEE')) region = 'fortmyers';
+                else if (cityName.includes('FORT MYERS')) region = 'fortmyers';
                 else if (cityName.includes('BONITA') || cityName.includes('ESTERO')) region = 'bonita';
                 
                 if (!region) continue;
@@ -314,14 +301,28 @@ const htmlContent = `<!DOCTYPE html>
                 }
                 
                 if (value !== null) {
-                    regionData[region][parsed.y] = value;
+                    initYear(region, parsed.y);
+                    regionData[region][parsed.y].values.push(value);
+                    regionData[region][parsed.y].sum += value;
+                    regionData[region][parsed.y].count++;
                 }
             }
             
+            // Determine aggregation method
+            // Additive: Closed Sales, Pending Sales, New Listings, Inventory
+            // Average: Median Days, Price
+            const isAdditive = ['closedSales', 'pendingSales', 'newListings', 'inventory'].includes(type);
+
             // Calculate and apply to data
             regions.forEach(r => {
-                const curr = regionData[r][year];
-                const prev = regionData[r][year - 1];
+                const getVal = (yr) => {
+                    const d = regionData[r][yr];
+                    if (!d || d.count === 0) return undefined;
+                    return isAdditive ? d.sum : (d.sum / d.count);
+                };
+
+                const curr = getVal(year);
+                const prev = getVal(year - 1);
                 
                 if (curr === undefined) return;
                 
@@ -340,6 +341,7 @@ const htmlContent = `<!DOCTYPE html>
                     data[r].invNew = fmtNum(curr);
                 }
                 if (type === 'inventory' && prev) {
+                    // Inventory is additive (total homes for sale)
                     data[r].homesForSale = fmtPct((curr - prev) / prev);
                 }
                 if (type === 'price') {
