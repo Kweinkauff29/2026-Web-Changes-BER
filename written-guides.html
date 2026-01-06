@@ -288,8 +288,8 @@
         }
 
         .guide-icon {
-            width: 56px;
-            height: 56px;
+            width: 64px;
+            height: 64px;
             background: #fff;
             border-radius: 12px;
             display: flex;
@@ -297,11 +297,12 @@
             justify-content: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             font-size: 24px;
+            padding: 8px;
         }
 
         .guide-icon img {
-            width: 32px;
-            height: 32px;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
         }
 
@@ -548,13 +549,32 @@
         const searchResults = document.getElementById('searchResults');
         const noResults = document.getElementById('noResults');
 
+        // Logo Mapping
+        const logoMap = {
+            'Matrix': 'https://logo.clearbit.com/swflamls.com?size=128', // Using SWFLAMLS for Matrix context
+            'Agent 3000': 'https://logo.clearbit.com/agent3000.com?size=128',
+            'GrowthZone': 'https://logo.clearbit.com/growthzone.com?size=128',
+            'ShowingTime': 'https://logo.clearbit.com/showingtime.com?size=128',
+            'RentSpree': 'https://logo.clearbit.com/rentspree.com?size=128',
+            'Realist': 'https://logo.clearbit.com/corelogic.com?size=128', // Realist is CoreLogic
+            'DBPR': 'https://logo.clearbit.com/myfloridalicense.com?size=128',
+            'Bridge': 'https://logo.clearbit.com/bridgeinteractive.com?size=128',
+            'Default': 'https://bonitaspringsrealtors.com/wp-content/uploads/2022/01/cropped-Favicon-32x32.png'
+        };
+
         function createCard(guide) {
-            // Pick a generic icon if no specific favicon match found or provided icon is empty
-            let iconSrc = 'https://bonitaspringsrealtors.com/wp-content/uploads/2022/01/cropped-Favicon-32x32.png';
-            if (guide.icon && guide.icon.includes('swflamls')) iconSrc = 'https://swflamls.com/favicon.ico';
-            else if (guide.icon && guide.icon.includes('showingtime')) iconSrc = 'https://showingtime.com/wp-content/uploads/2019/11/favicon.ico';
-            else if (guide.icon && guide.icon.includes('agent3000')) iconSrc = 'https://agent3000.com/favicon.ico';
-            else if (guide.category === 'Matrix') iconSrc = 'https://swflamls.com/favicon.ico'; // Fallback
+            // Determine logo based on category or keywords
+            let iconSrc = logoMap['Default'];
+
+            // Category-based mapping
+            if (logoMap[guide.category]) {
+                iconSrc = logoMap[guide.category];
+            }
+            // Keyword-based overrides
+            else if (guide.title.toLowerCase().includes('bridge') || guide.url.includes('bridgedataoutput')) iconSrc = logoMap['Bridge'];
+            else if (guide.title.toLowerCase().includes('realist')) iconSrc = logoMap['Realist'];
+            else if (guide.title.toLowerCase().includes('dbpr') || guide.url.includes('myfloridalicense')) iconSrc = logoMap['DBPR'];
+            else if (guide.url.includes('swflamls')) iconSrc = logoMap['Matrix'];
 
             const card = document.createElement('a');
             card.href = guide.url;
@@ -563,7 +583,7 @@
             card.innerHTML = `
                 <div class="guide-header">
                     <div class="guide-icon">
-                        <img src="${iconSrc}" alt="icon" onerror="this.src='https://bonitaspringsrealtors.com/wp-content/uploads/2022/01/cropped-Favicon-32x32.png'">
+                        <img src="${iconSrc}" alt="${guide.category} logo" onerror="this.src='${logoMap['Default']}'">
                     </div>
                 </div>
                 <div class="guide-content">
