@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BER Infographic Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #0ca7a4;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --line: #e2e8f0;
+            --text: #0f172a;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .controls {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 0 0 6px 0;
+            color: var(--text);
+        }
+
+        p {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: #f0fdfa;
+        }
+
+        .upload-zone input {
+            display: none;
+        }
+
+        .upload-zone .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .upload-zone .text {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .upload-zone .text strong {
+            color: var(--primary);
+        }
+
+        .file-list {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+
+        .file-list .file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            margin-bottom: 4px;
+        }
+
+        .file-item .status {
+            font-weight: 600;
+        }
+
+        .file-item .status.ok {
+            color: #16a34a;
+        }
+
+        .file-item .status.pending {
+            color: #f59e0b;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-download {
+            background: #0f172a;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .canvas-card {
+            background: var(--surface);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .canvas-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        .canvas-card .download-single {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #334155;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            font-weight: 700;
+            margin: 15px 0 8px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 2px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 5px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .tab-btn.active {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="controls">
+            <h1>BER Infographic Generator</h1>
+            <p>Upload all 6 spreadsheets to auto-populate data.</p>
+
+            <!-- Date Selection -->
+            <div class="row" style="margin-bottom: 15px;">
+                <div class="form-group">
+                    <label>Target Month</label>
+                    <select id="month" onchange="processAllFiles()">
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November" selected>November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Year</label>
+                    <input type="number" id="year" value="2025" oninput="processAllFiles()">
+                </div>
+            </div>
+
+            <!-- File Upload -->
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" onchange="handleFiles(this.files)">
+                <div class="icon">📊</div>
+                <div class="text">Click to upload <strong>6 spreadsheets</strong><br>or drag & drop</div>
+            </div>
+
+            <div class="file-list" id="fileList">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="section-title">Manual Adjustments (Optional)</div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('naples', this)">Naples</button>
+                <button class="tab-btn" onclick="switchTab('fortmyers', this)">Fort Myers</button>
+                <button class="tab-btn" onclick="switchTab('bonita', this)">Bonita</button>
+            </div>
+
+            <div id="input-container"></div>
+
+            <button class="btn btn-download" onclick="downloadAll()">⬇️ Download All 3 Images</button>
+        </div>
+
+        <!-- Previews -->
+        <div class="preview-grid">
+            <div class="canvas-card">
+                <h3>🔴 Naples Area</h3>
+                <canvas id="canvas-naples"></canvas>
+                <button class="download-single" onclick="downloadOne('naples')">Download Naples</button>
+            </div>
+            <div class="canvas-card">
+                <h3>🟠 Fort Myers Area</h3>
+                <canvas id="canvas-fortmyers"></canvas>
+                <button class="download-single" onclick="downloadOne('fortmyers')">Download Fort Myers</button>
+            </div>
+            <div class="canvas-card">
+                <h3>🔵 Bonita Springs-Estero</h3>
+                <canvas id="canvas-bonita"></canvas>
+                <button class="download-single" onclick="downloadOne('bonita')">Download Bonita</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data State ---
+        const data = {
+            naples: {
+                closedSales: "", medianDays: "", pendingSales: "", newListingsPct: "",
+                invNew: "", invSold: "", price: "", priceChange: "", homesSalePct: ""
+            },
+            fortmyers: {
+                closedSales: "", medianDays: "", pendingSales: "", newListingsPct: "",
+                invNew: "", invSold: "", price: "", priceChange: "", homesSalePct: ""
+            },
+            bonita: {
+                closedSales: "", medianDays: "", pendingSales: "", newListingsPct: "",
+                invNew: "", invSold: "", price: "", priceChange: "", homesSalePct: ""
+            }
+        };
+
+        const config = {
+            naples: { color: '#D32F2F', title: 'Naples Area' },
+            fortmyers: { color: '#F59E0B', title: 'Fort Myers Area' },
+            bonita: { color: '#0EA5E9', title: 'Bonita Springs-Estero MLS' }
+        };
+
+        const fieldLabels = {
+            closedSales: "Closed Sales %",
+            medianDays: "Median Days",
+            pendingSales: "Pending Sales %",
+            newListingsPct: "New Listings %",
+            invNew: "New Listings (Count)",
+            invSold: "Listings Sold (Count)",
+            price: "Median Sales Price",
+            priceChange: "Price Change %",
+            homesSalePct: "Homes for Sale %"
+        };
+
+        let currentTab = 'naples';
+        let imgTemplate = new Image();
+        let isLoaded = false;
+
+        // Store raw parsed data from files
+        const uploadedFiles = {}; // { metricType: { sheetData, fileName } }
+        const metricTypes = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'inventory', 'price'];
+
+        // --- Init ---
+        function init() {
+            renderInputs();
+
+            imgTemplate.onload = function () {
+                isLoaded = true;
+                ['naples', 'fortmyers', 'bonita'].forEach(key => {
+                    const c = document.getElementById(`canvas-${key}`);
+                    c.width = imgTemplate.width;
+                    c.height = imgTemplate.height;
+                });
+                renderAll();
+            };
+            imgTemplate.src = 'infographic-template.png';
+            updateFileList();
+        }
+
+        // --- File Handling ---
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const workbook = XLSX.read(e.target.result, { type: 'binary' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                    // Detect metric type from filename
+                    const metricType = detectMetricType(file.name);
+                    if (metricType) {
+                        uploadedFiles[metricType] = { sheetData: jsonData, fileName: file.name };
+                        console.log(`Detected ${metricType} from ${file.name}`);
+                    }
+
+                    updateFileList();
+                    processAllFiles();
+                };
+                reader.readAsBinaryString(file);
+            });
+        }
+
+        function detectMetricType(filename) {
+            const fn = filename.toLowerCase();
+            if (fn.includes('closed') || fn.includes('sales volume')) return 'closedSales';
+            if (fn.includes('days') || fn.includes('dom') || fn.includes('market')) return 'medianDays';
+            if (fn.includes('pending')) return 'pendingSales';
+            if (fn.includes('new listing')) return 'newListings';
+            if (fn.includes('inventory') || fn.includes('active') || fn.includes('homes for sale')) return 'inventory';
+            if (fn.includes('price') || fn.includes('median sales')) return 'price';
+            return null;
+        }
+
+        function updateFileList() {
+            const container = document.getElementById('fileList');
+            const expected = [
+                { key: 'closedSales', label: 'Closed Sales' },
+                { key: 'medianDays', label: 'Days on Market' },
+                { key: 'pendingSales', label: 'Pending Sales' },
+                { key: 'newListings', label: 'New Listings' },
+                { key: 'inventory', label: 'Inventory / Homes for Sale' },
+                { key: 'price', label: 'Median Sales Price' }
+            ];
+
+            container.innerHTML = expected.map(item => {
+                const hasFile = uploadedFiles[item.key];
+                return `<div class="file-item">
+                    <span class="status ${hasFile ? 'ok' : 'pending'}">${hasFile ? '✓' : '○'}</span>
+                    <span>${item.label}</span>
+                    ${hasFile ? `<span style="margin-left:auto; color:#94a3b8;">${uploadedFiles[item.key].fileName}</span>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function processAllFiles() {
+            const month = document.getElementById('month').value;
+            const year = parseInt(document.getElementById('year').value) || 2025;
+            const prevYear = year - 1;
+
+            // Process each uploaded file
+            Object.keys(uploadedFiles).forEach(metricType => {
+                const { sheetData } = uploadedFiles[metricType];
+                processSheet(metricType, sheetData, month, year, prevYear);
+            });
+
+            renderInputs();
+            renderAll();
+        }
+
+        function processSheet(metricType, rows, month, year, prevYear) {
+            // Find column indices for regions
+            // Looking for headers like "Naples", "Fort Myers", "Bonita"
+            const headerRow = rows[0] || [];
+            const colMap = { naples: -1, fortmyers: -1, bonita: -1 };
+
+            headerRow.forEach((cell, idx) => {
+                const txt = String(cell || '').toLowerCase();
+                if (txt.includes('naples')) colMap.naples = idx;
+                if (txt.includes('fort myers') || txt.includes('cape coral')) colMap.fortmyers = idx;
+                if (txt.includes('bonita') || txt.includes('estero')) colMap.bonita = idx;
+            });
+
+            // Find rows for current year and previous year with matching month
+            let currentYearVal = { naples: null, fortmyers: null, bonita: null };
+            let prevYearVal = { naples: null, fortmyers: null, bonita: null };
+
+            const monthAbbrev = month.substring(0, 3).toLowerCase(); // "nov" for November
+            const monthNum = new Date(`${month} 1, 2020`).getMonth() + 1; // 1-12
+
+            rows.forEach(row => {
+                const dateCell = String(row[0] || '').toLowerCase().trim();
+
+                // Check if this row matches our target months
+                // Patterns: "Nov-25", "November 2025", "11/2025", "2025-11", etc.
+
+                let rowMonth = null;
+                let rowYear = null;
+
+                // Pattern: "Nov-25" or "Nov-2025"
+                const match1 = dateCell.match(/^([a-z]{3})-(\d{2,4})$/i);
+                if (match1) {
+                    rowMonth = match1[1].toLowerCase();
+                    rowYear = parseInt(match1[2]);
+                    if (rowYear < 100) rowYear += 2000;
+                }
+
+                // Pattern: "November 2025"
+                const match2 = dateCell.match(/^([a-z]+)\s+(\d{4})$/i);
+                if (match2) {
+                    rowMonth = match2[1].substring(0, 3).toLowerCase();
+                    rowYear = parseInt(match2[2]);
+                }
+
+                // Pattern: "11/2025" or "11-2025"
+                const match3 = dateCell.match(/^(\d{1,2})[\/\-](\d{4})$/);
+                if (match3) {
+                    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                    rowMonth = monthNames[parseInt(match3[1]) - 1];
+                    rowYear = parseInt(match3[2]);
+                }
+
+                if (rowMonth && rowYear) {
+                    if (rowMonth === monthAbbrev) {
+                        const target = rowYear === year ? currentYearVal : (rowYear === prevYear ? prevYearVal : null);
+                        if (target) {
+                            ['naples', 'fortmyers', 'bonita'].forEach(region => {
+                                if (colMap[region] > -1) {
+                                    target[region] = parseFloat(row[colMap[region]]) || row[colMap[region]];
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+
+            // Calculate % change or assign values based on metric type
+            ['naples', 'fortmyers', 'bonita'].forEach(region => {
+                const curr = currentYearVal[region];
+                const prev = prevYearVal[region];
+
+                if (metricType === 'closedSales') {
+                    if (curr !== null && prev !== null && prev !== 0) {
+                        const pct = ((curr - prev) / prev * 100);
+                        data[region].closedSales = formatPct(pct);
+                    }
+                    // Also use curr for invSold (Listings Sold count)
+                    if (curr !== null) data[region].invSold = formatNumber(curr);
+                }
+                else if (metricType === 'medianDays') {
+                    if (curr !== null) data[region].medianDays = String(Math.round(curr));
+                }
+                else if (metricType === 'pendingSales') {
+                    if (curr !== null && prev !== null && prev !== 0) {
+                        const pct = ((curr - prev) / prev * 100);
+                        data[region].pendingSales = formatPct(pct);
+                    }
+                }
+                else if (metricType === 'newListings') {
+                    if (curr !== null && prev !== null && prev !== 0) {
+                        const pct = ((curr - prev) / prev * 100);
+                        data[region].newListingsPct = formatPct(pct);
+                    }
+                    // Also use curr for invNew (New Listings count for bottom left)
+                    if (curr !== null) data[region].invNew = formatNumber(curr);
+                }
+                else if (metricType === 'inventory') {
+                    if (curr !== null && prev !== null && prev !== 0) {
+                        const pct = ((curr - prev) / prev * 100);
+                        data[region].homesSalePct = formatPct(pct);
+                    }
+                }
+                else if (metricType === 'price') {
+                    if (curr !== null) data[region].price = formatCurrency(curr);
+                    if (curr !== null && prev !== null && prev !== 0) {
+                        const pct = ((curr - prev) / prev * 100);
+                        data[region].priceChange = `(${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%)`;
+                    }
+                }
+            });
+        }
+
+        function formatPct(val) {
+            return (val >= 0 ? '+' : '') + val.toFixed(1) + '%';
+        }
+
+        function formatNumber(val) {
+            return Math.round(val).toLocaleString();
+        }
+
+        function formatCurrency(val) {
+            return '$' + Math.round(val).toLocaleString();
+        }
+
+        // --- Input Rendering ---
+        function renderInputs() {
+            const container = document.getElementById('input-container');
+            container.innerHTML = '';
+
+            Object.keys(fieldLabels).forEach(key => {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.innerHTML = `
+                    <label>${fieldLabels[key]}</label>
+                    <input type="text" id="input-${key}" value="${data[currentTab][key] || ''}" 
+                           oninput="data['${currentTab}']['${key}'] = this.value; renderCanvas('${currentTab}');">
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function switchTab(tab, btn) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderInputs();
+        }
+
+        // --- Canvas Rendering ---
+        function renderCanvas(key) {
+            if (!isLoaded) return;
+            const canvas = document.getElementById(`canvas-${key}`);
+            const ctx = canvas.getContext('2d');
+            const d = data[key];
+            const meta = config[key];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(imgTemplate, 0, 0);
+
+            const month = document.getElementById('month').value;
+            const year = parseInt(document.getElementById('year').value) || 2025;
+
+            // Fonts
+            const fontTitle = '900 42px "Inter", sans-serif';
+            const fontSubtitle = '400 24px "Inter", sans-serif';
+            const fontBoxPct = '900 55px "Inter", sans-serif';
+            const fontCalendar = '900 70px "Inter", sans-serif';
+            const fontPending = '900 50px "Inter", sans-serif';
+            const fontPrice = '900 55px "Inter", sans-serif';
+            const fontPriceChange = '700 38px "Inter", sans-serif';
+            const fontInv = '900 42px "Inter", sans-serif';
+
+            // Header
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = meta.color;
+            ctx.font = fontTitle;
+            ctx.fillText(`${meta.title} Real Estate Activity`, 20, 30);
+
+            ctx.fillStyle = '#111827';
+            ctx.font = fontSubtitle;
+            ctx.fillText(`Figures based upon a one-year comparison between ${month} ${year - 1} to ${month} ${year}`, 20, 85);
+
+            // Metrics
+            drawText(ctx, d.closedSales || '--', 145, 430, 'white', fontBoxPct);
+            drawText(ctx, d.medianDays || '--', 360, 320, 'black', fontCalendar);
+            drawText(ctx, d.pendingSales || '--', 610, 430, 'white', fontPending);
+            drawText(ctx, d.newListingsPct || '--', 860, 430, 'white', fontBoxPct);
+            drawText(ctx, d.invNew || '--', 130, 835, 'white', fontInv);
+            drawText(ctx, d.invSold || '--', 360, 835, 'white', fontInv);
+            drawText(ctx, d.price || '--', 835, 620, 'white', fontPrice);
+            drawText(ctx, d.priceChange || '--', 835, 680, 'white', fontPriceChange);
+            drawText(ctx, d.homesSalePct || '--', 835, 800, 'white', fontBoxPct);
+        }
+
+        function drawText(ctx, text, x, y, color, font) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = color;
+            ctx.font = font;
+            if (color === 'white') {
+                ctx.shadowColor = 'rgba(0,0,0,0.35)';
+                ctx.shadowBlur = 6;
+                ctx.shadowOffsetY = 2;
+            }
+            ctx.fillText(text, 0, 0);
+            ctx.restore();
+        }
+
+        function renderAll() {
+            ['naples', 'fortmyers', 'bonita'].forEach(renderCanvas);
+        }
+
+        function downloadOne(key) {
+            const link = document.createElement('a');
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            link.download = `BER_${config[key].title.replace(/\s+/g, '_')}_${month}_${year}.png`;
+            link.href = document.getElementById(`canvas-${key}`).toDataURL();
+            link.click();
+        }
+
+        function downloadAll() {
+            ['naples', 'fortmyers', 'bonita'].forEach(key => {
+                setTimeout(() => downloadOne(key), 100 * ['naples', 'fortmyers', 'bonita'].indexOf(key));
+            });
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
