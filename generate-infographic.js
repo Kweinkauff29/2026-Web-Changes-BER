@@ -392,16 +392,28 @@ const htmlContent = `<!DOCTYPE html>
         function updateData(r,k,v) { data[r][k] = v; renderCanvas(r); }
         function renderPreviews() { document.getElementById('previews').innerHTML = regions.map(r => '<div class="preview-card"><h3><div class="dot" style="background:'+regionConfig[r].color+'"></div>'+regionConfig[r].title.split(' ')[0]+'</h3><canvas id="canvas-'+r+'"></canvas><div style="text-align:center"><button class="dl-btn" onclick="dl(\\''+r+'\\')">Download PNG</button></div></div>').join(''); }
         function renderAll() { regions.forEach(renderCanvas); }
+        function downloadAll() {
+            regions.forEach(r => dl(r));
+        }
+
         function dl(r) { 
             const c = document.getElementById('canvas-'+r); 
+            // Convert to data URL
+            let url = c.toDataURL('image/png');
+            // Hack: replace mime type to force download in some browsers
+            url = url.replace('data:image/png', 'data:application/octet-stream');
+            
             const l = document.createElement('a'); 
-            // Format: City Month Year.png (e.g., "Naples November 2025.png")
-            const cityName = regionConfig[r].title.split(' ')[0]; // Naples, Fort, Bonita
+            const cityName = regionConfig[r].title.split(' ')[0]; 
             const month = document.getElementById('month').value;
             const year = document.getElementById('year').value;
             l.download = cityName + ' ' + month + ' ' + year + '.png';
-            l.href = c.toDataURL(); 
+            l.href = url;
+            
+            // Required for some browsers
+            document.body.appendChild(l);
             l.click(); 
+            document.body.removeChild(l);
         }
 
         function renderCanvas(region) {
