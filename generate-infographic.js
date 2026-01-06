@@ -97,15 +97,15 @@ const htmlContent = `<!DOCTYPE html>
         let activeTab = 'naples';
 
         let coordConfig = {
-            closedSales: { x: null, y: 360, fontSize: 64, label: 'Closed Sales' },
-            medianDays: { x: null, y: 200, fontSize: 90, label: 'Median Days' },
-            pendingSales: { x: null, y: 360, fontSize: 64, label: 'Pending Sales' },
-            newListings: { x: null, y: 360, fontSize: 64, label: 'New Listings' },
-            invNew: { x: 130, y: 585, fontSize: 60, label: 'Inv New' },
-            invSold: { x: 380, y: 585, fontSize: 60, label: 'Inv Sold' },
-            price: { x: 850, y: 420, fontSize: 60, label: 'Price' },
-            priceChange: { x: 850, y: 465, fontSize: 28, label: 'Price Change' },
-            homesForSale: { x: 840, y: 560, fontSize: 64, label: 'Homes For Sale' }
+            closedSales: { x: 130, y: 276, fontSize: 58, label: 'Closed Sales' },
+            medianDays: { x: 363, y: 191, fontSize: 117, label: 'Median Days' },
+            pendingSales: { x: 622, y: 274, fontSize: 61, label: 'Pending Sales' },
+            newListings: { x: 877, y: 274, fontSize: 63, label: 'New Listings' },
+            invNew: { x: 132, y: 529, fontSize: 60, label: 'Inv New' },
+            invSold: { x: 370, y: 528, fontSize: 57, label: 'Inv Sold' },
+            price: { x: 848, y: 389, fontSize: 49, label: 'Price' },
+            priceChange: { x: 861, y: 432, fontSize: 28, label: 'Price Change' },
+            homesForSale: { x: 855, y: 505, fontSize: 64, label: 'Homes For Sale' }
         };
 
         async function init() {
@@ -154,250 +154,352 @@ const htmlContent = `<!DOCTYPE html>
                 row.style.borderRadius = '6px';
                 row.style.border = '1px solid #e2e8f0';
                 
-                row.innerHTML = `
-    < div style = "font-size:10px;font-weight:600;margin-bottom:4px;color:#475569" > ${ conf.label }</div>
-        <div style="display:flex;gap:4px">
-            <input type="number" title="X" value="${Math.round(conf.x)}" onchange="updateCoord('${key}', 'x', this.value)" style="width:50px;font-size:10px;padding:2px">
-                <input type="number" title="Y" value="${Math.round(conf.y)}" onchange="updateCoord('${key}', 'y', this.value)" style="width:50px;font-size:10px;padding:2px">
-                    <input type="number" title="Size" value="${conf.fontSize}" onchange="updateCoord('${key}', 'fontSize', this.value)" style="width:40px;font-size:10px;padding:2px">
+                // Escaped backticks and dollar signs for template literal inside template literal
+                row.innerHTML = \`
+                    <div style="font-size:10px;font-weight:600;margin-bottom:4px;color:#475569">\${conf.label}</div>
+                    <div style="display:flex;gap:4px">
+                        <input type="number" title="X" value="\${Math.round(conf.x)}" onchange="updateCoord('\${key}', 'x', this.value)" style="width:50px;font-size:10px;padding:2px">
+                        <input type="number" title="Y" value="\${Math.round(conf.y)}" onchange="updateCoord('\${key}', 'y', this.value)" style="width:50px;font-size:10px;padding:2px">
+                        <input type="number" title="Size" value="\${conf.fontSize}" onchange="updateCoord('\${key}', 'fontSize', this.value)" style="width:40px;font-size:10px;padding:2px">
                     </div>
-                    `;
-                    grid.appendChild(row);
+                \`;
+                grid.appendChild(row);
             });
-
-                    container.appendChild(grid);
-
-                    // Add Copy Button
-                    const btn = document.createElement('button');
-                    btn.textContent = 'Copy Config to Clipboard';
-                    btn.className = 'btn';
-                    btn.style.marginTop = '10px';
-                    btn.style.background = '#334155';
-                    btn.style.color = 'white';
-                    btn.style.padding = '8px';
+            
+            container.appendChild(grid);
+            
+            // Add Copy Button
+            const btn = document.createElement('button');
+            btn.textContent = 'Copy Config to Clipboard';
+            btn.className = 'btn';
+            btn.style.marginTop = '10px';
+            btn.style.background = '#334155';
+            btn.style.color = 'white';
+            btn.style.padding = '8px';
             btn.onclick = () => {
-                const clean = { };
-                Object.keys(coordConfig).forEach(k => clean[k] = {x: Math.round(coordConfig[k].x), y: Math.round(coordConfig[k].y), fontSize: coordConfig[k].fontSize });
-                    navigator.clipboard.writeText(JSON.stringify(clean, null, 2));
-                    alert('Config copied!');
+                const clean = {};
+                Object.keys(coordConfig).forEach(k => clean[k] = { x: Math.round(coordConfig[k].x), y: Math.round(coordConfig[k].y), fontSize: coordConfig[k].fontSize });
+                navigator.clipboard.writeText(JSON.stringify(clean, null, 2));
+                alert('Config copied!');
             };
-                    container.appendChild(btn);
+            container.appendChild(btn);
 
-                    // Append to sidebar (after manual inputs)
-                    const sidebar = document.querySelector('.sidebar');
-                    sidebar.appendChild(container);
+            // Append to sidebar (after manual inputs)
+             const sidebar = document.querySelector('.sidebar');
+             sidebar.appendChild(container);
         }
 
-                    function updateCoord(key, prop, val) {
-                        coordConfig[key][prop] = parseFloat(val);
-                    renderAll();
+        function updateCoord(key, prop, val) {
+            coordConfig[key][prop] = parseFloat(val);
+            renderAll();
         }
 
-                    function loadImage(src) { return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = src; }); }
+        function loadImage(src) { return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = src; }); }
 
-                    function handleFiles(files) {
-                        Array.from(files).forEach(file => {
-                            const reader = new FileReader();
-                            reader.onload = e => {
-                                try {
-                                    const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                                    const sheet = wb.Sheets[wb.SheetNames[0]];
-                                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                                    let type = detectMetricType(file.name, rows);
-                                    if (type) { uploadedFiles[type] = { rows, fileName: file.name }; renderFileStatus(); processAllFiles(); }
-                                    else { askUserForType(file.name, rows); }
-                                } catch (err) { alert('Error reading file: ' + file.name); }
-                            };
-                            reader.readAsArrayBuffer(file);
-                        });
-        }
-
-                    function detectMetricType(filename, rows) {
-            const name = filename.toLowerCase();
-                    if (name.includes('closed') || name.includes('sales')) return 'closedSales';
-                    if (name.includes('days') || name.includes('market')) return 'medianDays';
-                    if (name.includes('pending')) return 'pendingSales';
-                    if (name.includes('new') && name.includes('listing')) return 'newListings';
-                    if (name.includes('inventory') || name.includes('homes')) return 'inventory';
-                    if (name.includes('price')) return 'price';
-                    return null;
-        }
-
-                    function askUserForType(filename, rows) {
-            const types = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'inventory', 'price'];
-                    const labels = ['Closed Sales', 'Median Days', 'Pending Sales', 'New Listings', 'Inventory', 'Median Price'];
-            const choice = prompt('Select type for "' + filename + '":\\n\\n' + labels.map((l,i) => (i+1) + '. ' + l).join('\\n'));
-                    const idx = parseInt(choice) - 1;
-            if (idx >= 0 && idx < types.length) {uploadedFiles[types[idx]] = { rows, fileName: filename }; renderFileStatus(); processAllFiles(); }
-        }
-
-                    function processAllFiles() {
-            const m = document.getElementById('month').value;
-                    const y = parseInt(document.getElementById('year').value);
-            Object.keys(uploadedFiles).forEach(t => processSheet(t, uploadedFiles[t].rows, m, y));
-                    renderInputs(); renderAll();
-        }
-
-                    function processSheet(type, rows, month, year) {
-            const header = rows[0] || [];
-                    const colMap = {naples: -1, fortmyers: -1, bonita: -1 };
-            header.forEach((c, i) => {
-                const t = String(c || '').toLowerCase();
-                    if (t.includes('naples') && !t.includes('marco')) colMap.naples = i;
-                    if ((t.includes('fort myers') || t.includes('cape coral')) && !t.includes('beach')) colMap.fortmyers = i;
-                    if (t.includes('bonita') || t.includes('estero')) colMap.bonita = i;
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                        const sheet = wb.Sheets[wb.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                        let type = detectMetricType(file.name, rows);
+                        if(type) { uploadedFiles[type] = { rows, fileName: file.name }; renderFileStatus(); processAllFiles(); }
+                        else { askUserForType(file.name, rows); }
+                    } catch(err) { alert('Error reading file: ' + file.name); }
+                };
+                reader.readAsArrayBuffer(file);
             });
-                    const monAbbr = month.substring(0,3).toLowerCase();
-                    let curr = { }, prev = { };
-            rows.forEach(r => {
-                const d = parseDate(String(r[0] || '').trim());
-                    if (!d) return;
-                    if (d.m.toLowerCase().startsWith(monAbbr)) {
-                    if (d.y === year) regions.forEach(reg => { if(colMap[reg]>=0) curr[reg] = parseFloat(r[colMap[reg]]) || 0; });
-                    else if (d.y === year-1) regions.forEach(reg => { if(colMap[reg]>=0) prev[reg] = parseFloat(r[colMap[reg]]) || 0; });
+        }
+
+        function detectMetricType(filename, rows) {
+            const name = filename.toLowerCase();
+            // Try filename first
+            if (name.includes('closed') && name.includes('sales')) return 'closedSales';
+            if (name.includes('days') || name.includes('dom')) return 'medianDays';
+            if (name.includes('pending')) return 'pendingSales';
+            if (name.includes('new') && name.includes('listing')) return 'newListings';
+            if (name.includes('inventory') || name.includes('active')) return 'inventory';
+            if (name.includes('price') || name.includes('median')) return 'price';
+            
+            // If filename is UUID-like, try to detect from data patterns
+            if (rows.length > 2) {
+                // Get sample values from last column (typically the value column)
+                const sampleValues = [];
+                for (let i = 1; i < Math.min(10, rows.length); i++) {
+                    const row = rows[i];
+                    if (!row) continue;
+                    // Find last non-null value
+                    for (let j = row.length - 1; j >= 0; j--) {
+                        if (row[j] !== null && row[j] !== undefined && row[j] !== '') {
+                            const val = parseFloat(String(row[j]).replace(/[,$%]/g, ''));
+                            if (!isNaN(val)) sampleValues.push(val);
+                            break;
+                        }
+                    }
+                }
+                
+                if (sampleValues.length > 0) {
+                    const avg = sampleValues.reduce((a,b) => a+b, 0) / sampleValues.length;
+                    // Price data: typically large numbers > 100000
+                    if (avg > 100000) return 'price';
+                    // Days on market: typically 20-150
+                    if (avg > 10 && avg < 200) return 'medianDays';
+                    // Inventory: typically 500-3000
+                    if (avg > 200 && avg < 10000) return 'inventory';
+                }
+            }
+            
+            return null; // Will prompt user
+        }
+
+        function askUserForType(filename, rows) {
+            const types = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'inventory', 'price'];
+            const labels = ['Closed Sales', 'Median Days on Market', 'Pending Sales', 'New Listings', 'Inventory/Homes for Sale', 'Median Price'];
+            const choice = prompt('What metric type is this file?\\n\\nFile: ' + filename.substring(0, 20) + '...\\n\\n' + labels.map((l,i) => (i+1) + '. ' + l).join('\\n') + '\\n\\nEnter number (1-6):');
+            const idx = parseInt(choice) - 1;
+            if (idx >= 0 && idx < types.length) { 
+                uploadedFiles[types[idx]] = { rows, fileName: filename }; 
+                renderFileStatus(); 
+                processAllFiles(); 
+            }
+        }
+
+        function processAllFiles() {
+            const m = document.getElementById('month').value;
+            const y = parseInt(document.getElementById('year').value);
+            Object.keys(uploadedFiles).forEach(t => processSheet(t, uploadedFiles[t].rows, m, y));
+            renderInputs(); renderAll();
+        }
+
+        // NEW: Row-based data parsing (each row = one city + one date)
+        function processSheet(type, rows, month, year) {
+            if (rows.length < 2) return;
+            
+            const monAbbr = month.substring(0,3).toLowerCase();
+            
+            // Data structure: { region: { year: value } }
+            const regionData = { naples: {}, fortmyers: {}, bonita: {} };
+            
+            // Skip header row, process data rows
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length < 2) continue;
+                
+                // Column 0: Date (Excel serial or string)
+                const dateVal = row[0];
+                const parsed = parseDate(dateVal);
+                if (!parsed) continue;
+                
+                // Check if this row's month matches
+                if (!parsed.m.toLowerCase().startsWith(monAbbr)) continue;
+                
+                // Column 1: City/Series name
+                const cityName = String(row[1] || '').toUpperCase();
+                let region = null;
+                if (cityName.includes('NAPLES') && !cityName.includes('MARCO')) region = 'naples';
+                else if (cityName.includes('FORT MYERS') || cityName.includes('CAPE CORAL') || cityName.includes('LEE')) region = 'fortmyers';
+                else if (cityName.includes('BONITA') || cityName.includes('ESTERO')) region = 'bonita';
+                
+                if (!region) continue;
+                
+                // Find the value (last non-null column)
+                let value = null;
+                for (let j = row.length - 1; j >= 2; j--) {
+                    if (row[j] !== null && row[j] !== undefined && row[j] !== '') {
+                        value = parseFloat(String(row[j]).replace(/[,$%]/g, ''));
+                        if (!isNaN(value)) break;
+                    }
+                }
+                
+                if (value !== null) {
+                    regionData[region][parsed.y] = value;
+                }
+            }
+            
+            // Calculate and apply to data
+            regions.forEach(r => {
+                const curr = regionData[r][year];
+                const prev = regionData[r][year - 1];
+                
+                if (curr === undefined) return;
+                
+                if (type === 'closedSales') {
+                    if (prev) data[r].closedSales = fmtPct((curr - prev) / prev);
+                    data[r].invSold = fmtNum(curr);
+                }
+                if (type === 'medianDays') {
+                    data[r].medianDays = Math.round(curr).toString();
+                }
+                if (type === 'pendingSales' && prev) {
+                    data[r].pendingSales = fmtPct((curr - prev) / prev);
+                }
+                if (type === 'newListings') {
+                    if (prev) data[r].newListings = fmtPct((curr - prev) / prev);
+                    data[r].invNew = fmtNum(curr);
+                }
+                if (type === 'inventory' && prev) {
+                    data[r].homesForSale = fmtPct((curr - prev) / prev);
+                }
+                if (type === 'price') {
+                    data[r].price = '$' + Math.round(curr).toLocaleString();
+                    if (prev) data[r].priceChange = '(' + fmtPct((curr - prev) / prev) + ')';
                 }
             });
-            regions.forEach(r => {
-                const c = curr[r], p = prev[r];
-                    if (c === undefined) return;
-                    if (type === 'closedSales' && p) data[r].closedSales = fmtPct((c-p)/p);
-                    if (type === 'closedSales') data[r].invSold = fmtNum(c);
-                    if (type === 'medianDays') data[r].medianDays = Math.round(c).toString();
-                    if (type === 'pendingSales' && p) data[r].pendingSales = fmtPct((c-p)/p);
-                    if (type === 'newListings' && p) data[r].newListings = fmtPct((c-p)/p);
-                    if (type === 'newListings') data[r].invNew = fmtNum(c);
-                    if (type === 'inventory' && p) data[r].homesForSale = fmtPct((c-p)/p);
-                    if (type === 'price') {data[r].price = '$' + Math.round(c).toLocaleString(); if(p) data[r].priceChange = '(' + fmtPct((c-p)/p) + ')'; }
-            });
         }
 
-                    function parseDate(str) {
-            if (!isNaN(str) && parseFloat(str)>20000) { const d = new Date((parseFloat(str)-25569)*86400*1000); return {m: d.toLocaleString('default',{month:'short'}), y: d.getFullYear() }; }
-                    const d = new Date(str);
-                    if (d instanceof Date && !isNaN(d)) return {m: d.toLocaleString('default',{month:'short'}), y: d.getFullYear() };
-                    return null;
+        function parseDate(val) {
+            // Excel serial number
+            if (!isNaN(val) && parseFloat(val) > 20000) {
+                const d = new Date((parseFloat(val) - 25569) * 86400 * 1000);
+                return { m: d.toLocaleString('default', { month: 'short' }), y: d.getFullYear() };
+            }
+            // String date
+            const d = new Date(val);
+            if (d instanceof Date && !isNaN(d)) {
+                return { m: d.toLocaleString('default', { month: 'short' }), y: d.getFullYear() };
+            }
+            return null;
         }
-                    function fmtPct(v) { const p = Math.round(v*100); return (p>0?'+':'') + p + '%'; }
-                    function fmtNum(v) { return Math.round(v).toLocaleString(); }
+        
+        function fmtPct(v) { 
+            const p = Math.round(v * 100); 
+            return (p > 0 ? '+' : '') + p + '%'; 
+        }
+        
+        function fmtNum(v) { 
+            return Math.round(v).toLocaleString(); 
+        }
 
-                    function renderFileStatus() {
+        function renderFileStatus() {
             const div = document.getElementById('fileStatus');
-                    const types = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'inventory', 'price'];
+            const types = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'inventory', 'price'];
             div.innerHTML = types.map(t => {
                 const f = uploadedFiles[t];
-                    return '<div class="file-row"><div class="dot ' + (f?'ok':'pending') + '"></div><div class="name">' + t + '</div><div class="fname">' + (f?f.fileName:'-') + '</div></div>';
+                return '<div class="file-row"><div class="dot ' + (f ? 'ok' : 'pending') + '"></div><div class="name">' + t + '</div><div class="fname">' + (f ? f.fileName.substring(0, 15) + '...' : '-') + '</div></div>';
             }).join('');
         }
-                    function renderTabs() {document.getElementById('tabs').innerHTML = regions.map(r => '<button class="tab ' + (activeTab === r ? 'active' : '') + '" onclick="setTab(\\''+r+'\\')">'+regionConfig[r].title.split(' ')[0]+'</button>').join(''); }
-                function setTab(r) {activeTab = r; renderTabs(); renderInputs(); }
-                function renderInputs() {
+        function renderTabs() { document.getElementById('tabs').innerHTML = regions.map(r => '<button class="tab '+(activeTab===r?'active':'')+'" onclick="setTab(\\''+r+'\\')">'+regionConfig[r].title.split(' ')[0]+'</button>').join(''); }
+        function setTab(r) { activeTab = r; renderTabs(); renderInputs(); }
+        function renderInputs() {
             const d = data[activeTab];
-                const fields = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'homesForSale', 'invNew', 'invSold', 'price', 'priceChange'];
-                document.getElementById('manualInputs').innerHTML = '<div class="manual-input-grid">' + fields.map(k => '<div class="manual-input-group"><label>'+k+'</label><input type="text" value="'+d[k]+'" onchange="updateData(\\''+activeTab+'\\',\\''+k+'\\',this.value)"></div>').join('') + '</div>';
+            const fields = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'homesForSale', 'invNew', 'invSold', 'price', 'priceChange'];
+            document.getElementById('manualInputs').innerHTML = '<div class="manual-input-grid">' + fields.map(k => '<div class="manual-input-group"><label>'+k+'</label><input type="text" value="'+d[k]+'" onchange="updateData(\\''+activeTab+'\\',\\''+k+'\\',this.value)"></div>').join('') + '</div>';
         }
-                function updateData(r,k,v) {data[r][k] = v; renderCanvas(r); }
-                function renderPreviews() {document.getElementById('previews').innerHTML = regions.map(r => '<div class="preview-card"><h3><div class="dot" style="background:' + regionConfig[r].color + '"></div>' + regionConfig[r].title.split(' ')[0] + '</h3><canvas id="canvas-' + r + '"></canvas><div style="text-align:center"><button class="dl-btn" onclick="dl(\\''+r+'\\')">Download PNG</button></div></div > ').join(''); }
-function renderAll() { regions.forEach(renderCanvas); }
-function dl(r) { const c = document.getElementById('canvas-' + r); const l = document.createElement('a'); l.download = 'BER_Report_' + r + '.png'; l.href = c.toDataURL(); l.click(); }
+        function updateData(r,k,v) { data[r][k] = v; renderCanvas(r); }
+        function renderPreviews() { document.getElementById('previews').innerHTML = regions.map(r => '<div class="preview-card"><h3><div class="dot" style="background:'+regionConfig[r].color+'"></div>'+regionConfig[r].title.split(' ')[0]+'</h3><canvas id="canvas-'+r+'"></canvas><div style="text-align:center"><button class="dl-btn" onclick="dl(\\''+r+'\\')">Download PNG</button></div></div>').join(''); }
+        function renderAll() { regions.forEach(renderCanvas); }
+        function dl(r) { 
+            const c = document.getElementById('canvas-'+r); 
+            const l = document.createElement('a'); 
+            // Format: City Month Year.png (e.g., "Naples November 2025.png")
+            const cityName = regionConfig[r].title.split(' ')[0]; // Naples, Fort, Bonita
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            l.download = cityName + ' ' + month + ' ' + year + '.png';
+            l.href = c.toDataURL(); 
+            l.click(); 
+        }
 
-function renderCanvas(region) {
-    if (!templateLoaded) return;
-    const canvas = document.getElementById('canvas-' + region);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const d = data[region];
-    const cfg = regionConfig[region];
-    const W = templateImg.width;
-    const H = templateImg.height;
-    canvas.width = W;
-    canvas.height = H;
+        function renderCanvas(region) {
+            if (!templateLoaded) return;
+            const canvas = document.getElementById('canvas-' + region);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const d = data[region];
+            const cfg = regionConfig[region];
+            const W = templateImg.width;
+            const H = templateImg.height;
+            canvas.width = W;
+            canvas.height = H;
 
-    ctx.drawImage(templateImg, 0, 0, W, H);
+            ctx.drawImage(templateImg, 0, 0, W, H);
 
-    // Text Styles
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 2;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+            // Text Styles
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = 2;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
 
-    // 1. Title (No Shadow, Color set by region)
-    ctx.save();
-    ctx.shadowColor = 'transparent';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = cfg.color;
-    ctx.font = '900 28px Inter';
-    ctx.fillText(cfg.title, 18, 32);
+            // 1. Title (No Shadow, Color set by region)
+            ctx.save();
+            ctx.shadowColor = 'transparent';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = cfg.color;
+            ctx.font = '900 28px Inter';
+            ctx.fillText(cfg.title, 18, 32);
+            
+            // Subtitle
+            const mon = document.getElementById('month').value;
+            const yr = document.getElementById('year').value;
+            ctx.fillStyle = '#4a4a4a';
+            ctx.font = '500 13px Inter';
+            ctx.fillText('Figures based upon a one-year comparison between ' + mon + ' ' + (parseInt(yr)-1) + ' to ' + mon + ' ' + yr, 18, 56);
+            ctx.restore();
 
-    // Subtitle
-    const mon = document.getElementById('month').value;
-    const yr = document.getElementById('year').value;
-    ctx.fillStyle = '#4a4a4a';
-    ctx.font = '500 13px Inter';
-    ctx.fillText('Figures based upon a one-year comparison between ' + mon + ' ' + (parseInt(yr) - 1) + ' to ' + mon + ' ' + yr, 18, 56);
-    ctx.restore();
+            // 2. Data Values (White with Shadow)
+            ctx.fillStyle = '#FFFFFF';
+            
+            // Helper to get font
+            const getFont = (f) => '900 ' + f + 'px Inter';
 
-    // 2. Data Values (White with Shadow)
-    ctx.fillStyle = '#FFFFFF';
+            // Closed Sales (Left)
+            ctx.font = getFont(coordConfig.closedSales.fontSize);
+            ctx.fillText(d.closedSales, coordConfig.closedSales.x, coordConfig.closedSales.y);
 
-    // Helper to get font
-    const getFont = (f) => '900 ' + f + 'px Inter';
+            // Median Days (2nd Col) - Calendar
+            ctx.save();
+            ctx.fillStyle = '#222222';
+            ctx.shadowColor = 'transparent';
+            ctx.font = getFont(coordConfig.medianDays.fontSize);
+            ctx.fillText(d.medianDays, coordConfig.medianDays.x, coordConfig.medianDays.y);
+            ctx.restore();
 
-    // Closed Sales (Left)
-    ctx.font = getFont(coordConfig.closedSales.fontSize);
-    ctx.fillText(d.closedSales, coordConfig.closedSales.x, coordConfig.closedSales.y);
+            // Pending Sales (3rd Col)
+            ctx.font = getFont(coordConfig.pendingSales.fontSize);
+            ctx.fillText(d.pendingSales, coordConfig.pendingSales.x, coordConfig.pendingSales.y);
 
-    // Median Days (2nd Col) - Calendar
-    ctx.save();
-    ctx.fillStyle = '#222222';
-    ctx.shadowColor = 'transparent';
-    ctx.font = getFont(coordConfig.medianDays.fontSize);
-    ctx.fillText(d.medianDays, coordConfig.medianDays.x, coordConfig.medianDays.y);
-    ctx.restore();
+            // New Listings (4th Col)
+            ctx.font = getFont(coordConfig.newListings.fontSize);
+            ctx.fillText(d.newListings, coordConfig.newListings.x, coordConfig.newListings.y);
 
-    // Pending Sales (3rd Col)
-    ctx.font = getFont(coordConfig.pendingSales.fontSize);
-    ctx.fillText(d.pendingSales, coordConfig.pendingSales.x, coordConfig.pendingSales.y);
+            // --- Row 2 ---
+            
+            // Inventory Header Date
+            ctx.save();
+            ctx.shadowColor = 'transparent';
+            ctx.textAlign = 'left';
+            ctx.font = '700 16px Inter';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.restore();
 
-    // New Listings (4th Col)
-    ctx.font = getFont(coordConfig.newListings.fontSize);
-    ctx.fillText(d.newListings, coordConfig.newListings.x, coordConfig.newListings.y);
+            // Inventory Signs (Bottom Left Block)
+            // New Listings Sign (Left)
+            ctx.font = getFont(coordConfig.invNew.fontSize);
+            ctx.fillText(d.invNew, coordConfig.invNew.x, coordConfig.invNew.y);
+            // Sold Sign (Right)
+            ctx.font = getFont(coordConfig.invSold.fontSize);
+            ctx.fillText(d.invSold, coordConfig.invSold.x, coordConfig.invSold.y);
 
-    // --- Row 2 ---
+            // Price (Bottom Right Block)
+            // Median Price
+            ctx.font = getFont(coordConfig.price.fontSize);
+            ctx.fillText(d.price, coordConfig.price.x, coordConfig.price.y);
+            
+            // Price Change
+            ctx.font = '700 ' + coordConfig.priceChange.fontSize + 'px Inter';
+            ctx.fillText(d.priceChange, coordConfig.priceChange.x, coordConfig.priceChange.y);
 
-    // Inventory Header Date
-    ctx.save();
-    ctx.shadowColor = 'transparent';
-    ctx.textAlign = 'left';
-    ctx.font = '700 16px Inter';
-    ctx.fillStyle = '#FFFFFF';
-    ctx.restore();
+            // Homes for Sale
+            ctx.font = getFont(coordConfig.homesForSale.fontSize);
+            ctx.fillText(d.homesForSale, coordConfig.homesForSale.x, coordConfig.homesForSale.y);
+        }
 
-    // Inventory Signs (Bottom Left Block)
-    // New Listings Sign (Left)
-    ctx.font = getFont(coordConfig.invNew.fontSize);
-    ctx.fillText(d.invNew, coordConfig.invNew.x, coordConfig.invNew.y);
-    // Sold Sign (Right)
-    ctx.font = getFont(coordConfig.invSold.fontSize);
-    ctx.fillText(d.invSold, coordConfig.invSold.x, coordConfig.invSold.y);
-
-    // Price (Bottom Right Block)
-    // Median Price
-    ctx.font = getFont(coordConfig.price.fontSize);
-    ctx.fillText(d.price, coordConfig.price.x, coordConfig.price.y);
-
-    // Price Change
-    ctx.font = '700 ' + coordConfig.priceChange.fontSize + 'px Inter';
-    ctx.fillText(d.priceChange, coordConfig.priceChange.x, coordConfig.priceChange.y);
-
-    // Homes for Sale
-    ctx.font = getFont(coordConfig.homesForSale.fontSize);
-    ctx.fillText(d.homesForSale, coordConfig.homesForSale.x, coordConfig.homesForSale.y);
-}
-
-init();
-    </script >
-</body >
-</html > `;
+        init();
+    </script>
+</body>
+</html>`;
 
 fs.writeFileSync('infographic-generator.html', htmlContent);

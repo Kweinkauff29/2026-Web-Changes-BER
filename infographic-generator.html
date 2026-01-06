@@ -91,6 +91,18 @@
         };
         let activeTab = 'naples';
 
+        let coordConfig = {
+            closedSales: { x: 130, y: 276, fontSize: 58, label: 'Closed Sales' },
+            medianDays: { x: 363, y: 191, fontSize: 117, label: 'Median Days' },
+            pendingSales: { x: 622, y: 274, fontSize: 61, label: 'Pending Sales' },
+            newListings: { x: 877, y: 274, fontSize: 63, label: 'New Listings' },
+            invNew: { x: 132, y: 529, fontSize: 60, label: 'Inv New' },
+            invSold: { x: 370, y: 528, fontSize: 57, label: 'Inv Sold' },
+            price: { x: 848, y: 389, fontSize: 49, label: 'Price' },
+            priceChange: { x: 861, y: 432, fontSize: 28, label: 'Price Change' },
+            homesForSale: { x: 855, y: 505, fontSize: 64, label: 'Homes For Sale' }
+        };
+
         async function init() {
             const dropzone = document.getElementById('dropzone');
             const fileInput = document.getElementById('fileInput');
@@ -99,13 +111,82 @@
             dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
             dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
             fileInput.addEventListener('change', e => handleFiles(e.target.files));
-            renderFileStatus(); renderTabs(); renderInputs();
+            
             try {
                 templateImg = await loadImage(TEMPLATE_BASE64);
                 templateLoaded = true;
+                
+                // Init Defaults based on image width
+                const W = templateImg.width;
+                const colW = W / 4;
+                if (coordConfig.closedSales.x === null) coordConfig.closedSales.x = colW * 0.5;
+                if (coordConfig.medianDays.x === null) coordConfig.medianDays.x = colW * 1.5;
+                if (coordConfig.pendingSales.x === null) coordConfig.pendingSales.x = colW * 2.5;
+                if (coordConfig.newListings.x === null) coordConfig.newListings.x = colW * 3.5;
+
+                renderFileStatus(); renderTabs(); renderInputs(); renderCoordControls();
                 await document.fonts.ready;
                 renderPreviews(); renderAll();
             } catch(e) { console.error(e); }
+        }
+
+        function renderCoordControls() {
+            const container = document.createElement('div');
+            container.style.marginTop = '20px';
+            container.style.borderTop = '1px solid #e2e8f0';
+            container.style.paddingTop = '10px';
+            container.innerHTML = '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:10px;">Transformation Controls</div>';
+            
+            const grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gap = '10px';
+            
+            Object.keys(coordConfig).forEach(key => {
+                const conf = coordConfig[key];
+                const row = document.createElement('div');
+                row.style.background = '#f8fafc';
+                row.style.padding = '8px';
+                row.style.borderRadius = '6px';
+                row.style.border = '1px solid #e2e8f0';
+                
+                // Escaped backticks and dollar signs for template literal inside template literal
+                row.innerHTML = `
+                    <div style="font-size:10px;font-weight:600;margin-bottom:4px;color:#475569">${conf.label}</div>
+                    <div style="display:flex;gap:4px">
+                        <input type="number" title="X" value="${Math.round(conf.x)}" onchange="updateCoord('${key}', 'x', this.value)" style="width:50px;font-size:10px;padding:2px">
+                        <input type="number" title="Y" value="${Math.round(conf.y)}" onchange="updateCoord('${key}', 'y', this.value)" style="width:50px;font-size:10px;padding:2px">
+                        <input type="number" title="Size" value="${conf.fontSize}" onchange="updateCoord('${key}', 'fontSize', this.value)" style="width:40px;font-size:10px;padding:2px">
+                    </div>
+                `;
+                grid.appendChild(row);
+            });
+            
+            container.appendChild(grid);
+            
+            // Add Copy Button
+            const btn = document.createElement('button');
+            btn.textContent = 'Copy Config to Clipboard';
+            btn.className = 'btn';
+            btn.style.marginTop = '10px';
+            btn.style.background = '#334155';
+            btn.style.color = 'white';
+            btn.style.padding = '8px';
+            btn.onclick = () => {
+                const clean = {};
+                Object.keys(coordConfig).forEach(k => clean[k] = { x: Math.round(coordConfig[k].x), y: Math.round(coordConfig[k].y), fontSize: coordConfig[k].fontSize });
+                navigator.clipboard.writeText(JSON.stringify(clean, null, 2));
+                alert('Config copied!');
+            };
+            container.appendChild(btn);
+
+            // Append to sidebar (after manual inputs)
+             const sidebar = document.querySelector('.sidebar');
+             sidebar.appendChild(container);
+        }
+
+        function updateCoord(key, prop, val) {
+            coordConfig[key][prop] = parseFloat(val);
+            renderAll();
         }
 
         function loadImage(src) { return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = src; }); }
@@ -129,21 +210,55 @@
 
         function detectMetricType(filename, rows) {
             const name = filename.toLowerCase();
-            if (name.includes('closed') || name.includes('sales')) return 'closedSales';
-            if (name.includes('days') || name.includes('market')) return 'medianDays';
+            // Try filename first
+            if (name.includes('closed') && name.includes('sales')) return 'closedSales';
+            if (name.includes('days') || name.includes('dom')) return 'medianDays';
             if (name.includes('pending')) return 'pendingSales';
             if (name.includes('new') && name.includes('listing')) return 'newListings';
-            if (name.includes('inventory') || name.includes('homes')) return 'inventory';
-            if (name.includes('price')) return 'price';
-            return null;
+            if (name.includes('inventory') || name.includes('active')) return 'inventory';
+            if (name.includes('price') || name.includes('median')) return 'price';
+            
+            // If filename is UUID-like, try to detect from data patterns
+            if (rows.length > 2) {
+                // Get sample values from last column (typically the value column)
+                const sampleValues = [];
+                for (let i = 1; i < Math.min(10, rows.length); i++) {
+                    const row = rows[i];
+                    if (!row) continue;
+                    // Find last non-null value
+                    for (let j = row.length - 1; j >= 0; j--) {
+                        if (row[j] !== null && row[j] !== undefined && row[j] !== '') {
+                            const val = parseFloat(String(row[j]).replace(/[,$%]/g, ''));
+                            if (!isNaN(val)) sampleValues.push(val);
+                            break;
+                        }
+                    }
+                }
+                
+                if (sampleValues.length > 0) {
+                    const avg = sampleValues.reduce((a,b) => a+b, 0) / sampleValues.length;
+                    // Price data: typically large numbers > 100000
+                    if (avg > 100000) return 'price';
+                    // Days on market: typically 20-150
+                    if (avg > 10 && avg < 200) return 'medianDays';
+                    // Inventory: typically 500-3000
+                    if (avg > 200 && avg < 10000) return 'inventory';
+                }
+            }
+            
+            return null; // Will prompt user
         }
 
         function askUserForType(filename, rows) {
             const types = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'inventory', 'price'];
-            const labels = ['Closed Sales', 'Median Days', 'Pending Sales', 'New Listings', 'Inventory', 'Median Price'];
-            const choice = prompt('Select type for "' + filename + '":\n\n' + labels.map((l,i) => (i+1) + '. ' + l).join('\n'));
+            const labels = ['Closed Sales', 'Median Days on Market', 'Pending Sales', 'New Listings', 'Inventory/Homes for Sale', 'Median Price'];
+            const choice = prompt('What metric type is this file?\n\nFile: ' + filename.substring(0, 20) + '...\n\n' + labels.map((l,i) => (i+1) + '. ' + l).join('\n') + '\n\nEnter number (1-6):');
             const idx = parseInt(choice) - 1;
-            if (idx >= 0 && idx < types.length) { uploadedFiles[types[idx]] = { rows, fileName: filename }; renderFileStatus(); processAllFiles(); }
+            if (idx >= 0 && idx < types.length) { 
+                uploadedFiles[types[idx]] = { rows, fileName: filename }; 
+                renderFileStatus(); 
+                processAllFiles(); 
+            }
         }
 
         function processAllFiles() {
@@ -153,54 +268,111 @@
             renderInputs(); renderAll();
         }
 
+        // NEW: Row-based data parsing (each row = one city + one date)
         function processSheet(type, rows, month, year) {
-            const header = rows[0] || [];
-            const colMap = { naples: -1, fortmyers: -1, bonita: -1 };
-            header.forEach((c, i) => {
-                const t = String(c || '').toLowerCase();
-                if (t.includes('naples') && !t.includes('marco')) colMap.naples = i;
-                if ((t.includes('fort myers') || t.includes('cape coral')) && !t.includes('beach')) colMap.fortmyers = i;
-                if (t.includes('bonita') || t.includes('estero')) colMap.bonita = i;
-            });
+            if (rows.length < 2) return;
+            
             const monAbbr = month.substring(0,3).toLowerCase();
-            let curr = {}, prev = {};
-            rows.forEach(r => {
-                const d = parseDate(String(r[0] || '').trim());
-                if (!d) return;
-                if (d.m.toLowerCase().startsWith(monAbbr)) {
-                    if (d.y === year) regions.forEach(reg => { if(colMap[reg]>=0) curr[reg] = parseFloat(r[colMap[reg]]) || 0; });
-                    else if (d.y === year-1) regions.forEach(reg => { if(colMap[reg]>=0) prev[reg] = parseFloat(r[colMap[reg]]) || 0; });
+            
+            // Data structure: { region: { year: value } }
+            const regionData = { naples: {}, fortmyers: {}, bonita: {} };
+            
+            // Skip header row, process data rows
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length < 2) continue;
+                
+                // Column 0: Date (Excel serial or string)
+                const dateVal = row[0];
+                const parsed = parseDate(dateVal);
+                if (!parsed) continue;
+                
+                // Check if this row's month matches
+                if (!parsed.m.toLowerCase().startsWith(monAbbr)) continue;
+                
+                // Column 1: City/Series name
+                const cityName = String(row[1] || '').toUpperCase();
+                let region = null;
+                if (cityName.includes('NAPLES') && !cityName.includes('MARCO')) region = 'naples';
+                else if (cityName.includes('FORT MYERS') || cityName.includes('CAPE CORAL') || cityName.includes('LEE')) region = 'fortmyers';
+                else if (cityName.includes('BONITA') || cityName.includes('ESTERO')) region = 'bonita';
+                
+                if (!region) continue;
+                
+                // Find the value (last non-null column)
+                let value = null;
+                for (let j = row.length - 1; j >= 2; j--) {
+                    if (row[j] !== null && row[j] !== undefined && row[j] !== '') {
+                        value = parseFloat(String(row[j]).replace(/[,$%]/g, ''));
+                        if (!isNaN(value)) break;
+                    }
                 }
-            });
+                
+                if (value !== null) {
+                    regionData[region][parsed.y] = value;
+                }
+            }
+            
+            // Calculate and apply to data
             regions.forEach(r => {
-                const c = curr[r], p = prev[r];
-                if (c === undefined) return;
-                if (type === 'closedSales' && p) data[r].closedSales = fmtPct((c-p)/p);
-                if (type === 'closedSales') data[r].invSold = fmtNum(c);
-                if (type === 'medianDays') data[r].medianDays = Math.round(c).toString();
-                if (type === 'pendingSales' && p) data[r].pendingSales = fmtPct((c-p)/p);
-                if (type === 'newListings' && p) data[r].newListings = fmtPct((c-p)/p);
-                if (type === 'newListings') data[r].invNew = fmtNum(c);
-                if (type === 'inventory' && p) data[r].homesForSale = fmtPct((c-p)/p);
-                if (type === 'price') { data[r].price = '$' + Math.round(c).toLocaleString(); if(p) data[r].priceChange = '(' + fmtPct((c-p)/p) + ')'; }
+                const curr = regionData[r][year];
+                const prev = regionData[r][year - 1];
+                
+                if (curr === undefined) return;
+                
+                if (type === 'closedSales') {
+                    if (prev) data[r].closedSales = fmtPct((curr - prev) / prev);
+                    data[r].invSold = fmtNum(curr);
+                }
+                if (type === 'medianDays') {
+                    data[r].medianDays = Math.round(curr).toString();
+                }
+                if (type === 'pendingSales' && prev) {
+                    data[r].pendingSales = fmtPct((curr - prev) / prev);
+                }
+                if (type === 'newListings') {
+                    if (prev) data[r].newListings = fmtPct((curr - prev) / prev);
+                    data[r].invNew = fmtNum(curr);
+                }
+                if (type === 'inventory' && prev) {
+                    data[r].homesForSale = fmtPct((curr - prev) / prev);
+                }
+                if (type === 'price') {
+                    data[r].price = '$' + Math.round(curr).toLocaleString();
+                    if (prev) data[r].priceChange = '(' + fmtPct((curr - prev) / prev) + ')';
+                }
             });
         }
 
-        function parseDate(str) {
-            if (!isNaN(str) && parseFloat(str)>20000) { const d = new Date((parseFloat(str)-25569)*86400*1000); return { m: d.toLocaleString('default',{month:'short'}), y: d.getFullYear() }; }
-            const d = new Date(str);
-            if (d instanceof Date && !isNaN(d)) return { m: d.toLocaleString('default',{month:'short'}), y: d.getFullYear() };
+        function parseDate(val) {
+            // Excel serial number
+            if (!isNaN(val) && parseFloat(val) > 20000) {
+                const d = new Date((parseFloat(val) - 25569) * 86400 * 1000);
+                return { m: d.toLocaleString('default', { month: 'short' }), y: d.getFullYear() };
+            }
+            // String date
+            const d = new Date(val);
+            if (d instanceof Date && !isNaN(d)) {
+                return { m: d.toLocaleString('default', { month: 'short' }), y: d.getFullYear() };
+            }
             return null;
         }
-        function fmtPct(v) { const p = Math.round(v*100); return (p>0?'+':'') + p + '%'; }
-        function fmtNum(v) { return Math.round(v).toLocaleString(); }
+        
+        function fmtPct(v) { 
+            const p = Math.round(v * 100); 
+            return (p > 0 ? '+' : '') + p + '%'; 
+        }
+        
+        function fmtNum(v) { 
+            return Math.round(v).toLocaleString(); 
+        }
 
         function renderFileStatus() {
             const div = document.getElementById('fileStatus');
             const types = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'inventory', 'price'];
             div.innerHTML = types.map(t => {
                 const f = uploadedFiles[t];
-                return '<div class="file-row"><div class="dot ' + (f?'ok':'pending') + '"></div><div class="name">' + t + '</div><div class="fname">' + (f?f.fileName:'-') + '</div></div>';
+                return '<div class="file-row"><div class="dot ' + (f ? 'ok' : 'pending') + '"></div><div class="name">' + t + '</div><div class="fname">' + (f ? f.fileName.substring(0, 15) + '...' : '-') + '</div></div>';
             }).join('');
         }
         function renderTabs() { document.getElementById('tabs').innerHTML = regions.map(r => '<button class="tab '+(activeTab===r?'active':'')+'" onclick="setTab(\''+r+'\')">'+regionConfig[r].title.split(' ')[0]+'</button>').join(''); }
@@ -213,7 +385,17 @@
         function updateData(r,k,v) { data[r][k] = v; renderCanvas(r); }
         function renderPreviews() { document.getElementById('previews').innerHTML = regions.map(r => '<div class="preview-card"><h3><div class="dot" style="background:'+regionConfig[r].color+'"></div>'+regionConfig[r].title.split(' ')[0]+'</h3><canvas id="canvas-'+r+'"></canvas><div style="text-align:center"><button class="dl-btn" onclick="dl(\''+r+'\')">Download PNG</button></div></div>').join(''); }
         function renderAll() { regions.forEach(renderCanvas); }
-        function dl(r) { const c = document.getElementById('canvas-'+r); const l = document.createElement('a'); l.download = 'BER_Report_'+r+'.png'; l.href = c.toDataURL(); l.click(); }
+        function dl(r) { 
+            const c = document.getElementById('canvas-'+r); 
+            const l = document.createElement('a'); 
+            // Format: City Month Year.png (e.g., "Naples November 2025.png")
+            const cityName = regionConfig[r].title.split(' ')[0]; // Naples, Fort, Bonita
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            l.download = cityName + ' ' + month + ' ' + year + '.png';
+            l.href = c.toDataURL(); 
+            l.click(); 
+        }
 
         function renderCanvas(region) {
             if (!templateLoaded) return;
@@ -254,27 +436,29 @@
 
             // 2. Data Values (White with Shadow)
             ctx.fillStyle = '#FFFFFF';
-            const colW = W / 4; // 256px per col
+            
+            // Helper to get font
+            const getFont = (f) => '900 ' + f + 'px Inter';
 
             // Closed Sales (Left)
-            ctx.font = '900 64px Inter';
-            ctx.fillText(d.closedSales, colW * 0.5, 360); // Moved down significantly
+            ctx.font = getFont(coordConfig.closedSales.fontSize);
+            ctx.fillText(d.closedSales, coordConfig.closedSales.x, coordConfig.closedSales.y);
 
             // Median Days (2nd Col) - Calendar
             ctx.save();
             ctx.fillStyle = '#222222';
             ctx.shadowColor = 'transparent';
-            ctx.font = '900 90px Inter'; // Increased font size
-            ctx.fillText(d.medianDays, colW * 1.5, 200); // Moved down and centered better
+            ctx.font = getFont(coordConfig.medianDays.fontSize);
+            ctx.fillText(d.medianDays, coordConfig.medianDays.x, coordConfig.medianDays.y);
             ctx.restore();
 
             // Pending Sales (3rd Col)
-            ctx.font = '900 64px Inter';
-            ctx.fillText(d.pendingSales, colW * 2.5, 360); // Moved down
+            ctx.font = getFont(coordConfig.pendingSales.fontSize);
+            ctx.fillText(d.pendingSales, coordConfig.pendingSales.x, coordConfig.pendingSales.y);
 
             // New Listings (4th Col)
-            ctx.font = '900 64px Inter';
-            ctx.fillText(d.newListings, colW * 3.5, 360); // Moved down
+            ctx.font = getFont(coordConfig.newListings.fontSize);
+            ctx.fillText(d.newListings, coordConfig.newListings.x, coordConfig.newListings.y);
 
             // --- Row 2 ---
             
@@ -287,28 +471,25 @@
             ctx.restore();
 
             // Inventory Signs (Bottom Left Block)
-            const signY = 585; // Moved down to be below the "For Sale"/"Sold" text
-            ctx.font = '900 60px Inter';
             // New Listings Sign (Left)
-            ctx.fillText(d.invNew, 130, signY);
+            ctx.font = getFont(coordConfig.invNew.fontSize);
+            ctx.fillText(d.invNew, coordConfig.invNew.x, coordConfig.invNew.y);
             // Sold Sign (Right)
-            ctx.fillText(d.invSold, 380, signY);
+            ctx.font = getFont(coordConfig.invSold.fontSize);
+            ctx.fillText(d.invSold, coordConfig.invSold.x, coordConfig.invSold.y);
 
             // Price (Bottom Right Block)
-            const houseCX = 810; 
             // Median Price
-            ctx.font = '900 60px Inter';
-            // Moved down and slightly right
-            ctx.fillText(d.price, houseCX + 40, 420); 
+            ctx.font = getFont(coordConfig.price.fontSize);
+            ctx.fillText(d.price, coordConfig.price.x, coordConfig.price.y);
             
             // Price Change
-            ctx.font = '700 28px Inter';
-            ctx.fillText(d.priceChange, houseCX + 40, 465);
+            ctx.font = '700 ' + coordConfig.priceChange.fontSize + 'px Inter';
+            ctx.fillText(d.priceChange, coordConfig.priceChange.x, coordConfig.priceChange.y);
 
             // Homes for Sale
-            ctx.font = '900 64px Inter';
-            // Moved slightly right
-            ctx.fillText(d.homesForSale, houseCX + 30, 560);
+            ctx.font = getFont(coordConfig.homesForSale.fontSize);
+            ctx.fillText(d.homesForSale, coordConfig.homesForSale.x, coordConfig.homesForSale.y);
         }
 
         init();
