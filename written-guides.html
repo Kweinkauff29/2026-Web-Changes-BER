@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BER Written Guides | Bonita Springs-Estero REALTORS®</title>
+    <meta name="description" content="Step-by-step written guides for Matrix MLS, Agent 3000, GrowthZone, and more.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-primary: #03AAE1;
+            --brand-secondary: #0CA7A4;
+            --brand-accent: #7EF0F0;
+            --brand-dark: #006b86;
+            --ink: #0f172a;
+            --muted: #64748b;
+            --surface: #f7fbff;
+            --line: #e5e7eb;
+            --radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(2, 8, 20, 0.06);
+            --shadow-md: 0 8px 24px rgba(2, 8, 20, 0.08);
+            --shadow-lg: 0 18px 48px rgba(2, 8, 20, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdfa 100%);
+            min-height: 100vh;
+            color: var(--ink);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(120deg, #7EF0F0 0%, #03AAE1 18%, #0CA7A4 48%, #006b86 78%, #7EF0F0 100%);
+            background-size: 400% 100%;
+            animation: ribbonFlow 10s ease-in-out infinite alternate;
+            padding: 48px 24px 56px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes ribbonFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .header .guide-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 999px;
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        /* Search Bar */
+        .search-container {
+            max-width: 600px;
+            margin: -28px auto 0;
+            padding: 0 24px;
+            position: relative;
+            z-index: 200;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 52px;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: #fff;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: var(--shadow-lg), 0 0 0 4px rgba(3, 170, 225, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 300;
+        }
+
+        .search-dropdown.active {
+            display: block;
+        }
+
+        .search-result {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .search-result:last-child {
+            border-bottom: none;
+        }
+
+        .search-result:hover {
+            background: var(--surface);
+        }
+
+        .search-result-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface);
+            border-radius: 8px;
+            color: var(--brand-primary);
+        }
+
+        .search-result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-result-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .search-result-category {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        /* Filter Tabs */
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 24px 16px;
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+            margin-top: 16px;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(3, 170, 225, 0.3);
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
+
+        /* Grid */
+        .guides-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .guide-card {
+            background: #fff;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            height: 100%;
+        }
+
+        .guide-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .guide-header {
+            height: 100px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .guide-icon {
+            width: 56px;
+            height: 56px;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            font-size: 24px;
+        }
+
+        .guide-icon img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .guide-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .guide-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.4;
+            margin-bottom: 12px;
+            flex: 1;
+            /* Limit to 3 lines */
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .guide-meta {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .guide-category {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--brand-dark);
+            background: #e0f2fe;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .read-btn {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--brand-primary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 32px 16px 40px;
+            }
+
+            .search-container {
+                margin-top: -24px;
+                padding: 0 16px;
+            }
+
+            .guides-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+                gap: 16px;
+            }
+
+            .filter-bar {
+                padding: 16px 12px;
+                gap: 8px;
+                justify-content: flex-start;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 64px 24px;
+            color: var(--muted);
+            grid-column: 1 / -1;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1>📑 BER Written Guides</h1>
+        <p>Step-by-step tutorials for all things Real Estate</p>
+        <div class="guide-count">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span id="guideCount">Loading...</span>
+        </div>
+    </header>
+
+    <!-- Search -->
+    <div class="search-container">
+        <div class="search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" class="search-input" id="searchInput"
+                placeholder="Search guides... (e.g., 'Matrix', 'Billing', 'Listing')">
+            <div class="search-dropdown" id="searchDropdown">
+                <div id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <nav class="filter-bar">
+        <button class="filter-btn active" data-filter="all">All Guides</button>
+        <button class="filter-btn" data-filter="Matrix">Matrix MLS</button>
+        <button class="filter-btn" data-filter="Agent 3000">Agent 3000</button>
+        <button class="filter-btn" data-filter="GrowthZone">GrowthZone</button>
+        <button class="filter-btn" data-filter="ShowingTime">ShowingTime</button>
+        <button class="filter-btn" data-filter="RentSpree">RentSpree</button>
+        <button class="filter-btn" data-filter="Other">Other</button>
+    </nav>
+
+    <main class="main">
+        <div class="guides-grid" id="guidesGrid"></div>
+        <div class="no-results" id="noResults">
+            <p>No guides found matching criteria.</p>
+        </div>
+    </main>
+
+    <script>
+        // Data from collected Scribe accounts
+        const rawData = [
+            // Account 1 Data
+            { title: "Add an Open House to a Listing", url: "https://scribehow.com/viewer/Add_an_Open_House_to_a_Listing__lH-zJfC7SASuN3Tvcfu1Cw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Add a New Residential Listing in Matrix (Highlights Required Fields)", url: "https://scribehow.com/viewer/Add_a_New_Residential_Listing_in_Matrix_and_have_all_required_fields_highlighted_in_yellow__N9WiaJ-cQEC4EPq5qni20g?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Swflamls Workflow", url: "https://scribehow.com/viewer/Swflamls_Workflow__ws2mxsMJRGmkTBQp_N08fw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to Make a New Listing by Filling From Cross Property", url: "https://scribehow.com/viewer/How_to_Make_a_New_Listing_by_Filling_From_Cross_Property__opMUQCbvQ1eQNCQWbk9Ngg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Log In to Bonita Springs Estero Realtors", url: "https://scribehow.com/viewer/Log_In_to_Bonita_Springs_Estero_Realtors__jhzup-3FRlmv-6102keH3w?referrer=documents", icon: "https://growthzoneapp.com" },
+            { title: "Checking to make sure all required fields have been input", url: "https://scribehow.com/viewer/Checking_to_make_sure_all_required_fields_have_been_input__i4OdAU3cSnqIq3h1G3zPXw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Search for Bonita Beach Single Family Homes", url: "https://scribehow.com/viewer/Search_for_Bonita_Beach_Single_Family_Homes__aco966GdRkmGduGAoP2cxQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Manage Property Photos in Matrix", url: "https://scribehow.com/viewer/Manage_Property_Photos_in_Matrix__dbwGBsIKTEy0Z21D9pjdgA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to find the GEO code", url: "https://scribehow.com/viewer/How_to_find_the_GEO_code__jKjmsR-XSKauyQHOlWUjsA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How To Search For Open Houses Online", url: "https://scribehow.com/viewer/How_To_Search_For_Open_Houses_Online__05mEk1d9Sa62lr_nz4sX7Q?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to send yourself a link to your ShowingTime", url: "https://scribehow.com/viewer/How_to_send_yourself_a_link_to_your_ShowingTime__nu2_qhbXR7KU3KnylxWSpQ?referrer=documents", icon: "https://showingtime.com" },
+            { title: "How To Request BER Access IDX", url: "https://scribehow.com/viewer/How_To_Request_BER_Access_IDX__Zu0U3hmCTf2nT705-jjswA?referrer=documents", icon: "https://bridgedataoutput.com" },
+            { title: "Generate Market Share Report for Bonita Springs", url: "https://scribehow.com/viewer/Generate_Market_Share_Report_for_Bonita_Springs__w-l65gTkQBS3a0HiF5Q7hg?referrer=documents", icon: "https://growthzoneapp.com" },
+            { title: "Use Realist Tax", url: "https://scribehow.com/viewer/Use_Realist_Tax__Nd8ShMWESF-tkpJl-MtN9Q?referrer=documents", icon: "https://realist.com" },
+            { title: "Edit ShowingTime Instructions and Save Changes", url: "https://scribehow.com/viewer/Edit_ShowingTime_Instructions_and_Save_Changes___tVbU7XdQb6nmOrm8SVRuA?referrer=documents", icon: "https://showingtime.com" },
+            { title: "Guide to Customizing and Exporting Real Estate Data (Realist)", url: "https://scribehow.com/viewer/Guide_to_Customizing_and_Exporting_Real_Estate_Data__YKqOkBE1QLSMU2gjTyOAeQ?referrer=documents", icon: "https://realist.com" },
+            { title: "How to View MarketStats for Naples Real Estate Sales", url: "https://scribehow.com/viewer/How_to_View_MarketStats_for_Naples_Real_Estate_Sales__NmDaohClR3KVsPeukREIog?referrer=documents", icon: "https://showingtime.com" },
+            { title: "How to Schedule a Showing on MLS Advantage", url: "https://scribehow.com/viewer/How_to_Schedule_a_Showing_on_MLS_Advantage__I9d8bHIrQVqIpdroAZI2uA?referrer=documents", icon: "https://showingtime.com" },
+
+            // Account 2 Data
+            { title: "Updating Property Information in Matrix System", url: "https://scribehow.com/viewer/Updating_Property_Information_in_Matrix_System__N29KRi8dQzW9MQne2bK2pw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Change Date Range in Listing Activity Report", url: "https://scribehow.com/viewer/Change_Date_Range_in_Listing_Activity_Report__VlprADgKR1qNpFuOnwktTA?referrer=documents", icon: "https://showingtime.com" },
+            { title: "How To Generate Shareable Links for Closed Listings", url: "https://scribehow.com/viewer/How_To_Generate_Shareable_Links_for_Closed_Listings__5A04zB05QSSyPBshqCEOUA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Create New Auto Email for Property Listings", url: "https://scribehow.com/viewer/Create_New_Auto_Email_for_Property_Listings__hNY98yRYQJiciHlZNUTCaA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to Search for Residential Properties with HOA Fees", url: "https://scribehow.com/viewer/How_to_Search_for_Residential_Properties_with_HOA_Fees__X8uD1NdcRJmyLZq0qLYKrw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Email Open House Information to a Colleague", url: "https://scribehow.com/viewer/Email_Open_House_Information_to_a_Colleague__FgEqqmTnSFG4fZMzi4ZABA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Generate Market Report Using Matrix Website", url: "https://scribehow.com/viewer/Generate_Market_Report_Using_Matrix_Website__U3vkADX-SMqg4DOcbbWYtg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to Input Residential Rental Listings in MLS", url: "https://scribehow.com/viewer/How_to_Input_Residential_Rental_Listings_in_MLS__-L-APjHgSzytGBAbqVxWcQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Adding HOA Fee to Residential Listings in Matrix", url: "https://scribehow.com/viewer/Adding_HOA_Fee_to_Residential_Listings_in_Matrix__eHAdAKwmSj2W_tEMC1qWlg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to Submit a Residential Comp Sold Listing", url: "https://scribehow.com/viewer/How_to_Submit_a_Residential_Comp_Sold_Listing__qb9PpgJFQbmtGaBgBzUIeA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Update Your Profile Photo For OneHome", url: "https://scribehow.com/viewer/Update_Your_Profile_Photo_For_OneHome__DiQeQM3bTvyalGyd5xI6wQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Generate MLS Office ID Report", url: "https://scribehow.com/viewer/Generate_MLS_Office_ID_Report__ky2o8G7BSzCCmoUmGZ-pqg?referrer=documents", icon: "https://growthzoneapp.com" },
+            { title: "Accessing ShowingTime Reports in Matrix System", url: "https://scribehow.com/viewer/Accessing_ShowingTime_Reports_in_Matrix_System__VXSxcH8ZQ-OmaJizWXesIw?referrer=documents", icon: "https://showingtime.com" },
+            { title: "Accessing My Listings in Matrix System", url: "https://scribehow.com/viewer/Accessing_My_Listings_in_Matrix_System__kEtrBg4JTPWP7NZvXATQtA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Setting Up Autopay for Billing Information", url: "https://scribehow.com/viewer/Setting_Up_Autopay_for_Billing_Information__4uWxQrLYTsu5J95YzaRXjA?referrer=documents", icon: "https://growthzoneapp.com" },
+            { title: "Importing Photos to MLS Listing in Matrix System", url: "https://scribehow.com/viewer/Importing_Photos_to_MLS_Listing_in_Matrix_System__Y--8_AwZSlaTQ1B3WDEYkQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Generate Agent 3000 Report For Estero Properties", url: "https://scribehow.com/viewer/Generate_Agent_3000_Report_For_Estero_Properties__TxTq5LEpRFC82K9gzXpX3w?referrer=documents", icon: "https://agent3000.com" },
+            { title: "Remove community from existing auto email", url: "https://scribehow.com/viewer/Remove_community_from_existing_auto_email__hCrFrScoTPaV9VoGofHe5g?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to Add a Sold Data Entry", url: "https://scribehow.com/viewer/How_to_Add_a_Sold_Data_Entry__sCra99cZRq-ErXFXmVqCnA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Step-by-Step Guide for Reverse Prospecting Listing to Excel", url: "https://scribehow.com/viewer/Step-by-Step_Guide_for_Reverse_Prospecting_Listing_to_Excel__nTVjjFBnSRyje_vc2AldKw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "ID Swaps", url: "https://scribehow.com/viewer/ID_Swaps___4gk5NEaT1y_MHfFKONWoA?referrer=documents", icon: "https://growthzoneapp.com" },
+            { title: "How to Upload a Supplemental Document to a Matrix Listing", url: "https://scribehow.com/viewer/How_to_Upload_a_Supplemental_Document_to_a_Matrix_Listing__gsQwvWhHQLeeiIoXt3snGw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Comp Input Location", url: "https://scribehow.com/viewer/Comp_Input_Location__vtHq4QZdQCSBMKtB4pUQmw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Step-by-Step Guide: Searching and Customizing Real Estate Listings", url: "https://scribehow.com/viewer/Step-by-Step_Guide_Searching_and_Customizing_Real_Estate_Listings__jxSGyRJjTd26b26c3OgmFw?referrer=documents", icon: "https://realist.com" },
+            { title: "Setting Up a Realty Business Card on Agent3000.com", url: "https://scribehow.com/viewer/Setting_Up_a_Realty_Business_Card_on_Agent3000com__m1VIkA-DT5ufmyy_5pzGSQ?referrer=documents", icon: "https://agent3000.com" },
+            { title: "Generate a YOY Market Video", url: "https://scribehow.com/viewer/Generate_a_YOY_Market_Video__235j8K60RjCKSF8f36Ni2g?referrer=documents", icon: "https://agent3000.com" },
+            { title: "Generate Average Sales Volume Graphs (Agent 3000)", url: "https://scribehow.com/viewer/How_to_Generate_Average_Sales_Volume_Graphs_for_Residential_Single-Family_Homes__v_osfcfLR6iUN17EIFqdeA?referrer=documents", icon: "https://agent3000.com" },
+            { title: "Creating an Open House Flyer (Agent 3000)", url: "https://scribehow.com/viewer/Creating_an_Open_House_Flyer__jcLNacwdTD259fxP6Xzpfg?referrer=documents", icon: "https://agent3000.com" },
+            { title: "Accessing market snapshot videos for specific locations", url: "https://scribehow.com/viewer/Step-by-step_guide_to_accessing_market_snapshot_videos_for_specific_locations__ApI0dfkfQO-SHbxBebtWgA?referrer=documents", icon: "https://agent3000.com" },
+            { title: "Generate Listing Remarks", url: "https://scribehow.com/viewer/Generate_Listing_Remarks__W_VwsguCQ6W4Hqy7diK7gQ?referrer=documents", icon: "https://agent3000.com" },
+            { title: "Creating a Single Property Email Listing Template", url: "https://scribehow.com/viewer/Creating_a_Single_Property_Email_Listing_Template__NUuas9Y6SIy82CspiO0Zuw?referrer=documents", icon: "https://agent3000.com" },
+            { title: "How to Find Flood Zone Layer", url: "https://scribehow.com/viewer/How_to_Find_Flood_Zone_Layer__dDaNDFD6Qim6KPhUTA6jUw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to Access and Share Listing Information", url: "https://scribehow.com/viewer/How_to_Access_and_Share_Listing_Information__EUksriEvSLGGUpQWxODVcw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Export contacts from Matrix SWFLAMLS website", url: "https://scribehow.com/viewer/Export_contacts_from_Matrix_SWFLAMLS_website__-48hArLdTIyd0U_XfqwZeg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to Generate Custom Stats in Matrix", url: "https://scribehow.com/viewer/How_to_Generate_Custom_Stats_in_Matrix___iXzKUzWRtWtbaMqBvx-aQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to Access Bonita Estero MLS InfoSparks Stats", url: "https://scribehow.com/viewer/How_to_Access_Bonita_Estero_MLS_InfoSparks_Stats__np3bhVF1Rn-LFU4tFw6TFg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "How to View Real Estate Continuing Education Requirements", url: "https://scribehow.com/viewer/How_to_View_Real_Estate_Continuing_Education_Requirements__ePBKdN_rQRCTyBi-RBJykg?referrer=documents", icon: "https://myfloridalicense.com" },
+            { title: "DBPR Online Services Login Guide", url: "https://scribehow.com/viewer/Welcome_to_DBPR_Online_Services_loginlogin__6J0PO-a1TbKpXLxHv5ZDuQ?referrer=documents", icon: "https://myfloridalicense.com" },
+            { title: "How to Login and List Your Property on Rentspree", url: "https://scribehow.com/viewer/How_to_Login_and_List_Your_Property_on_Rentspree__mZk0tZ05RPyX82Eso2f_lA?referrer=documents", icon: "https://rentspree.com" },
+            { title: "Login and Register as a Renter on RentSpree", url: "https://scribehow.com/viewer/Login_and_Register_as_a_Renter_on_RentSpree__CPgfAp28Tf6CvD3hCGy1fQ?referrer=documents", icon: "https://rentspree.com" },
+            { title: "Adding Joe Pavich to RPAC Event Email List", url: "https://scribehow.com/viewer/Adding_Joe_Pavich_to_RPAC_Event_Email_List__88terJ-4R8qVPPEIBE7Rbw?referrer=documents", icon: "https://growthzoneapp.com" }
+        ];
+
+        // Process Data: deduplicate and assign categories
+        const guides = [];
+        const seenUrls = new Set();
+
+        function determineCategory(title, text) {
+            const combined = (title + " " + text).toLowerCase();
+            if (combined.includes('matrix') || combined.includes('mls') || combined.includes('swflamls') || combined.includes('listing') || combined.includes('open house') || combined.includes('comp') || combined.includes('searches')) return 'Matrix';
+            if (combined.includes('agent 3000') || combined.includes('flyer') || combined.includes('business card') || combined.includes('market video')) return 'Agent 3000';
+            if (combined.includes('growthzone') || combined.includes('billing') || combined.includes('autopay') || combined.includes('office id') || combined.includes('rpac')) return 'GrowthZone';
+            if (combined.includes('showingtime')) return 'ShowingTime';
+            if (combined.includes('realist') || combined.includes('tax')) return 'Realist'; // Treated as Other in filter but assigned here
+            if (combined.includes('rentspree')) return 'RentSpree';
+            return 'Other';
+        }
+
+        rawData.forEach(item => {
+            if (!seenUrls.has(item.url)) {
+                seenUrls.add(item.url);
+                // Clean title
+                let title = item.title.replace('Scribe - ', '').replace('Step-by-Step Guide', '').trim();
+                // Assign category
+                let category = determineCategory(title, item.url);
+
+                // If category is Realist or DBPR, put in 'Other' buckets logic or specific?
+                // For simplicity of filters, map niche ones to 'Other' if not in main list
+                // but let's keep specific Category data for UI
+
+                guides.push({
+                    title: title,
+                    url: item.url,
+                    icon: item.icon,
+                    category: category
+                });
+            }
+        });
+
+        const grid = document.getElementById('guidesGrid');
+        const guideCount = document.getElementById('guideCount');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const searchInput = document.getElementById('searchInput');
+        const searchDropdown = document.getElementById('searchDropdown');
+        const searchResults = document.getElementById('searchResults');
+        const noResults = document.getElementById('noResults');
+
+        function createCard(guide) {
+            // Pick a generic icon if no specific favicon match found or provided icon is empty
+            let iconSrc = 'https://bonitaspringsrealtors.com/wp-content/uploads/2022/01/cropped-Favicon-32x32.png';
+            if (guide.icon && guide.icon.includes('swflamls')) iconSrc = 'https://swflamls.com/favicon.ico';
+            else if (guide.icon && guide.icon.includes('showingtime')) iconSrc = 'https://showingtime.com/wp-content/uploads/2019/11/favicon.ico';
+            else if (guide.icon && guide.icon.includes('agent3000')) iconSrc = 'https://agent3000.com/favicon.ico';
+            else if (guide.category === 'Matrix') iconSrc = 'https://swflamls.com/favicon.ico'; // Fallback
+
+            const card = document.createElement('a');
+            card.href = guide.url;
+            card.target = "_blank";
+            card.className = "guide-card";
+            card.innerHTML = `
+                <div class="guide-header">
+                    <div class="guide-icon">
+                        <img src="${iconSrc}" alt="icon" onerror="this.src='https://bonitaspringsrealtors.com/wp-content/uploads/2022/01/cropped-Favicon-32x32.png'">
+                    </div>
+                </div>
+                <div class="guide-content">
+                    <h3 class="guide-title">${guide.title}</h3>
+                    <div class="guide-meta">
+                        <span class="guide-category">${guide.category}</span>
+                        <div class="read-btn">Read Guide &rarr;</div>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderGuides(filter = 'all', searchTerm = '') {
+            grid.innerHTML = '';
+            const term = searchTerm.toLowerCase();
+
+            const filtered = guides.filter(guide => {
+                const matchesFilter = filter === 'all' || guide.category === filter || (filter === 'Other' && !['Matrix', 'Agent 3000', 'GrowthZone', 'ShowingTime', 'RentSpree'].includes(guide.category));
+                const matchesSearch = guide.title.toLowerCase().includes(term);
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+                filtered.forEach(guide => grid.appendChild(createCard(guide)));
+            }
+
+            guideCount.textContent = `${filtered.length} Guide${filtered.length !== 1 ? 's' : ''}`;
+        }
+
+        // Search Dropdown
+        function renderSearchResults(results) {
+            searchResults.innerHTML = '';
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="search-result" style="pointer-events: none; color: var(--muted);">No results found</div>';
+                return;
+            }
+
+            results.forEach(guide => {
+                const div = document.createElement('div');
+                div.className = 'search-result';
+                div.innerHTML = `
+                    <div class="search-result-icon">📄</div>
+                    <div class="search-result-info">
+                        <div class="search-result-title">${guide.title}</div>
+                        <div class="search-result-category">${guide.category}</div>
+                    </div>
+                `;
+                div.addEventListener('click', () => {
+                    window.open(guide.url, '_blank');
+                    searchDropdown.classList.remove('active');
+                });
+                searchResults.appendChild(div);
+            });
+        }
+
+        // Event Listeners
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderGuides(btn.dataset.filter, searchInput.value);
+            });
+        });
+
+        searchInput.addEventListener('input', () => {
+            const val = searchInput.value.trim();
+            renderGuides(document.querySelector('.filter-btn.active').dataset.filter, val);
+
+            if (val.length > 0) {
+                const dropdownResults = guides.filter(g => g.title.toLowerCase().includes(val.toLowerCase())).slice(0, 5);
+                renderSearchResults(dropdownResults);
+                searchDropdown.classList.add('active');
+            } else {
+                searchDropdown.classList.remove('active');
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                searchDropdown.classList.remove('active');
+            }
+        });
+
+        // Init
+        renderGuides();
+
+    </script>
+</body>
+
+</html>
