@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BER Video Library | Bonita Springs-Estero REALTORS®</title>
+    <meta name="description"
+        content="Watch tech tips, market updates, and educational shorts from Bonita Springs-Estero REALTORS®">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-primary: #03AAE1;
+            --brand-secondary: #0CA7A4;
+            --brand-accent: #7EF0F0;
+            --brand-dark: #006b86;
+            --ink: #0f172a;
+            --muted: #64748b;
+            --surface: #f7fbff;
+            --line: #e5e7eb;
+            --radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(2, 8, 20, 0.06);
+            --shadow-md: 0 8px 24px rgba(2, 8, 20, 0.08);
+            --shadow-lg: 0 18px 48px rgba(2, 8, 20, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdfa 100%);
+            min-height: 100vh;
+            color: var(--ink);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(120deg, #7EF0F0 0%, #03AAE1 18%, #0CA7A4 48%, #006b86 78%, #7EF0F0 100%);
+            background-size: 400% 100%;
+            animation: ribbonFlow 10s ease-in-out infinite alternate;
+            padding: 48px 24px 56px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes ribbonFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .header .video-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 999px;
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        /* Filter Tabs */
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 24px 16px;
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-btn {
+            padding: 10px 18px;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(3, 170, 225, 0.3);
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
+
+        /* Video Grid */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .video-card {
+            background: #fff;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .video-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .video-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(3, 170, 225, 0.1) 0%, rgba(12, 167, 164, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .video-card:hover::after {
+            opacity: 1;
+        }
+
+        .thumbnail-wrapper {
+            position: relative;
+            aspect-ratio: 9/16;
+            background: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 100%);
+            overflow: hidden;
+        }
+
+        .thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .video-card:hover .thumbnail {
+            transform: scale(1.05);
+        }
+
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-btn {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .video-card:hover .play-btn {
+            transform: scale(1);
+        }
+
+        .play-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--brand-primary);
+            margin-left: 4px;
+        }
+
+        .video-info {
+            padding: 16px;
+        }
+
+        .video-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-category {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 10px;
+            background: var(--surface);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--brand-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 24px;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 400px;
+            width: 100%;
+            max-height: 90vh;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -48px;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .modal-close svg {
+            width: 20px;
+            height: 20px;
+            stroke: #fff;
+        }
+
+        .modal-video {
+            aspect-ratio: 9/16;
+            width: 100%;
+        }
+
+        .modal-video iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 32px 16px 40px;
+            }
+
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 16px;
+            }
+
+            .video-info {
+                padding: 12px;
+            }
+
+            .video-title {
+                font-size: 0.85rem;
+            }
+
+            .filter-bar {
+                padding: 16px 12px;
+                gap: 8px;
+            }
+
+            .filter-btn {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* No results */
+        .no-results {
+            text-align: center;
+            padding: 64px 24px;
+            color: var(--muted);
+        }
+
+        .no-results svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1>📺 BER Video Library</h1>
+        <p>Tech tips, market updates, and educational content from your REALTOR® association</p>
+        <div class="video-count">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span id="videoCount">43 Videos</span>
+        </div>
+    </header>
+
+    <nav class="filter-bar">
+        <button class="filter-btn active" data-filter="all">All Videos</button>
+        <button class="filter-btn" data-filter="tech">Tech Tips</button>
+        <button class="filter-btn" data-filter="wtkw">What to Know</button>
+        <button class="filter-btn" data-filter="events">Events</button>
+        <button class="filter-btn" data-filter="licensing">Licensing</button>
+        <button class="filter-btn" data-filter="other">Other</button>
+    </nav>
+
+    <main class="main">
+        <div class="video-grid" id="videoGrid"></div>
+        <div class="no-results" id="noResults" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <p>No videos found in this category</p>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                    <path d="M18 6 6 18M6 6l12 12"></path>
+                </svg>
+            </button>
+            <div class="modal-video" id="modalVideo"></div>
+        </div>
+    </div>
+
+    <script>
+        const videos = [
+            { id: "L92xIOw1t6Y", title: "Withdrawn Doesn't Reset Days on Market — Here's What Actually Does (WTKW)", category: "wtkw" },
+            { id: "VCKPLMuLoi0", title: "Tech Tip Tuesday: Generating the Agent Production Report in the MLS", category: "tech" },
+            { id: "C16t5XzEZeo", title: "Tech Tip Tuesday: FREE Safety Tool for BER REALTORS®: How to Activate FOREWARN", category: "tech" },
+            { id: "pCdVplszeEE", title: "How Much It REALLY Costs to Become a Florida REALTOR® (DBPR, MLS, Dues & Supra)", category: "licensing" },
+            { id: "05qCjfTPJDI", title: "Give Back, Grow Forward — Installation & Awards Banquet 2025", category: "events" },
+            { id: "yr_IvgYUBhk", title: "Florida Real Estate License — Part 3: Passed Your Exam? Do THIS Next 🏡", category: "licensing" },
+            { id: "48wyHGxLGC4", title: "Florida Real Estate License — Part 2: Apply with DBPR, Get Fingerprinted, Pass Pearson VUE", category: "licensing" },
+            { id: "7b_WFqD0H5s", title: "Claim Your Realtor.com® Profile in 3 Steps (Free Leads + Listing Control)", category: "tech" },
+            { id: "vcrc4cHNc1g", title: "Stop Guessing! How to Become a REALTOR® in SWFL — Part 1 (Pre-licensing)", category: "licensing" },
+            { id: "_HGCWaDkUzE", title: "Tech Tip Tuesday: OneHome App — New BER Member Benefit & Client Portal", category: "tech" },
+            { id: "C3q1qy9AF5Y", title: "Turn Client Questions Into Referrals with TrustedOnly | What to Know Wednesday", category: "wtkw" },
+            { id: "G7WAL9mV7Ow", title: "Your REALTOR® Toolkit: The Apps That Make You a Pro | BER Tech Tip Tuesday", category: "tech" },
+            { id: "aHN626_BpGI", title: "What to Know Wednesday - Sips & Tips - Realtor Round Table Discussions!", category: "wtkw" },
+            { id: "SRpJU5KIhgU", title: "TTT: How to Make a Listing Collage with Agent 3000", category: "tech" },
+            { id: "1xCO4T5uO_k", title: "What to Know Wednesday: Delayed MLS & Syndication Are Here", category: "wtkw" },
+            { id: "6z84xdppWw", title: "What to Know Wednesday — Florida Real Estate Roundup from the FR Convention", category: "wtkw" },
+            { id: "SiDWciKIpIA", title: "What to Know Wednesday: Lee County Flood Map Updates", category: "wtkw" },
+            { id: "9b3eEgamADk", title: "Tech Tip Tuesday: RPR Neighborhood Reports: Your Client-Ready Snapshot", category: "tech" },
+            { id: "CD1b6o4oAus", title: "What to Know Wednesday: Jamaica Inbound Trade Mission at BER 🌎🇯🇲", category: "wtkw" },
+            { id: "0YrF2vkstBI", title: "BrokerBay is Coming SOON for BER REALTORS®! | Showing Service Upgrade", category: "tech" },
+            { id: "NjP3vnVivdQ", title: "Poker Run for a Cause | 5th Annual Poker Run | Bonita Springs", category: "events" },
+            { id: "EIlcnwr1G_w", title: "2026 Housing Outlook in 60 Seconds: Rates, Sales, Inventory", category: "wtkw" },
+            { id: "gShSHIVyp1M", title: "Tech Tip Tuesday: Introducing RentSpree for Rentals!", category: "tech" },
+            { id: "Vdg8QJsSjUY", title: "Our REALTOR® Store! | What to Know Wednesday", category: "wtkw" },
+            { id: "qZTAaUY0gnk", title: "NEW OneHomeowner Platform for Agents | Tech Tip Tuesday", category: "tech" },
+            { id: "fpArXuXUnv8", title: "Bonita Springs-Estero REALTORS® Poker Run ♣️", category: "events" },
+            { id: "EUjF7enBilU", title: "Foreign Buyers Flood Back to the U.S—Florida Wins BIG! 🌍🏡", category: "wtkw" },
+            { id: "16aSGlZIa7o", title: "Turn One Listing into a Lead Magnet with Agent 3000", category: "tech" },
+            { id: "vfA4uLD9To8", title: "Upcoming at BER (July 25th)", category: "events" },
+            { id: "_vF_c51H13I", title: 'What to Know Wednesday: "As Is" Contract Just Changed 📄⚠️', category: "wtkw" },
+            { id: "d-DapQK8HgI", title: "MLS UPDATE STARTING TODAY (JULY 14TH)", category: "wtkw" },
+            { id: "PVxj-K1V8M4", title: "Upcoming at BER - April 4th", category: "events" },
+            { id: "5M4Mhjkt9Q8", title: "Upcoming at BER November 8th", category: "events" },
+            { id: "Gd3boXkeSdg", title: "Upcoming at BER November 1st", category: "events" },
+            { id: "Seea1mSZ0EE", title: "Upcoming at BER October 4th", category: "events" },
+            { id: "-x5NIxTmTmY", title: "Shorts September 13th", category: "events" },
+            { id: "ne_ep5CdcZc", title: "Upcoming at BER August 30th", category: "events" },
+            { id: "7SJ3y74KZ_A", title: "Tech Tuesday Creating Email Templates in Under 60 Seconds", category: "tech" },
+            { id: "EUZnMKuLQa4", title: "Tech Tuesday Creating Flyers in Less Than 60 Seconds Agent 3000", category: "tech" },
+            { id: "jrkfTsFuCpg", title: "How to Create a Single Property Website in 60 Seconds with Agent 3000", category: "tech" },
+            { id: "CAno7ixWTHE", title: "Realtor Branding Preview August 24", category: "events" },
+            { id: "Tv5-6T84DIU", title: "May 5 BEAR Golf Challenge, Who Will take the BEAR Cup?", category: "events" },
+            { id: "jRkQGAsGPvg", title: "Anthony's Testimonial for How to Sell New Homes class", category: "other" }
+        ];
+
+        const grid = document.getElementById('videoGrid');
+        const modal = document.getElementById('modal');
+        const modalVideo = document.getElementById('modalVideo');
+        const modalClose = document.getElementById('modalClose');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const noResults = document.getElementById('noResults');
+        const videoCount = document.getElementById('videoCount');
+
+        function getThumbnail(id) {
+            return `https://i.ytimg.com/vi/${id}/hq720.jpg`;
+        }
+
+        function createCard(video) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.dataset.category = video.category;
+            card.innerHTML = `
+                <div class="thumbnail-wrapper">
+                    <img class="thumbnail" src="${getThumbnail(video.id)}" alt="${video.title}" loading="lazy">
+                    <div class="play-overlay">
+                        <div class="play-btn">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="video-info">
+                    <h3 class="video-title">${video.title}</h3>
+                    <span class="video-category">${getCategoryLabel(video.category)}</span>
+                </div>
+            `;
+            card.addEventListener('click', () => openModal(video.id));
+            return card;
+        }
+
+        function getCategoryLabel(cat) {
+            const labels = {
+                tech: 'Tech Tips',
+                wtkw: 'What to Know',
+                events: 'Events',
+                licensing: 'Licensing',
+                other: 'Other'
+            };
+            return labels[cat] || cat;
+        }
+
+        function renderVideos(filter = 'all') {
+            grid.innerHTML = '';
+            const filtered = filter === 'all' ? videos : videos.filter(v => v.category === filter);
+
+            if (filtered.length === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+                filtered.forEach(video => grid.appendChild(createCard(video)));
+            }
+
+            videoCount.textContent = `${filtered.length} Video${filtered.length !== 1 ? 's' : ''}`;
+        }
+
+        function openModal(videoId) {
+            modalVideo.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            modalVideo.innerHTML = '';
+            document.body.style.overflow = '';
+        }
+
+        // Event listeners
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderVideos(btn.dataset.filter);
+            });
+        });
+
+        modalClose.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Initial render
+        renderVideos();
+    </script>
+</body>
+
+</html>
