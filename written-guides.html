@@ -318,13 +318,24 @@
             font-weight: 700;
             color: var(--ink);
             line-height: 1.4;
+            margin-bottom: 8px;
+            /* Limit to 2 lines */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .guide-desc {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.5;
             margin-bottom: 12px;
-            flex: 1;
-            /* Limit to 3 lines */
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            flex: 1;
         }
 
         .guide-meta {
@@ -441,68 +452,71 @@
     <script>
         // Data from collected Scribe accounts
         const rawData = [
-            // Account 1 Data
-            { title: "Add an Open House to a Listing", url: "https://scribehow.com/viewer/Add_an_Open_House_to_a_Listing__lH-zJfC7SASuN3Tvcfu1Cw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Add a New Residential Listing in Matrix (Highlights Required Fields)", url: "https://scribehow.com/viewer/Add_a_New_Residential_Listing_in_Matrix_and_have_all_required_fields_highlighted_in_yellow__N9WiaJ-cQEC4EPq5qni20g?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Swflamls Workflow", url: "https://scribehow.com/viewer/Swflamls_Workflow__ws2mxsMJRGmkTBQp_N08fw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to Make a New Listing by Filling From Cross Property", url: "https://scribehow.com/viewer/How_to_Make_a_New_Listing_by_Filling_From_Cross_Property__opMUQCbvQ1eQNCQWbk9Ngg?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Log In to Bonita Springs Estero Realtors", url: "https://scribehow.com/viewer/Log_In_to_Bonita_Springs_Estero_Realtors__jhzup-3FRlmv-6102keH3w?referrer=documents", icon: "https://growthzoneapp.com" },
-            { title: "Checking to make sure all required fields have been input", url: "https://scribehow.com/viewer/Checking_to_make_sure_all_required_fields_have_been_input__i4OdAU3cSnqIq3h1G3zPXw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Search for Bonita Beach Single Family Homes", url: "https://scribehow.com/viewer/Search_for_Bonita_Beach_Single_Family_Homes__aco966GdRkmGduGAoP2cxQ?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Manage Property Photos in Matrix", url: "https://scribehow.com/viewer/Manage_Property_Photos_in_Matrix__dbwGBsIKTEy0Z21D9pjdgA?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to find the GEO code", url: "https://scribehow.com/viewer/How_to_find_the_GEO_code__jKjmsR-XSKauyQHOlWUjsA?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How To Search For Open Houses Online", url: "https://scribehow.com/viewer/How_To_Search_For_Open_Houses_Online__05mEk1d9Sa62lr_nz4sX7Q?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to send yourself a link to your ShowingTime", url: "https://scribehow.com/viewer/How_to_send_yourself_a_link_to_your_ShowingTime__nu2_qhbXR7KU3KnylxWSpQ?referrer=documents", icon: "https://showingtime.com" },
-            { title: "How To Request BER Access IDX", url: "https://scribehow.com/viewer/How_To_Request_BER_Access_IDX__Zu0U3hmCTf2nT705-jjswA?referrer=documents", icon: "https://bridgedataoutput.com" },
-            { title: "Generate Market Share Report for Bonita Springs", url: "https://scribehow.com/viewer/Generate_Market_Share_Report_for_Bonita_Springs__w-l65gTkQBS3a0HiF5Q7hg?referrer=documents", icon: "https://growthzoneapp.com" },
-            { title: "Use Realist Tax", url: "https://scribehow.com/viewer/Use_Realist_Tax__Nd8ShMWESF-tkpJl-MtN9Q?referrer=documents", icon: "https://realist.com" },
-            { title: "Edit ShowingTime Instructions and Save Changes", url: "https://scribehow.com/viewer/Edit_ShowingTime_Instructions_and_Save_Changes___tVbU7XdQb6nmOrm8SVRuA?referrer=documents", icon: "https://showingtime.com" },
-            { title: "Guide to Customizing and Exporting Real Estate Data (Realist)", url: "https://scribehow.com/viewer/Guide_to_Customizing_and_Exporting_Real_Estate_Data__YKqOkBE1QLSMU2gjTyOAeQ?referrer=documents", icon: "https://realist.com" },
-            { title: "How to View MarketStats for Naples Real Estate Sales", url: "https://scribehow.com/viewer/How_to_View_MarketStats_for_Naples_Real_Estate_Sales__NmDaohClR3KVsPeukREIog?referrer=documents", icon: "https://showingtime.com" },
-            { title: "How to Schedule a Showing on MLS Advantage", url: "https://scribehow.com/viewer/How_to_Schedule_a_Showing_on_MLS_Advantage__I9d8bHIrQVqIpdroAZI2uA?referrer=documents", icon: "https://showingtime.com" },
+            // Matrix / MLS
+            { title: "Add an Open House to a Listing", desc: "Learn how to schedule and promote an open house for your property in Matrix.", url: "https://scribehow.com/viewer/Add_an_Open_House_to_a_Listing__lH-zJfC7SASuN3Tvcfu1Cw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Add New Residential Listing", desc: "Step-by-step guide to entering a new residential listing with all required fields highlighted.", url: "https://scribehow.com/viewer/Add_a_New_Residential_Listing_in_Matrix_and_have_all_required_fields_highlighted_in_yellow__N9WiaJ-cQEC4EPq5qni20g?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Create Listing via Cross Property", desc: "Save time by auto-filling a new listing using data from an existing cross-property record.", url: "https://scribehow.com/viewer/How_to_Make_a_New_Listing_by_Filling_From_Cross_Property__opMUQCbvQ1eQNCQWbk9Ngg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Verify Required Listing Fields", desc: "Ensure your Matrix listing is complete by validating all mandatory data fields.", url: "https://scribehow.com/viewer/Checking_to_make_sure_all_required_fields_have_been_input__i4OdAU3cSnqIq3h1G3zPXw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Search: Bonita Beach Homes", desc: "How to perform a specific search for single-family homes in the Bonita Beach area.", url: "https://scribehow.com/viewer/Search_for_Bonita_Beach_Single_Family_Homes__aco966GdRkmGduGAoP2cxQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Manage Matrix Photos", desc: "Upload, arrange, and caption property photos for your MLS listings.", url: "https://scribehow.com/viewer/Manage_Property_Photos_in_Matrix__dbwGBsIKTEy0Z21D9pjdgA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Find Property GEO Code", desc: "Locate the correct geographical code for a property to ensure accurate mapping.", url: "https://scribehow.com/viewer/How_to_find_the_GEO_code__jKjmsR-XSKauyQHOlWUjsA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Search for Open Houses", desc: "Find upcoming open houses in the MLS system for your buyers.", url: "https://scribehow.com/viewer/How_To_Search_For_Open_Houses_Online__05mEk1d9Sa62lr_nz4sX7Q?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Request IDX Access", desc: "Submit a request for IDX data feeds to display MLS listings on your website.", url: "https://scribehow.com/viewer/How_To_Request_BER_Access_IDX__Zu0U3hmCTf2nT705-jjswA?referrer=documents", icon: "https://bridgedataoutput.com" },
+            { title: "Update Listing Information", desc: "Modify status, price, remarks, and other details for your active listings.", url: "https://scribehow.com/viewer/Updating_Property_Information_in_Matrix_System__N29KRi8dQzW9MQne2bK2pw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Share Closed Listings", desc: "Create public links to share details of your successfully closed properties.", url: "https://scribehow.com/viewer/How_To_Generate_Shareable_Links_for_Closed_Listings__5A04zB05QSSyPBshqCEOUA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Create Auto Email for Clients", desc: "Set up automated property emails to keep your buyers updated on new matches.", url: "https://scribehow.com/viewer/Create_New_Auto_Email_for_Property_Listings__hNY98yRYQJiciHlZNUTCaA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Search Homes with HOA Fees", desc: "Filter searches to find properties with specific HOA fee criteria.", url: "https://scribehow.com/viewer/How_to_Search_for_Residential_Properties_with_HOA_Fees__X8uD1NdcRJmyLZq0qLYKrw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Email Open House Details", desc: "Share open house information directly with colleagues or clients.", url: "https://scribehow.com/viewer/Email_Open_House_Information_to_a_Colleague__FgEqqmTnSFG4fZMzi4ZABA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Generate Matrix Market Report", desc: "Create comprehensive market reports directly within the Matrix interface.", url: "https://scribehow.com/viewer/Generate_Market_Report_Using_Matrix_Website__U3vkADX-SMqg4DOcbbWYtg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Input Rental Listing", desc: "Process for entering a residential rental property into the MLS.", url: "https://scribehow.com/viewer/How_to_Input_Residential_Rental_Listings_in_MLS__-L-APjHgSzytGBAbqVxWcQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Add HOA Fees to Listing", desc: "Correctly finish the HOA fee fields for residential listings.", url: "https://scribehow.com/viewer/Adding_HOA_Fee_to_Residential_Listings_in_Matrix__eHAdAKwmSj2W_tEMC1qWlg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Submit Comp Sold Listing", desc: "Enter a comparable sold listing for appraisal and CMA purposes.", url: "https://scribehow.com/viewer/How_to_Submit_a_Residential_Comp_Sold_Listing__qb9PpgJFQbmtGaBgBzUIeA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Update OneHome Photo", desc: "Change your agent profile photo displayed to clients in the OneHome portal.", url: "https://scribehow.com/viewer/Update_Your_Profile_Photo_For_OneHome__DiQeQM3bTvyalGyd5xI6wQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Access 'My Listings'", desc: "Quickly navigate to your portfolio of active, pending, and closed listings.", url: "https://scribehow.com/viewer/Accessing_My_Listings_in_Matrix_System__kEtrBg4JTPWP7NZvXATQtA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Import Photos to Listing", desc: "Bulk upload photos to a listing in Matrix.", url: "https://scribehow.com/viewer/Importing_Photos_to_MLS_Listing_in_Matrix_System__Y--8_AwZSlaTQ1B3WDEYkQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Edit Auto Email Components", desc: "Refine client auto-emails by removing specific communities or criteria.", url: "https://scribehow.com/viewer/Remove_community_from_existing_auto_email__hCrFrScoTPaV9VoGofHe5g?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Enter Sold Data", desc: "Mark a listing as sold and record the final sale details.", url: "https://scribehow.com/viewer/How_to_Add_a_Sold_Data_Entry__sCra99cZRq-ErXFXmVqCnA?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Reverse Prospecting to Excel", desc: "Export reverse prospecting data to Excel to find interested buyer agents.", url: "https://scribehow.com/viewer/Step-by-Step_Guide_for_Reverse_Prospecting_Listing_to_Excel__nTVjjFBnSRyje_vc2AldKw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Upload Listing Supplements", desc: "Add disclosures, floor plans, and other documents to your listing.", url: "https://scribehow.com/viewer/How_to_Upload_a_Supplemental_Document_to_a_Matrix_Listing__gsQwvWhHQLeeiIoXt3snGw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Entering Comparable Locations", desc: "Correctly input location data for comparable properties.", url: "https://scribehow.com/viewer/Comp_Input_Location__vtHq4QZdQCSBMKtB4pUQmw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "View Flood Zone Layers", desc: "Overlay flood zone maps on your Matrix map search.", url: "https://scribehow.com/viewer/How_to_Find_Flood_Zone_Layer__dDaNDFD6Qim6KPhUTA6jUw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Share Listing Info", desc: "Methods for sending listing details to clients.", url: "https://scribehow.com/viewer/How_to_Access_and_Share_Listing_Information__EUksriEvSLGGUpQWxODVcw?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Export Matrix Contacts", desc: "Download your contact database from Matrix for backup or transfer.", url: "https://scribehow.com/viewer/Export_contacts_from_Matrix_SWFLAMLS_website__-48hArLdTIyd0U_XfqwZeg?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Matrix Custom Stats", desc: "Build custom statistical reports within the Matrix system.", url: "https://scribehow.com/viewer/How_to_Generate_Custom_Stats_in_Matrix___iXzKUzWRtWtbaMqBvx-aQ?referrer=documents", icon: "https://swflamls.com" },
+            { title: "Access InfoSparks", desc: "Launch InfoSparks for deep dives into local market analytics.", url: "https://scribehow.com/viewer/How_to_Access_Bonita_Estero_MLS_InfoSparks_Stats__np3bhVF1Rn-LFU4tFw6TFg?referrer=documents", icon: "https://swflamls.com" },
 
-            // Account 2 Data
-            { title: "Updating Property Information in Matrix System", url: "https://scribehow.com/viewer/Updating_Property_Information_in_Matrix_System__N29KRi8dQzW9MQne2bK2pw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Change Date Range in Listing Activity Report", url: "https://scribehow.com/viewer/Change_Date_Range_in_Listing_Activity_Report__VlprADgKR1qNpFuOnwktTA?referrer=documents", icon: "https://showingtime.com" },
-            { title: "How To Generate Shareable Links for Closed Listings", url: "https://scribehow.com/viewer/How_To_Generate_Shareable_Links_for_Closed_Listings__5A04zB05QSSyPBshqCEOUA?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Create New Auto Email for Property Listings", url: "https://scribehow.com/viewer/Create_New_Auto_Email_for_Property_Listings__hNY98yRYQJiciHlZNUTCaA?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to Search for Residential Properties with HOA Fees", url: "https://scribehow.com/viewer/How_to_Search_for_Residential_Properties_with_HOA_Fees__X8uD1NdcRJmyLZq0qLYKrw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Email Open House Information to a Colleague", url: "https://scribehow.com/viewer/Email_Open_House_Information_to_a_Colleague__FgEqqmTnSFG4fZMzi4ZABA?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Generate Market Report Using Matrix Website", url: "https://scribehow.com/viewer/Generate_Market_Report_Using_Matrix_Website__U3vkADX-SMqg4DOcbbWYtg?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to Input Residential Rental Listings in MLS", url: "https://scribehow.com/viewer/How_to_Input_Residential_Rental_Listings_in_MLS__-L-APjHgSzytGBAbqVxWcQ?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Adding HOA Fee to Residential Listings in Matrix", url: "https://scribehow.com/viewer/Adding_HOA_Fee_to_Residential_Listings_in_Matrix__eHAdAKwmSj2W_tEMC1qWlg?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to Submit a Residential Comp Sold Listing", url: "https://scribehow.com/viewer/How_to_Submit_a_Residential_Comp_Sold_Listing__qb9PpgJFQbmtGaBgBzUIeA?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Update Your Profile Photo For OneHome", url: "https://scribehow.com/viewer/Update_Your_Profile_Photo_For_OneHome__DiQeQM3bTvyalGyd5xI6wQ?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Generate MLS Office ID Report", url: "https://scribehow.com/viewer/Generate_MLS_Office_ID_Report__ky2o8G7BSzCCmoUmGZ-pqg?referrer=documents", icon: "https://growthzoneapp.com" },
-            { title: "Accessing ShowingTime Reports in Matrix System", url: "https://scribehow.com/viewer/Accessing_ShowingTime_Reports_in_Matrix_System__VXSxcH8ZQ-OmaJizWXesIw?referrer=documents", icon: "https://showingtime.com" },
-            { title: "Accessing My Listings in Matrix System", url: "https://scribehow.com/viewer/Accessing_My_Listings_in_Matrix_System__kEtrBg4JTPWP7NZvXATQtA?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Setting Up Autopay for Billing Information", url: "https://scribehow.com/viewer/Setting_Up_Autopay_for_Billing_Information__4uWxQrLYTsu5J95YzaRXjA?referrer=documents", icon: "https://growthzoneapp.com" },
-            { title: "Importing Photos to MLS Listing in Matrix System", url: "https://scribehow.com/viewer/Importing_Photos_to_MLS_Listing_in_Matrix_System__Y--8_AwZSlaTQ1B3WDEYkQ?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Generate Agent 3000 Report For Estero Properties", url: "https://scribehow.com/viewer/Generate_Agent_3000_Report_For_Estero_Properties__TxTq5LEpRFC82K9gzXpX3w?referrer=documents", icon: "https://agent3000.com" },
-            { title: "Remove community from existing auto email", url: "https://scribehow.com/viewer/Remove_community_from_existing_auto_email__hCrFrScoTPaV9VoGofHe5g?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to Add a Sold Data Entry", url: "https://scribehow.com/viewer/How_to_Add_a_Sold_Data_Entry__sCra99cZRq-ErXFXmVqCnA?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Step-by-Step Guide for Reverse Prospecting Listing to Excel", url: "https://scribehow.com/viewer/Step-by-Step_Guide_for_Reverse_Prospecting_Listing_to_Excel__nTVjjFBnSRyje_vc2AldKw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "ID Swaps", url: "https://scribehow.com/viewer/ID_Swaps___4gk5NEaT1y_MHfFKONWoA?referrer=documents", icon: "https://growthzoneapp.com" },
-            { title: "How to Upload a Supplemental Document to a Matrix Listing", url: "https://scribehow.com/viewer/How_to_Upload_a_Supplemental_Document_to_a_Matrix_Listing__gsQwvWhHQLeeiIoXt3snGw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Comp Input Location", url: "https://scribehow.com/viewer/Comp_Input_Location__vtHq4QZdQCSBMKtB4pUQmw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Step-by-Step Guide: Searching and Customizing Real Estate Listings", url: "https://scribehow.com/viewer/Step-by-Step_Guide_Searching_and_Customizing_Real_Estate_Listings__jxSGyRJjTd26b26c3OgmFw?referrer=documents", icon: "https://realist.com" },
-            { title: "Setting Up a Realty Business Card on Agent3000.com", url: "https://scribehow.com/viewer/Setting_Up_a_Realty_Business_Card_on_Agent3000com__m1VIkA-DT5ufmyy_5pzGSQ?referrer=documents", icon: "https://agent3000.com" },
-            { title: "Generate a YOY Market Video", url: "https://scribehow.com/viewer/Generate_a_YOY_Market_Video__235j8K60RjCKSF8f36Ni2g?referrer=documents", icon: "https://agent3000.com" },
-            { title: "Generate Average Sales Volume Graphs (Agent 3000)", url: "https://scribehow.com/viewer/How_to_Generate_Average_Sales_Volume_Graphs_for_Residential_Single-Family_Homes__v_osfcfLR6iUN17EIFqdeA?referrer=documents", icon: "https://agent3000.com" },
-            { title: "Creating an Open House Flyer (Agent 3000)", url: "https://scribehow.com/viewer/Creating_an_Open_House_Flyer__jcLNacwdTD259fxP6Xzpfg?referrer=documents", icon: "https://agent3000.com" },
-            { title: "Accessing market snapshot videos for specific locations", url: "https://scribehow.com/viewer/Step-by-step_guide_to_accessing_market_snapshot_videos_for_specific_locations__ApI0dfkfQO-SHbxBebtWgA?referrer=documents", icon: "https://agent3000.com" },
-            { title: "Generate Listing Remarks", url: "https://scribehow.com/viewer/Generate_Listing_Remarks__W_VwsguCQ6W4Hqy7diK7gQ?referrer=documents", icon: "https://agent3000.com" },
-            { title: "Creating a Single Property Email Listing Template", url: "https://scribehow.com/viewer/Creating_a_Single_Property_Email_Listing_Template__NUuas9Y6SIy82CspiO0Zuw?referrer=documents", icon: "https://agent3000.com" },
-            { title: "How to Find Flood Zone Layer", url: "https://scribehow.com/viewer/How_to_Find_Flood_Zone_Layer__dDaNDFD6Qim6KPhUTA6jUw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to Access and Share Listing Information", url: "https://scribehow.com/viewer/How_to_Access_and_Share_Listing_Information__EUksriEvSLGGUpQWxODVcw?referrer=documents", icon: "https://swflamls.com" },
-            { title: "Export contacts from Matrix SWFLAMLS website", url: "https://scribehow.com/viewer/Export_contacts_from_Matrix_SWFLAMLS_website__-48hArLdTIyd0U_XfqwZeg?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to Generate Custom Stats in Matrix", url: "https://scribehow.com/viewer/How_to_Generate_Custom_Stats_in_Matrix___iXzKUzWRtWtbaMqBvx-aQ?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to Access Bonita Estero MLS InfoSparks Stats", url: "https://scribehow.com/viewer/How_to_Access_Bonita_Estero_MLS_InfoSparks_Stats__np3bhVF1Rn-LFU4tFw6TFg?referrer=documents", icon: "https://swflamls.com" },
-            { title: "How to View Real Estate Continuing Education Requirements", url: "https://scribehow.com/viewer/How_to_View_Real_Estate_Continuing_Education_Requirements__ePBKdN_rQRCTyBi-RBJykg?referrer=documents", icon: "https://myfloridalicense.com" },
-            { title: "DBPR Online Services Login Guide", url: "https://scribehow.com/viewer/Welcome_to_DBPR_Online_Services_loginlogin__6J0PO-a1TbKpXLxHv5ZDuQ?referrer=documents", icon: "https://myfloridalicense.com" },
-            { title: "How to Login and List Your Property on Rentspree", url: "https://scribehow.com/viewer/How_to_Login_and_List_Your_Property_on_Rentspree__mZk0tZ05RPyX82Eso2f_lA?referrer=documents", icon: "https://rentspree.com" },
-            { title: "Login and Register as a Renter on RentSpree", url: "https://scribehow.com/viewer/Login_and_Register_as_a_Renter_on_RentSpree__CPgfAp28Tf6CvD3hCGy1fQ?referrer=documents", icon: "https://rentspree.com" },
-            { title: "Adding Joe Pavich to RPAC Event Email List", url: "https://scribehow.com/viewer/Adding_Joe_Pavich_to_RPAC_Event_Email_List__88terJ-4R8qVPPEIBE7Rbw?referrer=documents", icon: "https://growthzoneapp.com" }
+            // Agent 3000
+            { title: "Agent 3000: Estero Report", desc: "Generate a specific property or market report for Estero using Agent 3000.", url: "https://scribehow.com/viewer/Generate_Agent_3000_Report_For_Estero_Properties__TxTq5LEpRFC82K9gzXpX3w?referrer=documents", icon: "https://agent3000.com", category: "Agent 3000" },
+            { title: "Setup Digital Business Card", desc: "Create and configure your digital business card on Agent 3000.", url: "https://scribehow.com/viewer/Setting_Up_a_Realty_Business_Card_on_Agent3000com__m1VIkA-DT5ufmyy_5pzGSQ?referrer=documents", icon: "https://agent3000.com", category: "Agent 3000" },
+            { title: "Generate Year-Over-Year Video", desc: "Create a video comparing current market stats to the previous year.", url: "https://scribehow.com/viewer/Generate_a_YOY_Market_Video__235j8K60RjCKSF8f36Ni2g?referrer=documents", icon: "https://agent3000.com", category: "Agent 3000" },
+            { title: "Sales Volume Graphs", desc: "Visualize residential sales volume trends with Agent 3000 graphs.", url: "https://scribehow.com/viewer/How_to_Generate_Average_Sales_Volume_Graphs_for_Residential_Single-Family_Homes__v_osfcfLR6iUN17EIFqdeA?referrer=documents", icon: "https://agent3000.com", category: "Agent 3000" },
+            { title: "Create Open House Flyer", desc: "Design a professional open house flyer using Agent 3000 templates.", url: "https://scribehow.com/viewer/Creating_an_Open_House_Flyer__jcLNacwdTD259fxP6Xzpfg?referrer=documents", icon: "https://agent3000.com", category: "Agent 3000" },
+            { title: "Market Snapshot Videos", desc: "Get localized market snapshot videos for social media sharing.", url: "https://scribehow.com/viewer/Step-by-step_guide_to_accessing_market_snapshot_videos_for_specific_locations__ApI0dfkfQO-SHbxBebtWgA?referrer=documents", icon: "https://agent3000.com", category: "Agent 3000" },
+            { title: "AI Listing Remarks", desc: "Use Agent 3000 tools to generate compelling property descriptions.", url: "https://scribehow.com/viewer/Generate_Listing_Remarks__W_VwsguCQ6W4Hqy7diK7gQ?referrer=documents", icon: "https://agent3000.com", category: "Agent 3000" },
+            { title: "Property Email Template", desc: "Design a custom email template for showcasing a single property.", url: "https://scribehow.com/viewer/Creating_a_Single_Property_Email_Listing_Template__NUuas9Y6SIy82CspiO0Zuw?referrer=documents", icon: "https://agent3000.com", category: "Agent 3000" },
+
+            // GrowthZone / Billing / Member
+            { title: "Log In to BER Member Portal", desc: "Access the Bonita Springs-Estero REALTORS® dashboard and member services.", url: "https://scribehow.com/viewer/Log_In_to_Bonita_Springs_Estero_Realtors__jhzup-3FRlmv-6102keH3w?referrer=documents", icon: "https://growthzoneapp.com" },
+            { title: "Generate Market Share Report", desc: "Create a report analyzing market share performance in the Bonita Springs area.", url: "https://scribehow.com/viewer/Generate_Market_Share_Report_for_Bonita_Springs__w-l65gTkQBS3a0HiF5Q7hg?referrer=documents", icon: "https://growthzoneapp.com" },
+            { title: "MLS Office ID Report", desc: "Find and generate a report of MLS Office IDs for reference.", url: "https://scribehow.com/viewer/Generate_MLS_Office_ID_Report__ky2o8G7BSzCCmoUmGZ-pqg?referrer=documents", icon: "https://growthzoneapp.com" },
+            { title: "Setup Autopay for Dues", desc: "Configure automatic payments for your board dues and fees.", url: "https://scribehow.com/viewer/Setting_Up_Autopay_for_Billing_Information__4uWxQrLYTsu5J95YzaRXjA?referrer=documents", icon: "https://growthzoneapp.com" },
+
+            // ShowingTime
+            { title: "Send ShowingTime Link", desc: "Email yourself a direct link to a ShowingTime appointment for easy access.", url: "https://scribehow.com/viewer/How_to_send_yourself_a_link_to_your_ShowingTime__nu2_qhbXR7KU3KnylxWSpQ?referrer=documents", icon: "https://showingtime.com" },
+            { title: "Edit Showing Instructions", desc: "Update access details and showing instructions for your listings in ShowingTime.", url: "https://scribehow.com/viewer/Edit_ShowingTime_Instructions_and_Save_Changes___tVbU7XdQb6nmOrm8SVRuA?referrer=documents", icon: "https://showingtime.com" },
+            { title: "MarketStats: Naples Sales", desc: "View detailed market statistics and trends for Naples real estate sales.", url: "https://scribehow.com/viewer/How_to_View_MarketStats_for_Naples_Real_Estate_Sales__NmDaohClR3KVsPeukREIog?referrer=documents", icon: "https://showingtime.com" },
+            { title: "Schedule Viewing on MLS Advantage", desc: "Book a showing appointment directly through the MLS Advantage portal.", url: "https://scribehow.com/viewer/How_to_Schedule_a_Showing_on_MLS_Advantage__I9d8bHIrQVqIpdroAZI2uA?referrer=documents", icon: "https://showingtime.com" },
+            { title: "Listing Activity Report Date Range", desc: "Adjust the timeframe for tracking activity and views on your listings.", url: "https://scribehow.com/viewer/Change_Date_Range_in_Listing_Activity_Report__VlprADgKR1qNpFuOnwktTA?referrer=documents", icon: "https://showingtime.com" },
+            { title: "ShowingTime Reports", desc: "View feedback, showing volume, and other analytics in ShowingTime.", url: "https://scribehow.com/viewer/Accessing_ShowingTime_Reports_in_Matrix_System__VXSxcH8ZQ-OmaJizWXesIw?referrer=documents", icon: "https://showingtime.com" },
+
+            // Realist / Other
+            { title: "Using Realist Tax Search", desc: "Access and navigate the Realist Tax system for property records and ownership data.", url: "https://scribehow.com/viewer/Use_Realist_Tax__Nd8ShMWESF-tkpJl-MtN9Q?referrer=documents", icon: "https://realist.com" },
+            { title: "Export Realist Data", desc: "Customize and export real estate data sets from Realist for offline use.", url: "https://scribehow.com/viewer/Guide_to_Customizing_and_Exporting_Real_Estate_Data__YKqOkBE1QLSMU2gjTyOAeQ?referrer=documents", icon: "https://realist.com" },
+            { title: "Realist: Search & Customize", desc: "Advanced techniques for searching and customizing data views in Realist.", url: "https://scribehow.com/viewer/Step-by-Step_Guide_Searching_and_Customizing_Real_Estate_Listings__jxSGyRJjTd26b26c3OgmFw?referrer=documents", icon: "https://realist.com" },
+            { title: "Check CE Requirements", desc: "Verify your current continuing education status with DBPR.", url: "https://scribehow.com/viewer/How_to_View_Real_Estate_Continuing_Education_Requirements__ePBKdN_rQRCTyBi-RBJykg?referrer=documents", icon: "https://myfloridalicense.com" },
+            { title: "Login to DBPR", desc: "Access the Florida Department of Business and Professional Regulation portal.", url: "https://scribehow.com/viewer/Welcome_to_DBPR_Online_Services_loginlogin__6J0PO-a1TbKpXLxHv5ZDuQ?referrer=documents", icon: "https://myfloridalicense.com" },
+            { title: "List on RentSpree", desc: "Create a rental listing and application process on RentSpree.", url: "https://scribehow.com/viewer/How_to_Login_and_List_Your_Property_on_Rentspree__mZk0tZ05RPyX82Eso2f_lA?referrer=documents", icon: "https://rentspree.com" },
+            { title: "Register as Renter (RentSpree)", desc: "Guide for tenants to create an account and apply via RentSpree.", url: "https://scribehow.com/viewer/Login_and_Register_as_a_Renter_on_RentSpree__CPgfAp28Tf6CvD3hCGy1fQ?referrer=documents", icon: "https://rentspree.com" }
         ];
 
         // Process Data: deduplicate and assign categories
@@ -512,7 +526,7 @@
         function determineCategory(title, text) {
             const combined = (title + " " + text).toLowerCase();
             if (combined.includes('matrix') || combined.includes('mls') || combined.includes('swflamls') || combined.includes('listing') || combined.includes('open house') || combined.includes('comp') || combined.includes('searches')) return 'Matrix';
-            if (combined.includes('agent 3000') || combined.includes('flyer') || combined.includes('business card') || combined.includes('market video')) return 'Agent 3000';
+            if (combined.includes('agent 3000') || combined.includes('flyer') || combined.includes('business card') || combined.includes('market video') || combined.includes('snapshot') || combined.includes('graphs')) return 'Agent 3000';
             if (combined.includes('growthzone') || combined.includes('billing') || combined.includes('autopay') || combined.includes('office id') || combined.includes('rpac')) return 'GrowthZone';
             if (combined.includes('showingtime')) return 'ShowingTime';
             if (combined.includes('realist') || combined.includes('tax')) return 'Realist'; // Treated as Other in filter but assigned here
@@ -523,17 +537,12 @@
         rawData.forEach(item => {
             if (!seenUrls.has(item.url)) {
                 seenUrls.add(item.url);
-                // Clean title
-                let title = item.title.replace('Scribe - ', '').replace('Step-by-Step Guide', '').trim();
-                // Assign category
-                let category = determineCategory(title, item.url);
-
-                // If category is Realist or DBPR, put in 'Other' buckets logic or specific?
-                // For simplicity of filters, map niche ones to 'Other' if not in main list
-                // but let's keep specific Category data for UI
+                // Assign category: Prefer manual override, then fallback to auto-detection
+                let category = item.category || determineCategory(item.title, item.url);
 
                 guides.push({
-                    title: title,
+                    title: item.title,
+                    desc: item.desc,
                     url: item.url,
                     icon: item.icon,
                     category: category
@@ -551,15 +560,16 @@
 
         // Logo Mapping
         const logoMap = {
-            'Matrix': 'https://logo.clearbit.com/swflamls.com?size=128', // Using SWFLAMLS for Matrix context
-            'Agent 3000': 'https://logo.clearbit.com/agent3000.com?size=128',
-            'GrowthZone': 'https://logo.clearbit.com/growthzone.com?size=128',
-            'ShowingTime': 'https://logo.clearbit.com/showingtime.com?size=128',
-            'RentSpree': 'https://logo.clearbit.com/rentspree.com?size=128',
-            'Realist': 'https://logo.clearbit.com/corelogic.com?size=128', // Realist is CoreLogic
-            'DBPR': 'https://logo.clearbit.com/myfloridalicense.com?size=128',
-            'Bridge': 'https://logo.clearbit.com/bridgeinteractive.com?size=128',
-            'Default': 'https://bonitaspringsrealtors.com/wp-content/uploads/2022/01/cropped-Favicon-32x32.png'
+            'Matrix': 'https://bonitaesterorealtors.com/wp-content/uploads/2025/12/SWFLAMLS.png',
+            'Agent 3000': 'https://www.google.com/s2/favicons?domain=agent3000.com&sz=128',
+            'GrowthZone': 'https://www.google.com/s2/favicons?domain=growthzone.com&sz=128',
+            'ShowingTime': 'https://www.google.com/s2/favicons?domain=showingtime.com&sz=128',
+            'RentSpree': 'https://www.google.com/s2/favicons?domain=rentspree.com&sz=128',
+            'Realist': 'https://www.google.com/s2/favicons?domain=corelogic.com&sz=128',
+            'DBPR': 'https://www.google.com/s2/favicons?domain=myfloridalicense.com&sz=128',
+            'Bridge': 'https://www.google.com/s2/favicons?domain=bridgeinteractive.com&sz=128',
+            // Simple generic document icon as fail-safe data URI to prevent network loops
+            'Default': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjQ3NDhiIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xNCAySDZhMiAyIDAgMCAwLTIgMnYxNmEyIDIgMCAwIDAgMiAyaDEyYTIgMiAwIDAgMCAyLTJWOHoiPjwvcGF0aD48cG9seWxpbmUgcG9pbnRzPSIxNCAyIDE0IDggMjAgOCI+PC9wb2x5bGluZT48bGluZSB4MT0iMTYiIHkxPSIxMyIgeDI9IjgiIHkyPSIxMyI+PC9saW5lPjxsaW5lIHgxPSIxNiIgeTE9IjE3IiB4Mj0iOCIgeTI9IjE3Ij48L2xpbmU+PHBvbHlsaW5lIHBvaW50cz0iMTAgOSA5IDkgOCA5Ij48L3BvbHlsaW5lPjwvc3ZnPg=='
         };
 
         function createCard(guide) {
@@ -583,11 +593,12 @@
             card.innerHTML = `
                 <div class="guide-header">
                     <div class="guide-icon">
-                        <img src="${iconSrc}" alt="${guide.category} logo" onerror="this.src='${logoMap['Default']}'">
+                        <img src="${iconSrc}" alt="${guide.category} logo" onerror="this.onerror=null; this.src='${logoMap['Default']}'">
                     </div>
                 </div>
                 <div class="guide-content">
                     <h3 class="guide-title">${guide.title}</h3>
+                    <p class="guide-desc">${guide.desc}</p>
                     <div class="guide-meta">
                         <span class="guide-category">${guide.category}</span>
                         <div class="read-btn">Read Guide &rarr;</div>
@@ -603,7 +614,7 @@
 
             const filtered = guides.filter(guide => {
                 const matchesFilter = filter === 'all' || guide.category === filter || (filter === 'Other' && !['Matrix', 'Agent 3000', 'GrowthZone', 'ShowingTime', 'RentSpree'].includes(guide.category));
-                const matchesSearch = guide.title.toLowerCase().includes(term);
+                const matchesSearch = guide.title.toLowerCase().includes(term) || guide.desc.toLowerCase().includes(term);
                 return matchesFilter && matchesSearch;
             });
 
