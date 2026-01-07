@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BER Video Editor</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&family=Anton&family=Oswald:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&family=Bangers&family=Archivo+Black&family=Passion+One:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --brand: #00A6CE;
+            --brand-dark: #0088aa;
+            --bg: #1a1a2e;
+            --surface: #252540;
+            --surface-light: #2d2d4a;
+            --text: #ffffff;
+            --text-muted: #a0a0b8;
+            --track-bg: #1e1e32;
+            --track-video: #4a7c59;
+            --track-overlay: #7c4a9e;
+            --track-effects: #9e7c4a;
+            --track-audio: #4a6e9e;
+            --danger: #e74c3c;
+            --success: #27ae60;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Compact Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--surface-light);
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 span {
+            color: var(--brand);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-controls .format-toggle {
+            display: flex;
+            gap: 4px;
+        }
+
+        .format-btn {
+            padding: 6px 12px;
+            background: var(--surface-light);
+            border: 1px solid transparent;
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .format-btn.active {
+            border-color: var(--brand);
+            color: var(--brand);
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--brand);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--surface-light);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #3d3d5a;
+        }
+
+        /* Main Editor Area - Preview + Properties */
+        .editor-area {
+            flex: 1;
+            display: flex;
+            background: #0f0f1a;
+            overflow: hidden;
+            min-height: 200px;
+        }
+
+        .preview-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        .preview-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-container {
+            background: #000;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            resize: both;
+            min-width: 150px;
+            min-height: 200px;
+        }
+
+        .preview-container.vertical {
+            width: 270px;
+            height: 480px;
+        }
+
+        .preview-container.horizontal {
+            width: 540px;
+            height: 304px;
+        }
+
+        #previewCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Preview controls overlay */
+        .preview-controls {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .play-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--brand);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .time-display {
+            font-size: 11px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Preview Size Slider */
+        .preview-size-control {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(37, 37, 64, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        .preview-size-control input {
+            width: 60px;
+        }
+
+        /* Properties Panel - Floating */
+        .properties-panel {
+            width: 220px;
+            background: var(--surface);
+            border-left: 1px solid var(--surface-light);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .properties-panel.hidden {
+            display: none;
+        }
+
+        .properties-panel h3 {
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--surface-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .properties-panel h3 button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .property-group {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--surface-light);
+        }
+
+        .property-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .property-group input,
+        .property-group select,
+        .property-group textarea {
+            width: 100%;
+            padding: 6px 8px;
+            background: var(--surface-light);
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 12px;
+        }
+
+        .property-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .property-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .property-row>div {
+            flex: 1;
+        }
+
+        /* Resizer between preview and timeline */
+        .resizer-h {
+            height: 6px;
+            background: var(--surface);
+            cursor: ns-resize;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resizer-h::after {
+            content: '';
+            width: 40px;
+            height: 3px;
+            background: var(--surface-light);
+            border-radius: 2px;
+        }
+
+        .resizer-h:hover {
+            background: var(--brand);
+        }
+
+        /* Timeline Container */
+        .timeline-container {
+            height: 220px;
+            min-height: 120px;
+            max-height: 400px;
+            background: var(--track-bg);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .timeline-toolbar {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            gap: 8px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--surface-light);
+            flex-shrink: 0;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--surface-light);
+            margin: 0 8px;
+        }
+
+        .zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        .zoom-control span {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .zoom-control input {
+            width: 80px;
+        }
+
+        .duration-input {
+            width: 50px;
+            padding: 4px 6px;
+            font-size: 11px;
+        }
+
+        /* Timeline Ruler */
+        .timeline-ruler {
+            height: 20px;
+            background: var(--surface);
+            position: relative;
+            border-bottom: 1px solid var(--surface-light);
+            margin-left: 100px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .ruler-marker {
+            position: absolute;
+            font-size: 9px;
+            color: var(--text-muted);
+            top: 4px;
+        }
+
+        /* Timeline Tracks */
+        .timeline-tracks {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+        }
+
+        .track {
+            display: flex;
+            height: 40px;
+            border-bottom: 1px solid var(--surface-light);
+        }
+
+        .track-label {
+            width: 100px;
+            padding: 4px 6px;
+            background: var(--surface);
+            font-size: 9px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border-right: 1px solid var(--surface-light);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .track-label .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .track-label .track-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .track-controls {
+            display: flex;
+            gap: 2px;
+        }
+
+        .track-btn {
+            width: 14px;
+            height: 14px;
+            padding: 0;
+            background: var(--surface-light);
+            border: none;
+            border-radius: 2px;
+            color: var(--text-muted);
+            font-size: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .track-btn:hover {
+            background: var(--brand);
+            color: white;
+        }
+
+        .track-content {
+            flex: 1;
+            position: relative;
+            min-width: 800px;
+        }
+
+        /* Clips with resize handles */
+        .clip {
+            position: absolute;
+            top: 4px;
+            height: calc(100% - 8px);
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 9px;
+            font-weight: 600;
+            cursor: grab;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            user-select: none;
+        }
+
+        .clip:active {
+            cursor: grabbing;
+        }
+
+        .clip.selected {
+            outline: 2px solid var(--brand);
+            outline-offset: 1px;
+        }
+
+        .clip.video {
+            background: var(--track-video);
+        }
+
+        .clip.overlay {
+            background: var(--track-overlay);
+        }
+
+        .clip.effect {
+            background: var(--track-effects);
+        }
+
+        .clip.audio {
+            background: var(--track-audio);
+        }
+
+        /* Resize handles on clips */
+        .clip-handle {
+            position: absolute;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            cursor: ew-resize;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .clip-handle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .clip-handle.left {
+            left: 0;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .clip-handle.right {
+            right: 0;
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* Playhead */
+        .playhead {
+            position: absolute;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: var(--danger);
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .playhead::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -4px;
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 8px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--surface-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 14px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 16px;
+            overflow-y: auto;
+            max-height: 50vh;
+        }
+
+        .modal-body textarea {
+            width: 100%;
+            min-height: 200px;
+            background: var(--bg);
+            border: 1px solid var(--surface-light);
+            border-radius: 6px;
+            padding: 10px;
+            color: var(--text);
+            font-family: monospace;
+            font-size: 11px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--surface-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: var(--surface);
+            border: 1px solid var(--surface-light);
+            border-radius: 6px;
+            padding: 4px 0;
+            min-width: 140px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .context-menu-item:hover {
+            background: var(--surface-light);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Compact Header -->
+    <header class="header">
+        <h1>🎬 <span>BER</span> Video Editor</h1>
+        <div class="header-controls">
+            <div class="format-toggle">
+                <button class="format-btn active" data-format="vertical" onclick="setFormat('vertical')">9:16</button>
+                <button class="format-btn" data-format="horizontal" onclick="setFormat('horizontal')">16:9</button>
+            </div>
+            <button class="btn btn-secondary" onclick="openVisualPlanModal()">📋 Import</button>
+            <button class="btn btn-secondary" onclick="openCaptionModal()">📝 Captions</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('videoUpload').click()">🎬 Video</button>
+            <button class="btn btn-secondary" onclick="loadDefaultBackground()">🌊 WTKW BG</button>
+            <button class="btn btn-secondary" onclick="saveProject()">💾</button>
+            <button class="btn btn-secondary" onclick="loadProject()">📂</button>
+            <button class="btn btn-secondary" onclick="resetProject()" title="Reset Project">🗑️</button>
+            <button class="btn btn-primary" onclick="exportVideo()">⬇️ Export</button>
+        </div>
+        <input type="file" id="videoUpload" accept="video/*" style="display:none" onchange="handleVideoUpload(event)">
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-container" style="display:flex; flex:1; overflow:hidden;">
+        <!-- Left Side Panel (Collapsible) -->
+        <div class="side-panel" id="captionPanel"
+            style="width:0; overflow:hidden; background:var(--surface); border-right:none; transition:width 0.3s ease; display:flex; flex-direction:column;">
+            <div class="panel-header"
+                style="padding:12px; border-bottom:1px solid var(--surface-light); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-size:14px;">📝 TikTok Captions</h3>
+                <button class="btn-icon" onclick="toggleCaptionPanel()">×</button>
+            </div>
+            <div class="panel-body" style="flex:1; overflow-y:auto; padding:16px;">
+                <!-- Moving caption modal content here -->
+                <div class="property-group">
+                    <label>Step 1: 🎙️ Upload Audio</label>
+                    <input type="file" id="panelAudioUpload" accept="audio/*" onchange="handleCaptionAudioUpload(event)"
+                        style="width:100%">
+                    <p id="panelAudioStatus" style="font-size:10px;color:var(--text-muted);margin-top:4px;"></p>
+                </div>
+
+                <div class="property-group">
+                    <label>Step 2: 📜 Transcript</label>
+                    <textarea id="panelTranscript" style="min-height:150px; font-size:12px;"
+                        placeholder="Paste text here..."></textarea>
+                </div>
+
+                <div class="property-group" style="background:var(--surface-light);padding:12px;border-radius:8px;">
+                    <label style="color:var(--brand); font-size:11px;">Step 3: 🎯 Sync Mode</label>
+                    <p style="font-size:10px;color:var(--text-muted);margin:4px 0;">Tap <strong>ENTER</strong> as each
+                        word is spoken.</p>
+                    <div id="panelSyncStatus" style="font-size:12px;color:var(--text-muted);margin:8px 0;display:none;">
+                        <span id="panelSyncCurrentWord"
+                            style="font-size:18px;font-weight:bold;color:#FFE135;">---</span>
+                        <br><span id="panelSyncProgress">0 / 0 synced</span>
+                    </div>
+                    <div style="display:flex;gap:4px;margin-top:8px; flex-wrap:wrap;">
+                        <button class="btn btn-secondary btn-sm" id="panelSyncStartBtn" onclick="startCaptionSync()">▶️
+                            Start</button>
+                        <button class="btn btn-secondary btn-sm" id="panelSyncStopBtn" onclick="stopCaptionSync()"
+                            style="display:none;">⏹️ Stop</button>
+                        <button class="btn btn-secondary btn-sm" onclick="resetCaptionSync()">🔄 Reset</button>
+                    </div>
+                </div>
+
+                <div class="property-group" style="margin-top:12px;">
+                    <label>Style</label>
+                    <select id="panelCaptionStyle">
+                        <option value="tiktok">TikTok (Highlight)</option>
+                        <option value="bounce">Bounce</option>
+                        <option value="karaoke">Karaoke</option>
+                        <option value="subtitle">Subtitle</option>
+                    </select>
+                </div>
+
+                <div class="property-row">
+                    <div class="property-group">
+                        <label>Font</label>
+                        <select id="panelCaptionFont">
+                            <option value="Bebas Neue">Bebas Neue</option>
+                            <option value="Anton">Anton</option>
+                            <option value="Montserrat">Montserrat</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label>Size</label>
+                        <input type="number" id="panelCaptionFontSize" value="48">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="generateCaptions()">✨ Add
+                    to Timeline</button>
+            </div>
+        </div>
+
+        <!-- Editor Area -->
+        <div class="editor-workspace" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+            <div class="editor-area" id="editorArea" style="flex:1; display:flex; position:relative;">
+                <div class="preview-section">
+                    <div class="preview-size-control">
+                        <span>Size:</span>
+                        <input type="range" min="50" max="150" value="100" id="previewSizeSlider"
+                            oninput="setPreviewSize(this.value)">
+                        <span id="previewSizeLabel">100%</span>
+                    </div>
+                    <div class="preview-wrapper">
+                        <div class="preview-container vertical" id="previewContainer">
+                            <canvas id="previewCanvas"></canvas>
+                        </div>
+                        <div class="preview-controls">
+                            <button class="btn btn-secondary" onclick="skipBack()">⏮</button>
+                            <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+                            <button class="btn btn-secondary" onclick="skipForward()">⏭</button>
+                            <span class="time-display"><span id="currentTime">0:00</span> / <span
+                                    id="totalTime">1:30</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Properties Panel (shows when clip selected) -->
+                <aside class="properties-panel" id="propertiesPanel">
+                    <h3>Properties <button onclick="closeProperties()">×</button></h3>
+                    <div id="propertiesContent">
+                        <div class="property-group">
+                            <p style="color: var(--text-muted); font-size: 11px;">Select a clip to edit</p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- Resizer -->
+            <div class="resizer-h" id="resizerH"></div>
+
+            <!-- Timeline -->
+            <div class="timeline-container" id="timelineContainer">
+                <div class="timeline-toolbar">
+                    <div class="toolbar-group">
+                        <button class="btn btn-secondary" onclick="addTextOverlay()">➕ Text</button>
+                        <button class="btn btn-secondary" onclick="addTransition()">✨ Trans</button>
+                        <button class="btn btn-secondary" onclick="addAudioTrackClip()">🔊 Audio</button>
+                        <button class="btn btn-secondary" onclick="addOverlayVideo()">🎬 Overlay</button>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <div class="toolbar-group">
+                        <span style="font-size: 10px; color: var(--text-muted); margin-right:4px;">SFX:</span>
+                        <button class="btn btn-secondary btn-sm" onclick="quickAddSFX('whoosh')">💨</button>
+                        <button class="btn btn-secondary btn-sm" onclick="quickAddSFX('ding')">🔔</button>
+                        <button class="btn btn-secondary btn-sm" onclick="quickAddSFX('pop')">💥</button>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <div class="toolbar-group">
+                        <button class="btn btn-secondary" id="progressBarBtn" onclick="toggleProgressBar()"
+                            title="Toggle Progress Bar">📊 Progress</button>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <div class="toolbar-group">
+                        <button class="btn btn-secondary" onclick="addVideoTrack()"
+                            title="Add Video Track">+Vid</button>
+                        <button class="btn btn-secondary" onclick="addTextTrack()" title="Add Text Track">+Txt</button>
+                        <button class="btn btn-secondary" onclick="addAudioTrack()"
+                            title="Add Audio Track">+Aud</button>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <div class="toolbar-group">
+                        <button class="btn btn-secondary" onclick="deleteSelected()">🗑️</button>
+                        <button class="btn btn-secondary" onclick="duplicateSelected()">📋</button>
+                        <button class="btn btn-secondary" onclick="splitSelectedClip()"
+                            title="Split at playhead (S)">✂️</button>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <div class="toolbar-group">
+                        <span style="font-size: 10px; color: var(--text-muted);">Duration:</span>
+                        <input type="number" class="duration-input" id="durationInput" value="90" min="10" max="300"
+                            onchange="setDuration(this.value)">
+                        <span style="font-size: 10px; color: var(--text-muted);">s</span>
+                    </div>
+                    <div class="zoom-control">
+                        <span>Zoom:</span>
+                        <input type="range" min="0.5" max="4" step="0.1" value="1" id="zoomSlider"
+                            oninput="setZoom(this.value)">
+                    </div>
+                </div>
+                <div class="timeline-ruler" id="timelineRuler"></div>
+                <div class="timeline-tracks" id="timelineTracks">
+                    <div class="track" data-track="video">
+                        <div class="track-label"><span class="dot" style="background: var(--track-video);"></span>BG
+                            Video
+                        </div>
+                        <div class="track-content" id="trackVideo"></div>
+                    </div>
+                    <div class="track" data-track="videoOverlay">
+                        <div class="track-label"><span class="dot" style="background: #5a9e4a;"></span>Overlay Vid</div>
+                        <div class="track-content" id="trackVideoOverlay"></div>
+                    </div>
+                    <div class="track" data-track="overlay1">
+                        <div class="track-label"><span class="dot" style="background: var(--track-overlay);"></span>Text
+                            1
+                        </div>
+                        <div class="track-content" id="trackOverlay1"></div>
+                    </div>
+                    <div class="track" data-track="overlay2">
+                        <div class="track-label"><span class="dot" style="background: var(--track-overlay);"></span>Text
+                            2
+                        </div>
+                        <div class="track-content" id="trackOverlay2"></div>
+                    </div>
+                    <div class="track" data-track="audio">
+                        <div class="track-label"><span class="dot" style="background: var(--track-audio);"></span>Audio
+                        </div>
+                        <div class="track-content" id="trackAudio"></div>
+                    </div>
+                    <div class="track" data-track="effects">
+                        <div class="track-label"><span class="dot" style="background: var(--track-effects);"></span>FX
+                        </div>
+                        <div class="track-content" id="trackEffects"></div>
+                    </div>
+                    <div class="playhead" id="playhead" style="left: 80px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visual Plan Modal -->
+    <div class="modal-overlay" id="visualPlanModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📋 Import Visual Plan</h2>
+                <button class="modal-close" onclick="closeVisualPlanModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 10px; color: var(--text-muted); font-size: 11px;">
+                    Paste your ChatGPT Visual Plan below:
+                </p>
+                <textarea id="visualPlanInput" placeholder="0:00–0:03 — Hook
+Footage (Sora background): abstract teal motion
+Overlay (BIG, centered): &quot;WHAT TO KNOW WEDNESDAY&quot;
+..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeVisualPlanModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="parseVisualPlan()">🚀 Generate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="duplicateSelected()">📋 Duplicate</div>
+        <div class="context-menu-item" onclick="deleteSelected()" style="color: var(--danger);">🗑️ Delete</div>
+    </div>
+
+    <script src="video-editor.js"></script>
+</body>
+
+</html>
