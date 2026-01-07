@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BER Fast Stats Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #00A6CE;
+            --dark-blue: #1A3A5C;
+            --light-row: #F5F9FC;
+            --border: #E0E0E0;
+            --text: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f0f4f8;
+            color: var(--text);
+        }
+
+        /* === APP LAYOUT === */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: #ffffff;
+            padding: 24px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 320px;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* === SIDEBAR STYLES === */
+        .sidebar h1 {
+            font-size: 18px;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+        }
+
+        .sidebar .subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8fafc;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            background: #f8fafc;
+        }
+
+        .dropzone:hover {
+            border-color: var(--primary);
+            background: #f0fdfa;
+        }
+
+        .dropzone .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .dropzone .text {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .file-status {
+            margin-bottom: 16px;
+        }
+
+        .file-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+
+        .file-row .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .file-row .dot.ok {
+            background: #22c55e;
+        }
+
+        .file-row .dot.pending {
+            background: #f59e0b;
+        }
+
+        .file-row .name {
+            flex: 1;
+            color: #475569;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #0284c7);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--dark-blue);
+            color: white;
+        }
+
+        /* === REPORT PREVIEW === */
+        .preview-container {
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .report {
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.5in 0.6in;
+            background: white;
+            font-size: 10pt;
+        }
+
+        /* === REPORT HEADER === */
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .report-header .left h1 {
+            font-size: 22pt;
+            font-weight: 800;
+            color: #000;
+            margin-bottom: 2px;
+        }
+
+        .report-header .left .provided-by {
+            font-size: 8pt;
+            font-style: italic;
+            color: #555;
+        }
+
+        .report-header .logo {
+            width: 160px;
+            text-align: right;
+        }
+
+        .report-header .logo img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .region-title {
+            font-size: 32pt;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 10px 0 0 0;
+        }
+
+        .region-subtitle {
+            font-size: 14pt;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        /* === DATA TABLES === */
+        .section-title {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #000;
+            margin: 20px 0 8px 0;
+        }
+
+        .data-table-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .data-table {
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+
+        .data-table.monthly {
+            flex: 0 0 auto;
+        }
+
+        .data-table.ytd {
+            flex: 0 0 auto;
+        }
+
+        .data-table th {
+            background: var(--dark-blue);
+            color: white;
+            font-weight: 600;
+            padding: 8px 10px;
+            text-align: center;
+            border: 1px solid var(--dark-blue);
+        }
+
+        .data-table th.metric-header {
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .data-table th.year-col {
+            min-width: 85px;
+        }
+
+        .data-table th.change-col {
+            min-width: 70px;
+        }
+
+        .data-table td {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .data-table td.metric-name {
+            text-align: left;
+            font-weight: 500;
+            background: white;
+        }
+
+        .data-table tr:nth-child(even) td {
+            background: var(--light-row);
+        }
+
+        .data-table tr:nth-child(even) td.metric-name {
+            background: var(--light-row);
+        }
+
+        .data-table td.value-bold {
+            font-weight: 700;
+        }
+
+        .data-table td.empty-cell {
+            background: #8BA9C5 !important;
+        }
+
+        /* === FOOTER === */
+        .report-footer {
+            margin-top: 24px;
+            font-size: 8pt;
+            color: #555;
+            font-style: italic;
+        }
+
+        .report-footer .disclaimer {
+            margin-bottom: 12px;
+        }
+
+        .report-footer .attribution {
+            text-align: center;
+        }
+
+        /* === PRINT STYLES === */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .sidebar {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 0;
+            }
+
+            .preview-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .report {
+                width: 100%;
+                padding: 0.4in 0.5in;
+            }
+        }
+
+        /* Logo placeholder styling */
+        .logo-placeholder {
+            background: linear-gradient(135deg, #00A6CE, #0284c7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 10pt;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .logo-placeholder .top {
+            font-size: 8pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .logo-placeholder .main {
+            font-size: 11pt;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h1>📊 Fast Stats Generator</h1>
+            <p class="subtitle">Create Local Market Update reports</p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Month</label>
+                    <select id="month" onchange="updateReport()">
+                        <option>January</option>
+                        <option>February</option>
+                        <option>March</option>
+                        <option>April</option>
+                        <option>May</option>
+                        <option>June</option>
+                        <option>July</option>
+                        <option>August</option>
+                        <option>September</option>
+                        <option>October</option>
+                        <option selected>November</option>
+                        <option>December</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Year</label>
+                    <input type="number" id="year" value="2025" onchange="updateReport()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Region Name</label>
+                <input type="text" id="regionName" value="Southwest Florida" onchange="updateReport()">
+            </div>
+
+            <div class="form-group">
+                <label>Counties</label>
+                <input type="text" id="counties" value="Lee, Collier, Hendry Counties" onchange="updateReport()">
+            </div>
+
+            <div class="dropzone" id="dropzone">
+                <div class="icon">📁</div>
+                <div class="text">Drop <strong>Excel files</strong> here<br>or click to browse</div>
+                <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display:none">
+            </div>
+
+            <div class="file-status" id="fileStatus">
+                <div class="file-row">
+                    <div class="dot pending"></div>
+                    <div class="name">Single Family</div>
+                    <div>-</div>
+                </div>
+                <div class="file-row">
+                    <div class="dot pending"></div>
+                    <div class="name">Condo</div>
+                    <div>-</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+            <button class="btn btn-secondary" onclick="resetData()">🔄 Reset to Defaults</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="preview-container">
+                <div class="report" id="report">
+                    <!-- Header -->
+                    <div class="report-header">
+                        <div class="left">
+                            <h1>Local Market Update – <span id="headerMonth">November</span> <span
+                                    id="headerYear">2025</span></h1>
+                            <div class="provided-by">A Research Tool Provided by Bonita Springs-Estero Realtors®</div>
+                        </div>
+                        <div class="logo">
+                            <div class="logo-placeholder">
+                                <div class="top">🌴 ☀️</div>
+                                <div class="main">BONITA SPRINGS-ESTERO<br>REALTORS®</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="region-title" id="regionTitle">Southwest Florida</div>
+                    <div class="region-subtitle" id="regionSubtitle">(Lee, Collier, Hendry Counties)</div>
+
+                    <!-- Single Family Section -->
+                    <div class="section-title">Single Family</div>
+                    <div class="data-table-container">
+                        <table class="data-table monthly">
+                            <thead>
+                                <tr>
+                                    <th class="metric-header">Key Metrics</th>
+                                    <th colspan="3">November</th>
+                                </tr>
+                                <tr>
+                                    <th class="metric-header"></th>
+                                    <th class="year-col" id="sfMonthPrevYear">2024</th>
+                                    <th class="year-col" id="sfMonthCurrYear">2025</th>
+                                    <th class="change-col">% Change</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sfMonthlyBody">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+
+                        <table class="data-table ytd">
+                            <thead>
+                                <tr>
+                                    <th colspan="3">Year To Date</th>
+                                </tr>
+                                <tr>
+                                    <th class="year-col" id="sfYtdPrevYear">Thru 11-2024</th>
+                                    <th class="year-col" id="sfYtdCurrYear">Thru 11-2025</th>
+                                    <th class="change-col">% Change</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sfYtdBody">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Condo Section -->
+                    <div class="section-title">Condo</div>
+                    <div class="data-table-container">
+                        <table class="data-table monthly">
+                            <thead>
+                                <tr>
+                                    <th class="metric-header">Key Metrics</th>
+                                    <th colspan="3">November</th>
+                                </tr>
+                                <tr>
+                                    <th class="metric-header"></th>
+                                    <th class="year-col" id="condoMonthPrevYear">2024</th>
+                                    <th class="year-col" id="condoMonthCurrYear">2025</th>
+                                    <th class="change-col">% Change</th>
+                                </tr>
+                            </thead>
+                            <tbody id="condoMonthlyBody">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+
+                        <table class="data-table ytd">
+                            <thead>
+                                <tr>
+                                    <th colspan="3">Year To Date</th>
+                                </tr>
+                                <tr>
+                                    <th class="year-col" id="condoYtdPrevYear">Thru 11-2024</th>
+                                    <th class="year-col" id="condoYtdCurrYear">Thru 11-2025</th>
+                                    <th class="change-col">% Change</th>
+                                </tr>
+                            </thead>
+                            <tbody id="condoYtdBody">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="report-footer">
+                        <div class="disclaimer">Percent changes are calculated using rounded figures and can sometimes
+                            look extreme due to small sample size.</div>
+                        <div class="attribution" id="attribution">Current as of December 9th, 2025. All data from Bonita
+                            Springs-Estero Board of Realtors® MLS | Data gathered from Domus Analytics</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Metric definitions
+        const metrics = [
+            { key: 'newListings', label: 'New Listings', format: 'number', hasYtd: true },
+            { key: 'pendingSales', label: 'Pending Sales', format: 'number', hasYtd: true },
+            { key: 'closedSales', label: 'Closed Sales', format: 'number', hasYtd: true },
+            { key: 'daysOnMarket', label: 'Days on Market (Median)', format: 'number', hasYtd: true },
+            { key: 'medianPrice', label: 'Median Sales Price', format: 'currency', hasYtd: true },
+            { key: 'soldVolume', label: 'Sold Dollar Volume', format: 'currency', hasYtd: true },
+            { key: 'listPriceReceived', label: 'Percent of List Price Received', format: 'percent', hasYtd: true },
+            { key: 'inventory', label: 'Inventory of Homes for Sale', format: 'number', hasYtd: false },
+            { key: 'monthsSupply', label: 'Months Supply of Inventory', format: 'decimal', hasYtd: false }
+        ];
+
+        // Default data (from the PDF)
+        let data = {
+            singleFamily: {
+                monthly: {
+                    prev: { newListings: 3301, pendingSales: 1520, closedSales: 1188, daysOnMarket: 53, medianPrice: 432495, soldVolume: 875151613, listPriceReceived: 95.90, inventory: 11373, monthsSupply: 9.6 },
+                    curr: { newListings: 2821, pendingSales: 2050, closedSales: 1289, daysOnMarket: 62, medianPrice: 415000, soldVolume: 893290944, listPriceReceived: 95.70, inventory: 11332, monthsSupply: 8.8 }
+                },
+                ytd: {
+                    prev: { newListings: 31738, pendingSales: 15241, closedSales: 17381, daysOnMarket: 48, medianPrice: 450000, soldVolume: 12879155814, listPriceReceived: 96.30 },
+                    curr: { newListings: 33284, pendingSales: 15929, closedSales: 17870, daysOnMarket: 58, medianPrice: 430000, soldVolume: 13495798665, listPriceReceived: 95.70 }
+                }
+            },
+            condo: {
+                monthly: {
+                    prev: { newListings: 1998, pendingSales: 785, closedSales: 436, daysOnMarket: 61, medianPrice: 365000, soldVolume: 245022228.00, listPriceReceived: 94.40, inventory: 7003, monthsSupply: 16.1 },
+                    curr: { newListings: 1728, pendingSales: 1082, closedSales: 547, daysOnMarket: 65, medianPrice: 340000, soldVolume: 289782068.00, listPriceReceived: 94.30, inventory: 7459, monthsSupply: 13.6 }
+                },
+                ytd: {
+                    prev: { newListings: 16991, pendingSales: 7046, closedSales: 8146, daysOnMarket: 54, medianPrice: 403018, soldVolume: 4976987803, listPriceReceived: 95.40 },
+                    curr: { newListings: 17622, pendingSales: 7036, closedSales: 7962, daysOnMarket: 74, medianPrice: 360000, soldVolume: 4427891626, listPriceReceived: 94.10 }
+                }
+            }
+        };
+
+        // Format value based on type
+        function formatValue(value, format) {
+            if (value === null || value === undefined) return '-';
+
+            switch (format) {
+                case 'currency':
+                    if (value >= 1000000000) {
+                        return '$' + (value / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+                    } else if (value >= 1000000) {
+                        return '$' + value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+                    }
+                    return '$' + value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+                case 'percent':
+                    return value.toFixed(2) + '%';
+                case 'decimal':
+                    return value.toFixed(1);
+                default:
+                    return value.toLocaleString('en-US');
+            }
+        }
+
+        // Calculate percent change
+        function calcChange(prev, curr) {
+            if (!prev || prev === 0) return '-';
+            const change = ((curr - prev) / prev) * 100;
+            const sign = change > 0 ? '' : '';
+            return change.toFixed(2) + '%';
+        }
+
+        // Render table body
+        function renderTableBody(containerId, sectionData, period, showMetricNames = true) {
+            const tbody = document.getElementById(containerId);
+            let html = '';
+
+            metrics.forEach(metric => {
+                const prev = sectionData[period].prev[metric.key];
+                const curr = sectionData[period].curr[metric.key];
+                const hasData = period === 'monthly' || metric.hasYtd;
+
+                if (showMetricNames) {
+                    html += '<tr>';
+                    html += '<td class="metric-name">' + metric.label + '</td>';
+                    html += '<td>' + formatValue(prev, metric.format) + '</td>';
+                    html += '<td class="value-bold">' + formatValue(curr, metric.format) + '</td>';
+                    html += '<td>' + calcChange(prev, curr) + '</td>';
+                    html += '</tr>';
+                } else {
+                    // YTD table (no metric names)
+                    if (hasData) {
+                        html += '<tr>';
+                        html += '<td>' + formatValue(sectionData.ytd.prev[metric.key], metric.format) + '</td>';
+                        html += '<td class="value-bold">' + formatValue(sectionData.ytd.curr[metric.key], metric.format) + '</td>';
+                        html += '<td>' + calcChange(sectionData.ytd.prev[metric.key], sectionData.ytd.curr[metric.key]) + '</td>';
+                        html += '</tr>';
+                    } else {
+                        html += '<tr>';
+                        html += '<td class="empty-cell"></td>';
+                        html += '<td class="empty-cell"></td>';
+                        html += '<td class="empty-cell"></td>';
+                        html += '</tr>';
+                    }
+                }
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Update report display
+        function updateReport() {
+            const month = document.getElementById('month').value;
+            const year = parseInt(document.getElementById('year').value);
+            const prevYear = year - 1;
+            const regionName = document.getElementById('regionName').value;
+            const counties = document.getElementById('counties').value;
+
+            // Get month number
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthNum = monthNames.indexOf(month) + 1;
+            const monthNumStr = monthNum.toString().padStart(2, '0');
+
+            // Update header
+            document.getElementById('headerMonth').textContent = month;
+            document.getElementById('headerYear').textContent = year;
+            document.getElementById('regionTitle').textContent = regionName;
+            document.getElementById('regionSubtitle').textContent = '(' + counties + ')';
+
+            // Update year headers
+            document.getElementById('sfMonthPrevYear').textContent = prevYear;
+            document.getElementById('sfMonthCurrYear').textContent = year;
+            document.getElementById('sfYtdPrevYear').textContent = 'Thru ' + monthNumStr + '-' + prevYear;
+            document.getElementById('sfYtdCurrYear').textContent = 'Thru ' + monthNumStr + '-' + year;
+
+            document.getElementById('condoMonthPrevYear').textContent = prevYear;
+            document.getElementById('condoMonthCurrYear').textContent = year;
+            document.getElementById('condoYtdPrevYear').textContent = 'Thru ' + monthNumStr + '-' + prevYear;
+            document.getElementById('condoYtdCurrYear').textContent = 'Thru ' + monthNumStr + '-' + year;
+
+            // Render tables
+            renderTableBody('sfMonthlyBody', data.singleFamily, 'monthly', true);
+            renderTableBody('sfYtdBody', data.singleFamily, 'ytd', false);
+            renderTableBody('condoMonthlyBody', data.condo, 'monthly', true);
+            renderTableBody('condoYtdBody', data.condo, 'ytd', false);
+        }
+
+        // Reset to default data
+        function resetData() {
+            location.reload();
+        }
+
+        // File handling
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.style.borderColor = '#00A6CE'; });
+        dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#cbd5e1'; });
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.style.borderColor = '#cbd5e1';
+            handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+        // Metric to file mapping with column indices
+        const metricConfig = {
+            'newListings': { pattern: /new.?listing/i, col: 7 },
+            'pendingSales': { pattern: /pending.?sale/i, col: 7 },
+            'closedSales': { pattern: /closed.?sale/i, col: 7 },
+            'daysOnMarket': { pattern: /days.?on.?market/i, col: 6 },
+            'medianPrice': { pattern: /median.?sales?.?price/i, col: 3 },
+            'soldVolume': { pattern: /sold.?dollar.?volume/i, col: 5 },
+            'listPriceReceived': { pattern: /percent.?of.?list.?price/i, col: 8 },
+            'inventory': { pattern: /homes?.?for.?sale|inventory/i, col: 7 },
+            'monthsSupply': { pattern: /months?.?(of.?)?.?supply/i, col: 10 }
+        };
+
+        // Track uploaded files
+        let uploadedFiles = {};
+
+        function detectMetricType(filename) {
+            const name = filename.toLowerCase();
+            for (const [key, cfg] of Object.entries(metricConfig)) {
+                if (cfg.pattern.test(name)) return key;
+            }
+            return null;
+        }
+
+        function parseExcelDate(serial) {
+            // Excel serial date to JS Date
+            const d = new Date((serial - 25569) * 86400 * 1000);
+            return { month: d.getMonth() + 1, year: d.getFullYear() };
+        }
+
+        function handleFiles(files) {
+            const month = document.getElementById('month').value;
+            const year = parseInt(document.getElementById('year').value);
+            const prevYear = year - 1;
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const targetMonthNum = monthNames.indexOf(month) + 1;
+
+            Array.from(files).forEach(file => {
+                const metricType = detectMetricType(file.name);
+                if (!metricType) {
+                    console.warn('Unknown metric type for file:', file.name);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                        const ws = wb.Sheets[wb.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+                        uploadedFiles[metricType] = file.name;
+                        processMetricData(metricType, rows, targetMonthNum, year, prevYear);
+                        updateFileStatus();
+                        updateReport();
+                    } catch (err) {
+                        console.error('Error parsing file:', file.name, err);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function processMetricData(metricType, rows, targetMonth, currYear, prevYear) {
+            const col = metricConfig[metricType].col;
+
+            // Initialize accumulators for YTD calculation
+            let sfCurrYtd = 0, sfPrevYtd = 0, sfCurrYtdCount = 0, sfPrevYtdCount = 0;
+            let condoCurrYtd = 0, condoPrevYtd = 0, condoCurrYtdCount = 0, condoPrevYtdCount = 0;
+
+            // Monthly values
+            let sfCurrMonth = null, sfPrevMonth = null;
+            let condoCurrMonth = null, condoPrevMonth = null;
+
+            // Skip header row
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length < col + 1) continue;
+
+                const dateSerial = row[0];
+                if (!dateSerial || isNaN(dateSerial)) continue;
+
+                const { month, year } = parseExcelDate(dateSerial);
+                const propType = String(row[1] || '').toLowerCase();
+                const isSF = propType.includes('single family');
+                const isCondo = propType.includes('condo') || propType.includes('townhouse');
+
+                let value = row[col];
+                if (value === null || value === undefined || value === '') continue;
+                value = parseFloat(String(value).replace(/[,$%]/g, ''));
+                if (isNaN(value)) continue;
+
+                // For percent metrics stored as decimals (0.95 -> 95%)
+                if (metricType === 'listPriceReceived' && value < 1) {
+                    value = value * 100;
+                }
+
+                // Current year data
+                if (year === currYear) {
+                    // Monthly match
+                    if (month === targetMonth) {
+                        if (isSF) sfCurrMonth = value;
+                        if (isCondo) condoCurrMonth = value;
+                    }
+                    // YTD accumulation (months up to and including target month)
+                    if (month <= targetMonth) {
+                        if (isSF) { sfCurrYtd += value; sfCurrYtdCount++; }
+                        if (isCondo) { condoCurrYtd += value; condoCurrYtdCount++; }
+                    }
+                }
+
+                // Previous year data
+                if (year === prevYear) {
+                    // Monthly match
+                    if (month === targetMonth) {
+                        if (isSF) sfPrevMonth = value;
+                        if (isCondo) condoPrevMonth = value;
+                    }
+                    // YTD accumulation
+                    if (month <= targetMonth) {
+                        if (isSF) { sfPrevYtd += value; sfPrevYtdCount++; }
+                        if (isCondo) { condoPrevYtd += value; condoPrevYtdCount++; }
+                    }
+                }
+            }
+
+            // Update data object - Monthly values
+            if (sfCurrMonth !== null) data.singleFamily.monthly.curr[metricType] = sfCurrMonth;
+            if (sfPrevMonth !== null) data.singleFamily.monthly.prev[metricType] = sfPrevMonth;
+            if (condoCurrMonth !== null) data.condo.monthly.curr[metricType] = condoCurrMonth;
+            if (condoPrevMonth !== null) data.condo.monthly.prev[metricType] = condoPrevMonth;
+
+            // YTD values - for some metrics we sum, for others we average
+            const avgMetrics = ['daysOnMarket', 'medianPrice', 'listPriceReceived', 'monthsSupply'];
+            const isAvg = avgMetrics.includes(metricType);
+
+            // Only set YTD for metrics that have YTD display
+            const metric = metrics.find(m => m.key === metricType);
+            if (metric && metric.hasYtd) {
+                if (sfCurrYtdCount > 0) {
+                    data.singleFamily.ytd.curr[metricType] = isAvg ? (sfCurrYtd / sfCurrYtdCount) : sfCurrYtd;
+                }
+                if (sfPrevYtdCount > 0) {
+                    data.singleFamily.ytd.prev[metricType] = isAvg ? (sfPrevYtd / sfPrevYtdCount) : sfPrevYtd;
+                }
+                if (condoCurrYtdCount > 0) {
+                    data.condo.ytd.curr[metricType] = isAvg ? (condoCurrYtd / condoCurrYtdCount) : condoCurrYtd;
+                }
+                if (condoPrevYtdCount > 0) {
+                    data.condo.ytd.prev[metricType] = isAvg ? (condoPrevYtd / condoPrevYtdCount) : condoPrevYtd;
+                }
+            }
+        }
+
+        function updateFileStatus() {
+            const statusDiv = document.getElementById('fileStatus');
+            const allMetrics = ['newListings', 'pendingSales', 'closedSales', 'daysOnMarket',
+                'medianPrice', 'soldVolume', 'listPriceReceived', 'inventory', 'monthsSupply'];
+
+            let html = '';
+            allMetrics.forEach(key => {
+                const loaded = uploadedFiles[key];
+                const label = metrics.find(m => m.key === key)?.label || key;
+                html += '<div class="file-row">';
+                html += '<div class="dot ' + (loaded ? 'ok' : 'pending') + '"></div>';
+                html += '<div class="name">' + label + '</div>';
+                html += '<div>' + (loaded ? '✓' : '-') + '</div>';
+                html += '</div>';
+            });
+            statusDiv.innerHTML = html;
+        }
+
+        // Initialize
+        updateReport();
+    </script>
+</body>
+
+</html>
