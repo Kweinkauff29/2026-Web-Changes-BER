@@ -9,6 +9,9 @@
         rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #00A6CE;
@@ -184,17 +187,31 @@
 
         /* === REPORT PREVIEW === */
         .preview-container {
-            background: white;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            background: #e2e8f0;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+            /* nicer inset look */
             border-radius: 8px;
-            overflow: hidden;
+            overflow: auto;
+            /* Allow horizontal scroll for landscape */
+            padding: 20px;
         }
 
         .report {
+            width: fit-content;
+            margin: 0 auto;
+            min-height: auto;
+            padding: 0;
+            background: transparent;
+        }
+
+        /* New class creates the "Paper" look for Fast Stats */
+        .fast-stats-layout {
             width: 8.5in;
             min-height: 11in;
             padding: 0.5in 0.6in;
             background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 0 auto 30px auto;
             font-size: 10pt;
         }
 
@@ -436,8 +453,10 @@
         /* === MONTHLY INDICATORS REPORT CSS === */
         .indicator-page {
             width: 100%;
-            max-width: 7.5in;
-            min-height: 9.5in;
+            max-width: 11in;
+            /* Landscape width */
+            min-height: 8.5in;
+            /* Landscape height */
             margin: 0 auto 30px auto;
             background: white;
             padding: 0.5in;
@@ -447,13 +466,33 @@
         }
 
         @media print {
+            @page {
+                size: portrait;
+                margin: 0.25in;
+            }
+
+            @page landscape {
+                size: landscape;
+                margin: 0.25in;
+            }
+
             .indicator-page {
+                page: landscape;
                 box-shadow: none;
                 margin: 0;
-                width: 100%;
+                width: 11in !important;
+                height: 8.5in !important;
                 max-width: none;
+                /* critical fixes for print layout */
+                overflow: hidden;
                 page-break-after: always;
-                min-height: 100vh;
+                break-after: page;
+                break-inside: avoid;
+            }
+
+            .report-page {
+                page: auto;
+                /* Default portrait */
             }
 
             .no-print {
@@ -646,11 +685,17 @@
                 </div>
                 <button class="btn btn-primary" onclick="generateMonthlyIndicators()"
                     style="width: 100%; margin-top: 10px; background: #0ea5e9;">📊 Generate Report</button>
+                <button class="btn btn-primary" onclick="window.print()" style="margin-top: 20px;">🖨️ Print / Save as
+                    PDF</button>
+                <button class="btn btn-secondary" onclick="downloadPDF('indicators', this)"
+                    style="margin-top: 10px; background: #475569;">⬇️ Download PDF File</button>
             </div>
 
             <!-- Fast Stats Controls -->
             <div id="fast-stats-controls">
                 <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+                <button class="btn btn-secondary" onclick="downloadPDF('faststats', this)"
+                    style="margin-top: 10px; background: #475569;">⬇️ Download PDF File</button>
             </div>
 
             <button class="btn btn-secondary" onclick="resetData()">🔄 Reset to Defaults</button>
@@ -660,79 +705,86 @@
         <main class="main-content">
             <div class="preview-container">
                 <div class="report" id="report">
-                    <!-- Header -->
-                    <div class="report-header">
-                        <div class="left">
-                            <h1>Local Market Update – <span id="headerMonth">November</span> <span
-                                    id="headerYear">2025</span></h1>
-                            <div class="provided-by">A Research Tool Provided by Bonita Springs-Estero Realtors®</div>
+                    <div id="fast-stats-content" class="report-page fast-stats-layout">
+                        <!-- Header -->
+                        <div class="report-header">
+                            <div class="left">
+                                <h1>Local Market Update – <span id="headerMonth">November</span> <span
+                                        id="headerYear">2025</span></h1>
+                                <div class="provided-by">A Research Tool Provided by Bonita Springs-Estero Realtors®
+                                </div>
+                            </div>
+                            <div class="logo">
+                                <img src="https://bonitaesterorealtors.com/wp-content/uploads/2025/12/Ber-logo-2026-scaled.png"
+                                    alt="Bonita Springs-Estero REALTORS®" style="width: 180px; height: auto;">
+                            </div>
                         </div>
-                        <div class="logo">
-                            <img src="https://bonitaesterorealtors.com/wp-content/uploads/2025/12/Ber-logo-2026-scaled.png"
-                                alt="Bonita Springs-Estero REALTORS®" style="width: 180px; height: auto;">
+
+                        <div class="region-title" id="regionTitle">Southwest Florida</div>
+                        <div class="region-subtitle" id="regionSubtitle">(Lee, Collier, Hendry Counties)</div>
+
+                        <!-- Single Family Section -->
+                        <div class="section-title">Single Family</div>
+                        <div class="data-table-container">
+                            <table class="data-table monthly">
+                                <thead>
+                                    <tr>
+                                        <th class="metric-header" rowspan="2">Key Metrics</th>
+                                        <th colspan="3" class="month-header" id="sfMonthHeader">November</th>
+                                        <th colspan="3" class="ytd-main-header">Year To Date</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="year-col" id="sfMonthPrevYear">2024</th>
+                                        <th class="year-col" id="sfMonthCurrYear">2025</th>
+                                        <th class="change-col">% Change</th>
+                                        <th class="year-col" id="sfYtdPrevYear">Thru 11-2024</th>
+                                        <th class="year-col" id="sfYtdCurrYear">Thru 11-2025</th>
+                                        <th class="change-col">% Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sfMonthlyBody">
+                                    <!-- Generated by JS -->
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
 
-                    <div class="region-title" id="regionTitle">Southwest Florida</div>
-                    <div class="region-subtitle" id="regionSubtitle">(Lee, Collier, Hendry Counties)</div>
+                        <!-- Condo Section -->
+                        <div class="section-title">Condo</div>
+                        <div class="data-table-container">
+                            <table class="data-table monthly">
+                                <thead>
+                                    <tr>
+                                        <th class="metric-header" rowspan="2">Key Metrics</th>
+                                        <th colspan="3" class="month-header" id="condoMonthHeader">November</th>
+                                        <th colspan="3" class="ytd-main-header">Year To Date</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="year-col" id="condoMonthPrevYear">2024</th>
+                                        <th class="year-col" id="condoMonthCurrYear">2025</th>
+                                        <th class="change-col">% Change</th>
+                                        <th class="year-col" id="condoYtdPrevYear">Thru 11-2024</th>
+                                        <th class="year-col" id="condoYtdCurrYear">Thru 11-2025</th>
+                                        <th class="change-col">% Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="condoMonthlyBody">
+                                    <!-- Generated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
 
-                    <!-- Single Family Section -->
-                    <div class="section-title">Single Family</div>
-                    <div class="data-table-container">
-                        <table class="data-table monthly">
-                            <thead>
-                                <tr>
-                                    <th class="metric-header" rowspan="2">Key Metrics</th>
-                                    <th colspan="3" class="month-header" id="sfMonthHeader">November</th>
-                                    <th colspan="3" class="ytd-main-header">Year To Date</th>
-                                </tr>
-                                <tr>
-                                    <th class="year-col" id="sfMonthPrevYear">2024</th>
-                                    <th class="year-col" id="sfMonthCurrYear">2025</th>
-                                    <th class="change-col">% Change</th>
-                                    <th class="year-col" id="sfYtdPrevYear">Thru 11-2024</th>
-                                    <th class="year-col" id="sfYtdCurrYear">Thru 11-2025</th>
-                                    <th class="change-col">% Change</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sfMonthlyBody">
-                                <!-- Generated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
+                        <!-- Footer -->
+                        <!-- Land Section -->
 
-                    <!-- Condo Section -->
-                    <div class="section-title">Condo</div>
-                    <div class="data-table-container">
-                        <table class="data-table monthly">
-                            <thead>
-                                <tr>
-                                    <th class="metric-header" rowspan="2">Key Metrics</th>
-                                    <th colspan="3" class="month-header" id="condoMonthHeader">November</th>
-                                    <th colspan="3" class="ytd-main-header">Year To Date</th>
-                                </tr>
-                                <tr>
-                                    <th class="year-col" id="condoMonthPrevYear">2024</th>
-                                    <th class="year-col" id="condoMonthCurrYear">2025</th>
-                                    <th class="change-col">% Change</th>
-                                    <th class="year-col" id="condoYtdPrevYear">Thru 11-2024</th>
-                                    <th class="year-col" id="condoYtdCurrYear">Thru 11-2025</th>
-                                    <th class="change-col">% Change</th>
-                                </tr>
-                            </thead>
-                            <tbody id="condoMonthlyBody">
-                                <!-- Generated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
 
-                    <!-- Footer -->
-                    <div class="report-footer">
-                        <div class="disclaimer">Percent changes are calculated using rounded figures and can sometimes
-                            look extreme due to small sample size.</div>
-                        <div class="attribution">Current as of <span id="currentDate">December 9th, 2025</span>. All
-                            data from Bonita
-                            Springs-Estero Board of Realtors® MLS | Data gathered from Domus Analytics</div>
+                        <div class="report-footer">
+                            <div class="disclaimer">Percent changes are calculated using rounded figures and can
+                                sometimes
+                                look extreme due to small sample size.</div>
+                            <div class="attribution">Current as of <span id="currentDate">December 9th, 2025</span>. All
+                                data from Bonita
+                                Springs-Estero Board of Realtors® MLS | Data gathered from Domus Analytics</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -981,7 +1033,7 @@
                     try {
                         const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
                         const ws = wb.Sheets[wb.SheetNames[0]];
-                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
 
                         if (metricKey) {
                             // Auto-detected
@@ -1061,21 +1113,27 @@
                 if (propType === 'all') {
                     const sfVal = getMetricValue('singleFamily', metricKey, month, year);
                     const condoVal = getMetricValue('condo', metricKey, month, year);
+                    const landVal = getMetricValue('land', metricKey, month, year);
+                    const multiVal = getMetricValue('multiFamily', metricKey, month, year);
 
                     if (metricKey === 'medianPrice' || metricKey === 'daysOnMarket' || metricKey === 'listPriceReceived') {
                         const sfCount = getMetricValue('singleFamily', 'closedSales', month, year);
                         const condoCount = getMetricValue('condo', 'closedSales', month, year);
-                        const totalCount = sfCount + condoCount;
+                        const landCount = getMetricValue('land', 'closedSales', month, year);
+                        const multiCount = getMetricValue('multiFamily', 'closedSales', month, year);
+                        const totalCount = sfCount + condoCount + landCount + multiCount;
                         if (totalCount === 0) return 0;
-                        return ((sfVal * sfCount) + (condoVal * condoCount)) / totalCount;
+                        return ((sfVal * sfCount) + (condoVal * condoCount) + (landVal * landCount) + (multiVal * multiCount)) / totalCount;
                     } else if (metricKey === 'monthsSupply') {
                         const sfInv = getMetricValue('singleFamily', 'inventory', month, year);
                         const condoInv = getMetricValue('condo', 'inventory', month, year);
-                        const totalInv = sfInv + condoInv;
+                        const landInv = getMetricValue('land', 'inventory', month, year);
+                        const multiInv = getMetricValue('multiFamily', 'inventory', month, year);
+                        const totalInv = sfInv + condoInv + landInv + multiInv;
                         if (totalInv === 0) return 0;
-                        return ((sfVal * sfInv) + (condoVal * condoInv)) / totalInv;
+                        return ((sfVal * sfInv) + (condoVal * condoInv) + (landVal * landInv) + (multiVal * multiInv)) / totalInv;
                     } else {
-                        return sfVal + condoVal;
+                        return sfVal + condoVal + landVal + multiVal;
                     }
                 }
 
@@ -1083,46 +1141,53 @@
                 const rows = rawRowsData[metricKey];
                 if (!rows) return 0;
 
-                // 2. Find row for Property Type (Single Family vs Condo)
-                // The Excel files have labels like "Single Family" and "Townhouse/Condo" in the first column
-                const metricRow = rows.find(r => {
-                    if (!r[0]) return false;
-                    const cell = r[0].toString().trim().toLowerCase();
-                    if (propType === 'singleFamily') return cell.includes('single') || cell.includes('residential');
-                    if (propType === 'condo') return cell.includes('condo') || cell.includes('townhouse');
+                // DATA FORMAT IS COLUMNAR:
+                // Col 0: Date (e.g. "2025-Jan")
+                // Col 1: Property Type (e.g. "Single Family Residence")
+                // Col X: Value (defined in metricConfig)
+
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const targetMon = monthNames[month - 1]; // "Jan"
+                const targetDateStr = `${year}-${targetMon}`; // "2025-Jan"
+
+                // Find the row that matches both Date and Property Type
+                const matchingRow = rows.find(r => {
+                    if (!r[0] || !r[1]) return false;
+
+                    // Check Date (Col 0)
+                    // The file uses "YYYY-Mon" e.g. "2018-Jan"
+                    const rowDate = r[0].toString();
+                    if (rowDate !== targetDateStr) return false;
+
+                    // Check Property Type (Col 1)
+                    const rowType = r[1].toString().toLowerCase();
+                    if (propType === 'singleFamily') {
+                        return rowType.includes('single') || rowType.includes('residential');
+                    }
+                    if (propType === 'condo') {
+                        return rowType.includes('condo') || rowType.includes('townhouse');
+                    }
+                    if (propType === 'land') {
+                        return rowType.includes('land') || rowType.includes('lot');
+                    }
+                    if (propType === 'multiFamily') {
+                        return rowType.includes('multi');
+                    }
                     return false;
                 });
 
-                if (!metricRow) return 0;
+                if (!matchingRow) return 0;
 
-                // 3. Find Column Index for Month/Year
-                const headerRowIndex = rows.findIndex(row =>
-                    row.some(cell => cell && (cell.toString().includes('2023') || cell.toString().includes('2024') || cell.toString().includes('2025')))
-                );
-                if (headerRowIndex === -1) return 0;
-                const headerRow = rows[headerRowIndex];
+                // Extract Value from configured column
+                const colIdx = metricConfig[metricKey].col;
+                let valStr = matchingRow[colIdx];
 
-                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                const targetMon = monthNames[month - 1]; // "Jan", "Feb"
-                const targetY = year.toString();
-
-                const colIndex = headerRow.findIndex(cell => {
-                    if (!cell) return false;
-                    const s = cell.toString();
-                    return s.includes(targetMon) && s.includes(targetY);
-                });
-
-                if (colIndex === -1) return 0;
-
-                // 4. Extract Value
-                let valStr = metricRow[colIndex];
                 if (valStr === undefined || valStr === null) return 0;
-
                 if (typeof valStr === 'string') {
-                    // Remove $ , and %
                     valStr = valStr.replace(/[$,%]/g, '');
                 }
                 return parseFloat(valStr) || 0;
+
             } catch (e) {
                 // console.warn('Error in getMetricValue', propType, metricKey, e);
                 return 0;
@@ -1214,19 +1279,21 @@
 
         function calculateQuickFacts() {
             try {
-                const monthName = document.getElementById('selectMonth').value;
-                const year = parseInt(document.getElementById('selectYear').value);
+                const monthName = document.getElementById('month').value;
+                const year = parseInt(document.getElementById('year').value);
                 const prevYear = year - 1;
                 const monthIdx = getMonthIndex(monthName);
 
                 const formatPct = (val) => {
+                    if (isNaN(val) || !isFinite(val)) return 'N/A';
                     const s = val.toFixed(1) + '%';
                     return val > 0 ? '+' + s : s;
                 };
 
                 // Helper to get value for ALL properties (SF + Condo)
                 const getAllVal = (metricKey, y) => {
-                    return getMetricValue('all', metricKey, monthIdx, y);
+                    const val = getMetricValue('all', metricKey, monthIdx, y);
+                    return val;
                 };
 
                 // 1. Closed Sales
@@ -1250,14 +1317,16 @@
                     activeListings: formatPct(chgInv)
                 };
             } catch (e) {
-                console.warn('Error in calculateQuickFacts', e);
+                console.error('Error in calculateQuickFacts:', e);
+                // Alert only on first error to avoid spam, or just log
+                // alert('Quick Facts Error: ' + e.message); 
                 return { closedSales: 'N/A', medianPrice: 'N/A', activeListings: 'N/A' };
             }
         }
 
         function renderCoverPage(container) {
-            const monthName = document.getElementById('selectMonth').value;
-            const year = document.getElementById('selectYear').value;
+            const monthName = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
             const summaryText = document.getElementById('cover-summary').value ||
                 `${monthName} showed firm buyer momentum... (Default placeholder text)`;
 
@@ -1400,8 +1469,8 @@
         }
 
         function renderOverviewPage(container, propType, pageNum) {
-            const monthName = document.getElementById('selectMonth').value;
-            const year = parseInt(document.getElementById('selectYear').value);
+            const monthName = document.getElementById('month').value;
+            const year = parseInt(document.getElementById('year').value);
             const monthIdx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
             const prevYear = year - 1;
 
@@ -1432,7 +1501,7 @@
                         <thead>
                             <tr>
                                 <th style="text-align:left; background: var(--primary); color: white;">Key Metrics</th>
-                                <th style="background: var(--primary); color: white; width: 120px;">Historical Graph</th>
+                                <th style="background: var(--primary); color: white; width: 200px;">Historical Graph</th>
                                 <th style="background: var(--primary); color: white;">${monthIdx}-${prevYear}</th>
                                 <th style="background: var(--primary); color: white;">${monthIdx}-${year}</th>
                                 <th style="background: var(--primary); color: white;">% Change</th>
@@ -1470,7 +1539,7 @@
 
                 return `<tr>
                                     <td style="text-align:left;">${m.label}</td>
-                                    <td style="padding: 2px;"><canvas id="${canvasId}" style="width:100px; height:30px;"></canvas></td>
+                                    <td style="padding: 2px;"><canvas id="${canvasId}" style="width:190px; height:50px;"></canvas></td>
                                     <td>${fmt(mPrev)}</td>
                                     <td>${fmt(mCurr)}</td>
                                     <td>${fmtPct(mChange)}</td>
@@ -1501,14 +1570,22 @@
                     history.unshift(getMetricValue(propType, m.key, mo, y));
                 }
                 new Chart(ctx, {
-                    type: 'bar',
+                    type: 'line',
                     data: {
                         labels: Array(24).fill(''),
                         datasets: [{
                             data: history,
-                            backgroundColor: '#ffb700',
-                            barPercentage: 0.9,
-                            categoryPercentage: 1.0
+                            borderColor: '#0ea5e9',
+                            borderWidth: 2,
+                            pointRadius: (ctx) => {
+                                const idx = ctx.dataIndex;
+                                return (idx === 11 || idx === 23) ? 4 : 0;
+                            },
+                            pointBackgroundColor: '#ffb700',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1,
+                            fill: false,
+                            tension: 0.1
                         }]
                     },
                     options: {
@@ -1522,8 +1599,8 @@
             });
         }
         function renderMetricPage(container, metricKey, pageNum) {
-            const year = parseInt(document.getElementById('selectYear').value);
-            const monthName = document.getElementById('selectMonth').value;
+            const year = parseInt(document.getElementById('year').value);
+            const monthName = document.getElementById('month').value;
             const monthIdx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
 
             const metricObj = metrics.find(m => m.key === metricKey);
@@ -1552,17 +1629,15 @@
                 <div style="font-size: 11px; color: #666; margin-bottom: 30px; font-style: italic;">${desc}</div>
 
                 <!-- Three Columns: Monthly Bar, YTD Bar, Map -->
-                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr; gap: 20px; margin-bottom: 20px; height: 200px;">
+                <!-- Two Columns: Monthly Bar, YTD Bar (Map removed) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 20px; height: 280px;">
                     <div>
                         <div style="font-weight:bold; margin-bottom: 5px;">${monthName}</div>
-                        <canvas id="chart-month-${metricKey}" style="width:100%; height:180px;"></canvas>
+                        <canvas id="chart-month-${metricKey}" style="width:100%; height:260px;"></canvas>
                     </div>
                     <div>
                         <div style="font-weight:bold; margin-bottom: 5px;">Year to Date</div>
-                        <canvas id="chart-ytd-${metricKey}" style="width:100%; height:180px;"></canvas>
-                    </div>
-                    <div>
-                         <?xml version="1.0" encoding="utf-8"?><!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  --><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 width="150px" height="150px" viewBox="0 0 150 150" enable-background="new 0 0 150 150" xml:space="preserve"><rect x="10" y="10" fill="#E6E6E6" width="130" height="130"/><text transform="matrix(1 0 0 1 35 75)" fill="#666666" font-family="'ArialMT'" font-size="12">Map Placeholder</text></svg>
+                        <canvas id="chart-ytd-${metricKey}" style="width:100%; height:260px;"></canvas>
                     </div>
                 </div>
 
@@ -1693,8 +1768,8 @@
         }
 
         function renderMetricPage(container, metricKey, pageNum) {
-            const year = parseInt(document.getElementById('selectYear').value);
-            const monthName = document.getElementById('selectMonth').value;
+            const year = parseInt(document.getElementById('year').value);
+            const monthName = document.getElementById('month').value;
             const monthIdx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
 
             const metricObj = metrics.find(m => m.key === metricKey);
@@ -1723,14 +1798,20 @@
                 <div style="font-size: 11px; color: #666; margin-bottom: 30px; font-style: italic;">${desc}</div>
 
                 <!-- Three Columns: Monthly Bar, YTD Bar, Map -->
-                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr; gap: 20px; margin-bottom: 20px; height: 200px;">
+                <!-- Three Columns: Monthly Bar, YTD Bar, Map -->
+                <!-- Three Columns: Monthly Bar, YTD Bar, Map -->
+                <div style="display: grid; grid-template-columns: 1.5fr 1.5fr 180px; gap: 20px; margin-bottom: 20px;">
                     <div>
                         <div style="font-weight:bold; margin-bottom: 5px;">${monthName}</div>
-                        <canvas id="chart-month-${metricKey}" style="width:100%; height:180px;"></canvas>
+                        <div style="position: relative; height: 280px; width: 100%;">
+                            <canvas id="chart-month-${metricKey}"></canvas>
+                        </div>
                     </div>
                     <div>
                         <div style="font-weight:bold; margin-bottom: 5px;">Year to Date</div>
-                        <canvas id="chart-ytd-${metricKey}" style="width:100%; height:180px;"></canvas>
+                        <div style="position: relative; height: 280px; width: 100%;">
+                            <canvas id="chart-ytd-${metricKey}"></canvas>
+                        </div>
                     </div>
                     <div>
                          <?xml version="1.0" encoding="utf-8"?><!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  --><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 width="150px" height="150px" viewBox="0 0 150 150" enable-background="new 0 0 150 150" xml:space="preserve"><rect x="10" y="10" fill="#E6E6E6" width="130" height="130"/><text transform="matrix(1 0 0 1 35 75)" fill="#666666" font-family="'ArialMT'" font-size="12">Map Placeholder</text></svg>
@@ -1740,7 +1821,9 @@
                 <!-- Historical Line Chart -->
                 <div>
                      <div style="font-weight:bold; margin-bottom: 5px; margin-top: 20px;">${title} by Month</div>
-                     <canvas id="chart-hist-${metricKey}" style="width:100%; height:350px;"></canvas>
+                     <div style="position: relative; height: 350px; width: 100%;">
+                        <canvas id="chart-hist-${metricKey}"></canvas>
+                     </div>
                 </div>
 
                 <div style="position: absolute; bottom: 30px; right: 40px; font-size: 10px; color: #999;">
@@ -1760,6 +1843,8 @@
             // Monthly Data
             const sfMonthData = years.map(y => getMetricValue('singleFamily', metricKey, monthIdx, y));
             const condoMonthData = years.map(y => getMetricValue('condo', metricKey, monthIdx, y));
+            const landMonthData = years.map(y => getMetricValue('land', metricKey, monthIdx, y));
+            const multiMonthData = years.map(y => getMetricValue('multiFamily', metricKey, monthIdx, y));
 
             // YTD Data logic
             const getYtd = (prop, y) => {
@@ -1776,16 +1861,18 @@
 
             const sfYtdData = years.map(y => getYtd('singleFamily', y));
             const condoYtdData = years.map(y => getYtd('condo', y));
+            const landYtdData = years.map(y => getYtd('land', y));
+            const multiYtdData = years.map(y => getYtd('multiFamily', y));
 
             // Config for Grouped Bars
-            const barConfig = (dataSF, dataCondo) => ({
+            const barConfig = (dataSF, dataCondo, dataLand, dataMulti) => ({
                 type: 'bar',
                 data: {
-                    labels: ['Single Family', 'Condo'],
+                    labels: ['Single Family', 'Condo', 'Land', 'Multi-Family'],
                     datasets: [
-                        { label: (year - 2).toString(), data: [dataSF[0], dataCondo[0]], backgroundColor: '#4dc9e6' },
-                        { label: (year - 1).toString(), data: [dataSF[1], dataCondo[1]], backgroundColor: '#00a6ce' },
-                        { label: year.toString(), data: [dataSF[2], dataCondo[2]], backgroundColor: '#006b85' }
+                        { label: (year - 2).toString(), data: [dataSF[0], dataCondo[0], dataLand[0], dataMulti[0]], backgroundColor: '#4dc9e6' },
+                        { label: (year - 1).toString(), data: [dataSF[1], dataCondo[1], dataLand[1], dataMulti[1]], backgroundColor: '#00a6ce' },
+                        { label: year.toString(), data: [dataSF[2], dataCondo[2], dataLand[2], dataMulti[2]], backgroundColor: '#006b85' }
                     ]
                 },
                 options: {
@@ -1799,13 +1886,15 @@
                 }
             });
 
-            new Chart(ctxMonth, barConfig(sfMonthData, condoMonthData));
-            new Chart(ctxYtd, barConfig(sfYtdData, condoYtdData));
+            new Chart(ctxMonth, barConfig(sfMonthData, condoMonthData, landMonthData, multiMonthData));
+            new Chart(ctxYtd, barConfig(sfYtdData, condoYtdData, landYtdData, multiYtdData));
 
             // Historical Line Chart
             const histLabels = [];
             const histSF = [];
             const histCondo = [];
+            const histLand = [];
+            const histMulti = [];
 
             for (let y = 2017; y <= year; y++) {
                 const endM = (y === year) ? monthIdx : 12;
@@ -1813,7 +1902,25 @@
                     histLabels.push(`${y}-${m}`);
                     histSF.push(getMetricValue('singleFamily', metricKey, m, y));
                     histCondo.push(getMetricValue('condo', metricKey, m, y));
+                    histLand.push(getMetricValue('land', metricKey, m, y));
+                    histMulti.push(getMetricValue('multiFamily', metricKey, m, y));
                 }
+            }
+
+            // Trim leading zeros
+            let startIndex = 0;
+            for (let i = 0; i < histLabels.length; i++) {
+                if (histSF[i] > 0 || histCondo[i] > 0 || histLand[i] > 0 || histMulti[i] > 0) {
+                    startIndex = i;
+                    break;
+                }
+            }
+            if (startIndex > 0) {
+                histLabels.splice(0, startIndex);
+                histSF.splice(0, startIndex);
+                histCondo.splice(0, startIndex);
+                histLand.splice(0, startIndex);
+                histMulti.splice(0, startIndex);
             }
 
             new Chart(ctxHist, {
@@ -1822,7 +1929,9 @@
                     labels: histLabels,
                     datasets: [
                         { label: 'Single Family', data: histSF, borderColor: '#ca8a04', borderWidth: 2, pointRadius: 0, tension: 0.1 },
-                        { label: 'Condo', data: histCondo, borderColor: '#4dc9e6', borderWidth: 2, pointRadius: 0, tension: 0.1 }
+                        { label: 'Condo', data: histCondo, borderColor: '#4dc9e6', borderWidth: 2, pointRadius: 0, tension: 0.1 },
+                        { label: 'Land', data: histLand, borderColor: '#16a34a', borderWidth: 2, pointRadius: 0, tension: 0.1 },
+                        { label: 'Multi-Family', data: histMulti, borderColor: '#9333ea', borderWidth: 2, pointRadius: 0, tension: 0.1 }
                     ]
                 },
                 options: {
@@ -1843,6 +1952,77 @@
                 }
             });
         }
+
+
+        async function downloadPDF(type, btn) {
+            const originalText = btn.innerText;
+            btn.innerText = 'Initializing...';
+
+            if (!window.jspdf || !window.html2canvas) {
+                alert('PDF Libraries not loaded. Please refresh.');
+                btn.innerText = originalText;
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const isLandscape = (type === 'monthly');
+            const orientation = isLandscape ? 'l' : 'p';
+            const format = 'letter'; // 8.5in x 11in
+
+            // Create PDF
+            const doc = new jsPDF({ unit: 'in', format: format, orientation: orientation });
+
+            // Select Pages
+            let pages = [];
+            if (isLandscape) {
+                pages = Array.from(document.querySelectorAll('#monthly-indicators-container .indicator-page'));
+            } else {
+                const el = document.querySelector('.fast-stats-layout');
+                if (el) pages.push(el);
+            }
+
+            if (pages.length === 0) {
+                alert('No pages found to generate.');
+                btn.innerText = originalText;
+                return;
+            }
+
+            // Loop and Render
+            try {
+                for (let i = 0; i < pages.length; i++) {
+                    btn.innerText = `Processing Page ${i + 1}/${pages.length}...`;
+
+                    // Add new page if not the first
+                    if (i > 0) doc.addPage(format, orientation);
+
+                    // Render with High Scale (2 is good, 3 is print quality)
+                    // We can use 2 to be safe on memory, but user asked for higher resolution. 
+                    // Since we render ONE page at a time, we can handle scale 2 easy.
+                    const canvas = await html2canvas(pages[i], {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        windowWidth: isLandscape ? 1100 : 850
+                    });
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const pdfW = isLandscape ? 11 : 8.5;
+                    const pdfH = isLandscape ? 8.5 : 11;
+
+                    doc.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+                }
+
+                btn.innerText = 'Saving...';
+                doc.save(`BER_${type === 'monthly' ? 'Monthly_Indicators' : 'Fast_Stats'}.pdf`);
+            } catch (e) {
+                console.error('PDF Generation Error:', e);
+                alert('Error generating PDF. See console.');
+            } finally {
+                btn.innerText = originalText;
+            }
+        }
+
+
 
         updateReport();
     </script>
