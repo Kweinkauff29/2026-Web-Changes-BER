@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #00A6CE;
@@ -206,10 +207,11 @@
         }
 
         .report-header .left h1 {
-            font-size: 22pt;
+            font-size: 18pt;
             font-weight: 800;
             color: #000;
             margin-bottom: 2px;
+            white-space: nowrap;
         }
 
         .report-header .left .provided-by {
@@ -270,12 +272,12 @@
         }
 
         .data-table th {
-            background: var(--dark-blue);
+            background: var(--primary);
             color: white;
             font-weight: 600;
             padding: 8px 10px;
             text-align: center;
-            border: 1px solid var(--dark-blue);
+            border: 1px solid var(--primary);
         }
 
         .data-table th.metric-header {
@@ -319,6 +321,22 @@
             background: #8BA9C5 !important;
         }
 
+        /* Blank header for monthly columns (no title) */
+        .data-table th.blank-header {
+            background: white;
+            border: none;
+        }
+
+        /* YTD main header - inherits primary cyan from th */
+        .data-table th.ytd-main-header {
+            font-weight: 600;
+        }
+
+        /* Month header for monthly columns - inherits primary cyan from th */
+        .data-table th.month-header {
+            font-weight: 600;
+        }
+
         /* === FOOTER === */
         .report-footer {
             margin-top: 24px;
@@ -337,6 +355,11 @@
 
         /* === PRINT STYLES === */
         @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
             body {
                 background: white;
             }
@@ -357,8 +380,164 @@
 
             .report {
                 width: 100%;
-                padding: 0.4in 0.5in;
+                max-width: 7.5in;
+                padding: 0.25in 0.3in;
             }
+
+            .data-table-container {
+                max-width: 100%;
+                overflow: visible;
+            }
+
+            .data-table {
+                width: 100%;
+                max-width: 100%;
+                font-size: 7pt;
+                table-layout: auto;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 3px 4px;
+                white-space: nowrap;
+            }
+
+            .data-table td.metric-name {
+                white-space: normal;
+                font-size: 7pt;
+            }
+
+            .data-table th.year-col {
+                min-width: unset;
+            }
+
+            .data-table th.change-col {
+                min-width: unset;
+            }
+
+            .data-table th.metric-header {
+                min-width: unset;
+                white-space: normal;
+            }
+
+            .report-header .left h1 {
+                font-size: 16pt;
+            }
+
+            .section-title {
+                font-size: 12pt;
+            }
+
+            .region-title {
+                font-size: 20pt;
+            }
+        }
+
+        /* === MONTHLY INDICATORS REPORT CSS === */
+        .indicator-page {
+            width: 100%;
+            max-width: 7.5in;
+            min-height: 9.5in;
+            margin: 0 auto 30px auto;
+            background: white;
+            padding: 0.5in;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            page-break-after: always;
+        }
+
+        @media print {
+            .indicator-page {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                max-width: none;
+                page-break-after: always;
+                min-height: 100vh;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        .cover-header {
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cover-title {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .cover-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .quick-facts {
+            margin-bottom: 40px;
+        }
+
+        .quick-facts-header {
+            color: #00A6CE;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .fact-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .fact-item {
+            flex: 1;
+        }
+
+        .fact-value {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .fact-label {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.3;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .toc-page {
+            color: #00A6CE;
+            font-weight: 600;
+        }
+
+        .summary-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
         }
 
         /* Logo placeholder styling */
@@ -398,7 +577,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Month</label>
-                    <select id="month" onchange="updateReport()">
+                    <select id="month" onchange="reprocessAllData()">
                         <option>January</option>
                         <option>February</option>
                         <option>March</option>
@@ -415,7 +594,7 @@
                 </div>
                 <div class="form-group">
                     <label>Year</label>
-                    <input type="number" id="year" value="2025" onchange="updateReport()">
+                    <input type="number" id="year" value="2025" onchange="reprocessAllData()">
                 </div>
             </div>
 
@@ -435,20 +614,45 @@
                 <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display:none">
             </div>
 
-            <div class="file-status" id="fileStatus">
-                <div class="file-row">
-                    <div class="dot pending"></div>
-                    <div class="name">Single Family</div>
-                    <div>-</div>
-                </div>
-                <div class="file-row">
-                    <div class="dot pending"></div>
-                    <div class="name">Condo</div>
-                    <div>-</div>
+            <!-- File Status -->
+            <div id="fileStatus" class="file-status"></div>
+
+            <!-- Unassigned Files Container -->
+            <div id="unassigned-files"
+                style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; display: none;">
+                <!-- Dropdowns will appear here -->
+            </div>
+
+            <!-- Report Type Selection -->
+            <div class="control-group">
+                <label>Report Type</label>
+                <div class="report-type-toggle" style="display: flex; gap: 10px; margin-top: 5px; margin-bottom: 20px;">
+                    <button id="btn-show-faststats" class="action-btn active"
+                        style="flex: 1; font-size: 12px; padding: 8px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;"
+                        onclick="switchReport('faststats')">Fast Stats</button>
+                    <button id="btn-show-indicators" class="action-btn secondary"
+                        style="flex: 1; font-size: 12px; padding: 8px; background: #e2e8f0; color: #64748b; border: none; border-radius: 4px; cursor: pointer;"
+                        onclick="switchReport('indicators')">Monthly Indicators</button>
                 </div>
             </div>
 
-            <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+            <!-- Monthly Indicators Controls (Hidden by default) -->
+            <div id="indicators-controls" style="display: none; margin-bottom: 20px;">
+                <div class="control-group">
+                    <label>Cover Summary Text</label>
+                    <textarea id="cover-summary" rows="6"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; font-size: 13px; resize: vertical;"
+                        placeholder="Enter the monthly market commentary here..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="generateMonthlyIndicators()"
+                    style="width: 100%; margin-top: 10px; background: #0ea5e9;">📊 Generate Report</button>
+            </div>
+
+            <!-- Fast Stats Controls -->
+            <div id="fast-stats-controls">
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+            </div>
+
             <button class="btn btn-secondary" onclick="resetData()">🔄 Reset to Defaults</button>
         </aside>
 
@@ -464,10 +668,8 @@
                             <div class="provided-by">A Research Tool Provided by Bonita Springs-Estero Realtors®</div>
                         </div>
                         <div class="logo">
-                            <div class="logo-placeholder">
-                                <div class="top">🌴 ☀️</div>
-                                <div class="main">BONITA SPRINGS-ESTERO<br>REALTORS®</div>
-                            </div>
+                            <img src="https://bonitaesterorealtors.com/wp-content/uploads/2025/12/Ber-logo-2026-scaled.png"
+                                alt="Bonita Springs-Estero REALTORS®" style="width: 180px; height: auto;">
                         </div>
                     </div>
 
@@ -480,33 +682,20 @@
                         <table class="data-table monthly">
                             <thead>
                                 <tr>
-                                    <th class="metric-header">Key Metrics</th>
-                                    <th colspan="3">November</th>
+                                    <th class="metric-header" rowspan="2">Key Metrics</th>
+                                    <th colspan="3" class="month-header" id="sfMonthHeader">November</th>
+                                    <th colspan="3" class="ytd-main-header">Year To Date</th>
                                 </tr>
                                 <tr>
-                                    <th class="metric-header"></th>
                                     <th class="year-col" id="sfMonthPrevYear">2024</th>
                                     <th class="year-col" id="sfMonthCurrYear">2025</th>
                                     <th class="change-col">% Change</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sfMonthlyBody">
-                                <!-- Generated by JS -->
-                            </tbody>
-                        </table>
-
-                        <table class="data-table ytd">
-                            <thead>
-                                <tr>
-                                    <th colspan="3">Year To Date</th>
-                                </tr>
-                                <tr>
                                     <th class="year-col" id="sfYtdPrevYear">Thru 11-2024</th>
                                     <th class="year-col" id="sfYtdCurrYear">Thru 11-2025</th>
                                     <th class="change-col">% Change</th>
                                 </tr>
                             </thead>
-                            <tbody id="sfYtdBody">
+                            <tbody id="sfMonthlyBody">
                                 <!-- Generated by JS -->
                             </tbody>
                         </table>
@@ -518,33 +707,20 @@
                         <table class="data-table monthly">
                             <thead>
                                 <tr>
-                                    <th class="metric-header">Key Metrics</th>
-                                    <th colspan="3">November</th>
+                                    <th class="metric-header" rowspan="2">Key Metrics</th>
+                                    <th colspan="3" class="month-header" id="condoMonthHeader">November</th>
+                                    <th colspan="3" class="ytd-main-header">Year To Date</th>
                                 </tr>
                                 <tr>
-                                    <th class="metric-header"></th>
                                     <th class="year-col" id="condoMonthPrevYear">2024</th>
                                     <th class="year-col" id="condoMonthCurrYear">2025</th>
                                     <th class="change-col">% Change</th>
-                                </tr>
-                            </thead>
-                            <tbody id="condoMonthlyBody">
-                                <!-- Generated by JS -->
-                            </tbody>
-                        </table>
-
-                        <table class="data-table ytd">
-                            <thead>
-                                <tr>
-                                    <th colspan="3">Year To Date</th>
-                                </tr>
-                                <tr>
                                     <th class="year-col" id="condoYtdPrevYear">Thru 11-2024</th>
                                     <th class="year-col" id="condoYtdCurrYear">Thru 11-2025</th>
                                     <th class="change-col">% Change</th>
                                 </tr>
                             </thead>
-                            <tbody id="condoYtdBody">
+                            <tbody id="condoMonthlyBody">
                                 <!-- Generated by JS -->
                             </tbody>
                         </table>
@@ -554,9 +730,18 @@
                     <div class="report-footer">
                         <div class="disclaimer">Percent changes are calculated using rounded figures and can sometimes
                             look extreme due to small sample size.</div>
-                        <div class="attribution" id="attribution">Current as of December 9th, 2025. All data from Bonita
+                        <div class="attribution">Current as of <span id="currentDate">December 9th, 2025</span>. All
+                            data from Bonita
                             Springs-Estero Board of Realtors® MLS | Data gathered from Domus Analytics</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Monthly Indicators Report Controls (Initially Hidden) -->
+            <div id="monthly-indicators-container" class="report monthly-indicators-report" style="display: none;">
+                <div class="indicators-placeholder" style="text-align: center; padding: 50px; color: #666;">
+                    <h2>Monthly Indicators Report</h2>
+                    <p>Select "Monthly Indicators" in the sidebar and click "Generate Report" to view.</p>
                 </div>
             </div>
         </main>
@@ -629,39 +814,36 @@
             return change.toFixed(2) + '%';
         }
 
-        // Render table body
-        function renderTableBody(containerId, sectionData, period, showMetricNames = true) {
+        // Render unified table body (all 7 columns: metric + monthly + ytd)
+        function renderTableBody(containerId, sectionData) {
             const tbody = document.getElementById(containerId);
             let html = '';
 
             metrics.forEach(metric => {
-                const prev = sectionData[period].prev[metric.key];
-                const curr = sectionData[period].curr[metric.key];
-                const hasData = period === 'monthly' || metric.hasYtd;
+                const monthlyPrev = sectionData.monthly.prev[metric.key];
+                const monthlyCurr = sectionData.monthly.curr[metric.key];
+                const ytdPrev = sectionData.ytd.prev[metric.key];
+                const ytdCurr = sectionData.ytd.curr[metric.key];
+                const hasYtd = metric.hasYtd;
 
-                if (showMetricNames) {
-                    html += '<tr>';
-                    html += '<td class="metric-name">' + metric.label + '</td>';
-                    html += '<td>' + formatValue(prev, metric.format) + '</td>';
-                    html += '<td class="value-bold">' + formatValue(curr, metric.format) + '</td>';
-                    html += '<td>' + calcChange(prev, curr) + '</td>';
-                    html += '</tr>';
+                html += '<tr>';
+                // Metric name
+                html += '<td class="metric-name">' + metric.label + '</td>';
+                // Monthly columns
+                html += '<td>' + formatValue(monthlyPrev, metric.format) + '</td>';
+                html += '<td class="value-bold">' + formatValue(monthlyCurr, metric.format) + '</td>';
+                html += '<td>' + calcChange(monthlyPrev, monthlyCurr) + '</td>';
+                // YTD columns
+                if (hasYtd) {
+                    html += '<td>' + formatValue(ytdPrev, metric.format) + '</td>';
+                    html += '<td class="value-bold">' + formatValue(ytdCurr, metric.format) + '</td>';
+                    html += '<td>' + calcChange(ytdPrev, ytdCurr) + '</td>';
                 } else {
-                    // YTD table (no metric names)
-                    if (hasData) {
-                        html += '<tr>';
-                        html += '<td>' + formatValue(sectionData.ytd.prev[metric.key], metric.format) + '</td>';
-                        html += '<td class="value-bold">' + formatValue(sectionData.ytd.curr[metric.key], metric.format) + '</td>';
-                        html += '<td>' + calcChange(sectionData.ytd.prev[metric.key], sectionData.ytd.curr[metric.key]) + '</td>';
-                        html += '</tr>';
-                    } else {
-                        html += '<tr>';
-                        html += '<td class="empty-cell"></td>';
-                        html += '<td class="empty-cell"></td>';
-                        html += '<td class="empty-cell"></td>';
-                        html += '</tr>';
-                    }
+                    html += '<td class="empty-cell"></td>';
+                    html += '<td class="empty-cell"></td>';
+                    html += '<td class="empty-cell"></td>';
                 }
+                html += '</tr>';
             });
 
             tbody.innerHTML = html;
@@ -686,22 +868,25 @@
             document.getElementById('regionTitle').textContent = regionName;
             document.getElementById('regionSubtitle').textContent = '(' + counties + ')';
 
-            // Update year headers
+            // Update month headers in tables
+            document.getElementById('sfMonthHeader').textContent = month;
+            document.getElementById('condoMonthHeader').textContent = month;
+
+            // Update year headers for Single Family
             document.getElementById('sfMonthPrevYear').textContent = prevYear;
             document.getElementById('sfMonthCurrYear').textContent = year;
             document.getElementById('sfYtdPrevYear').textContent = 'Thru ' + monthNumStr + '-' + prevYear;
             document.getElementById('sfYtdCurrYear').textContent = 'Thru ' + monthNumStr + '-' + year;
 
+            // Update year headers for Condo
             document.getElementById('condoMonthPrevYear').textContent = prevYear;
             document.getElementById('condoMonthCurrYear').textContent = year;
             document.getElementById('condoYtdPrevYear').textContent = 'Thru ' + monthNumStr + '-' + prevYear;
             document.getElementById('condoYtdCurrYear').textContent = 'Thru ' + monthNumStr + '-' + year;
 
-            // Render tables
-            renderTableBody('sfMonthlyBody', data.singleFamily, 'monthly', true);
-            renderTableBody('sfYtdBody', data.singleFamily, 'ytd', false);
-            renderTableBody('condoMonthlyBody', data.condo, 'monthly', true);
-            renderTableBody('condoYtdBody', data.condo, 'ytd', false);
+            // Render tables (unified 7-column format)
+            renderTableBody('sfMonthlyBody', data.singleFamily);
+            renderTableBody('condoMonthlyBody', data.condo);
         }
 
         // Reset to default data
@@ -732,12 +917,16 @@
             'medianPrice': { pattern: /median.?sales?.?price/i, col: 3 },
             'soldVolume': { pattern: /sold.?dollar.?volume/i, col: 5 },
             'listPriceReceived': { pattern: /percent.?of.?list.?price/i, col: 8 },
-            'inventory': { pattern: /homes?.?for.?sale|inventory/i, col: 7 },
-            'monthsSupply': { pattern: /months?.?(of.?)?.?supply/i, col: 10 }
+            'monthsSupply': { pattern: /months?.?supply/i, col: 10 },
+            'inventory': { pattern: /inventory|homes?.?for.?sale/i, col: 7 }
         };
 
-        // Track uploaded files
-        let uploadedFiles = {};
+        // Initialize metric storage - now keyed by METRIC KEY
+        // rawRowsData structure: { 'closedSales': [rows], 'inventory': [rows], ... }
+        const rawRowsData = {};
+
+        // Track unassigned files
+        let pendingFiles = [];
 
         function detectMetricType(filename) {
             const name = filename.toLowerCase();
@@ -747,26 +936,12 @@
             return null;
         }
 
-        function parseExcelDate(serial) {
-            // Excel serial date to JS Date
-            const d = new Date((serial - 25569) * 86400 * 1000);
-            return { month: d.getMonth() + 1, year: d.getFullYear() };
-        }
-
-        function handleFiles(files) {
-            const month = document.getElementById('month').value;
-            const year = parseInt(document.getElementById('year').value);
-            const prevYear = year - 1;
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            const targetMonthNum = monthNames.indexOf(month) + 1;
-
+        // Handle uploaded files
+        async function handleFiles(files) {
             Array.from(files).forEach(file => {
-                const metricType = detectMetricType(file.name);
-                if (!metricType) {
-                    console.warn('Unknown metric type for file:', file.name);
-                    return;
-                }
+                let metricKey = detectMetricType(file.name);
 
+                // Read file first
                 const reader = new FileReader();
                 reader.onload = e => {
                     try {
@@ -774,128 +949,870 @@
                         const ws = wb.Sheets[wb.SheetNames[0]];
                         const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
-                        uploadedFiles[metricType] = file.name;
-                        processMetricData(metricType, rows, targetMonthNum, year, prevYear);
-                        updateFileStatus();
-                        updateReport();
-                    } catch (err) {
-                        console.error('Error parsing file:', file.name, err);
+                        if (metricKey) {
+                            // Auto-detected
+                            assignData(metricKey, rows);
+                        } else {
+                            // Add to pending for manual assignment
+                            pendingFiles.push({ name: file.name, rows: rows });
+                            renderUnassignedFiles();
+                        }
+
+                    } catch (error) {
+                        console.error('Error parsing file:', error);
+                        alert('Error parsing ' + file.name);
                     }
                 };
                 reader.readAsArrayBuffer(file);
             });
         }
 
-        function processMetricData(metricType, rows, targetMonth, currYear, prevYear) {
-            const col = metricConfig[metricType].col;
+        function assignData(metricKey, rows) {
+            rawRowsData[metricKey] = rows;
+            updateFileStatus();
+            // Don't auto-reprocess? Or do? 
+            // Better to wait for user or maybe update if enough data.
+            // Let's safe-update.
+            // But we need to update report only if we have data.
+        }
 
-            // Initialize accumulators for YTD calculation
-            let sfCurrYtd = 0, sfPrevYtd = 0, sfCurrYtdCount = 0, sfPrevYtdCount = 0;
-            let condoCurrYtd = 0, condoPrevYtd = 0, condoCurrYtdCount = 0, condoPrevYtdCount = 0;
-
-            // Monthly values
-            let sfCurrMonth = null, sfPrevMonth = null;
-            let condoCurrMonth = null, condoPrevMonth = null;
-
-            // Skip header row
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (!row || row.length < col + 1) continue;
-
-                const dateSerial = row[0];
-                if (!dateSerial || isNaN(dateSerial)) continue;
-
-                const { month, year } = parseExcelDate(dateSerial);
-                const propType = String(row[1] || '').toLowerCase();
-                const isSF = propType.includes('single family');
-                const isCondo = propType.includes('condo') || propType.includes('townhouse');
-
-                let value = row[col];
-                if (value === null || value === undefined || value === '') continue;
-                value = parseFloat(String(value).replace(/[,$%]/g, ''));
-                if (isNaN(value)) continue;
-
-                // For percent metrics stored as decimals (0.95 -> 95%)
-                if (metricType === 'listPriceReceived' && value < 1) {
-                    value = value * 100;
-                }
-
-                // Current year data
-                if (year === currYear) {
-                    // Monthly match
-                    if (month === targetMonth) {
-                        if (isSF) sfCurrMonth = value;
-                        if (isCondo) condoCurrMonth = value;
-                    }
-                    // YTD accumulation (months up to and including target month)
-                    if (month <= targetMonth) {
-                        if (isSF) { sfCurrYtd += value; sfCurrYtdCount++; }
-                        if (isCondo) { condoCurrYtd += value; condoCurrYtdCount++; }
-                    }
-                }
-
-                // Previous year data
-                if (year === prevYear) {
-                    // Monthly match
-                    if (month === targetMonth) {
-                        if (isSF) sfPrevMonth = value;
-                        if (isCondo) condoPrevMonth = value;
-                    }
-                    // YTD accumulation
-                    if (month <= targetMonth) {
-                        if (isSF) { sfPrevYtd += value; sfPrevYtdCount++; }
-                        if (isCondo) { condoPrevYtd += value; condoPrevYtdCount++; }
-                    }
-                }
+        function renderUnassignedFiles() {
+            const container = document.getElementById('unassigned-files');
+            if (pendingFiles.length === 0) {
+                container.innerHTML = '';
+                container.style.display = 'none';
+                return;
             }
 
-            // Update data object - Monthly values
-            if (sfCurrMonth !== null) data.singleFamily.monthly.curr[metricType] = sfCurrMonth;
-            if (sfPrevMonth !== null) data.singleFamily.monthly.prev[metricType] = sfPrevMonth;
-            if (condoCurrMonth !== null) data.condo.monthly.curr[metricType] = condoCurrMonth;
-            if (condoPrevMonth !== null) data.condo.monthly.prev[metricType] = condoPrevMonth;
+            container.style.display = 'block';
+            let html = '<div style="font-size:12px; font-weight:bold; margin-bottom:5px; color:#c02aa8;">Unidentified Files:</div>';
 
-            // YTD values - for some metrics we sum, for others we average
-            const avgMetrics = ['daysOnMarket', 'medianPrice', 'listPriceReceived', 'monthsSupply'];
-            const isAvg = avgMetrics.includes(metricType);
+            pendingFiles.forEach((file, index) => {
+                html += `<div style="margin-bottom: 8px; background: #fff5f5; padding: 5px; border-radius: 4px;">
+                    <div style="font-size:11px; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis;">${file.name}</div>
+                    <select onchange="manualAssign(${index}, this.value)" style="width:100%; font-size:11px;">
+                        <option value="">-- Select Data Type --</option>
+                        ${metrics.map(m => `<option value="${m.key}">${m.label}</option>`).join('')}
+                    </select>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
 
-            // Only set YTD for metrics that have YTD display
-            const metric = metrics.find(m => m.key === metricType);
-            if (metric && metric.hasYtd) {
-                if (sfCurrYtdCount > 0) {
-                    data.singleFamily.ytd.curr[metricType] = isAvg ? (sfCurrYtd / sfCurrYtdCount) : sfCurrYtd;
-                }
-                if (sfPrevYtdCount > 0) {
-                    data.singleFamily.ytd.prev[metricType] = isAvg ? (sfPrevYtd / sfPrevYtdCount) : sfPrevYtd;
-                }
-                if (condoCurrYtdCount > 0) {
-                    data.condo.ytd.curr[metricType] = isAvg ? (condoCurrYtd / condoCurrYtdCount) : condoCurrYtd;
-                }
-                if (condoPrevYtdCount > 0) {
-                    data.condo.ytd.prev[metricType] = isAvg ? (condoPrevYtd / condoPrevYtdCount) : condoPrevYtd;
-                }
-            }
+        function manualAssign(index, metricKey) {
+            if (!metricKey) return;
+            const fileData = pendingFiles[index];
+            assignData(metricKey, fileData.rows);
+
+            // Remove from pending
+            pendingFiles.splice(index, 1);
+            renderUnassignedFiles();
         }
 
         function updateFileStatus() {
             const statusDiv = document.getElementById('fileStatus');
-            const allMetrics = ['newListings', 'pendingSales', 'closedSales', 'daysOnMarket',
-                'medianPrice', 'soldVolume', 'listPriceReceived', 'inventory', 'monthsSupply'];
-
-            let html = '';
-            allMetrics.forEach(key => {
-                const loaded = uploadedFiles[key];
-                const label = metrics.find(m => m.key === key)?.label || key;
+            let html = '<div style="font-weight:bold; font-size:12px; margin-bottom:5px;">Data Status</div>';
+            metrics.forEach(m => {
+                const loaded = rawRowsData[m.key] !== undefined;
                 html += '<div class="file-row">';
                 html += '<div class="dot ' + (loaded ? 'ok' : 'pending') + '"></div>';
-                html += '<div class="name">' + label + '</div>';
+                html += '<div class="name">' + m.label + '</div>';
                 html += '<div>' + (loaded ? '✓' : '-') + '</div>';
                 html += '</div>';
             });
             statusDiv.innerHTML = html;
         }
 
+        // Global helper to get metric value (Updated for Multi-File One-Metric-Per-File)
+        function getMetricValue(propType, metricKey, month, year) {
+            try {
+                // Aggregation for 'all' property types
+                if (propType === 'all') {
+                    const sfVal = getMetricValue('singleFamily', metricKey, month, year);
+                    const condoVal = getMetricValue('condo', metricKey, month, year);
+
+                    if (metricKey === 'medianPrice' || metricKey === 'daysOnMarket' || metricKey === 'listPriceReceived') {
+                        const sfCount = getMetricValue('singleFamily', 'closedSales', month, year);
+                        const condoCount = getMetricValue('condo', 'closedSales', month, year);
+                        const totalCount = sfCount + condoCount;
+                        if (totalCount === 0) return 0;
+                        return ((sfVal * sfCount) + (condoVal * condoCount)) / totalCount;
+                    } else if (metricKey === 'monthsSupply') {
+                        const sfInv = getMetricValue('singleFamily', 'inventory', month, year);
+                        const condoInv = getMetricValue('condo', 'inventory', month, year);
+                        const totalInv = sfInv + condoInv;
+                        if (totalInv === 0) return 0;
+                        return ((sfVal * sfInv) + (condoVal * condoInv)) / totalInv;
+                    } else {
+                        return sfVal + condoVal;
+                    }
+                }
+
+                // 1. Get correct file rows for this metric
+                const rows = rawRowsData[metricKey];
+                if (!rows) return 0;
+
+                // 2. Find row for Property Type (Single Family vs Condo)
+                // The Excel files have labels like "Single Family" and "Townhouse/Condo" in the first column
+                const metricRow = rows.find(r => {
+                    if (!r[0]) return false;
+                    const cell = r[0].toString().trim().toLowerCase();
+                    if (propType === 'singleFamily') return cell.includes('single') || cell.includes('residential');
+                    if (propType === 'condo') return cell.includes('condo') || cell.includes('townhouse');
+                    return false;
+                });
+
+                if (!metricRow) return 0;
+
+                // 3. Find Column Index for Month/Year
+                const headerRowIndex = rows.findIndex(row =>
+                    row.some(cell => cell && (cell.toString().includes('2023') || cell.toString().includes('2024') || cell.toString().includes('2025')))
+                );
+                if (headerRowIndex === -1) return 0;
+                const headerRow = rows[headerRowIndex];
+
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const targetMon = monthNames[month - 1]; // "Jan", "Feb"
+                const targetY = year.toString();
+
+                const colIndex = headerRow.findIndex(cell => {
+                    if (!cell) return false;
+                    const s = cell.toString();
+                    return s.includes(targetMon) && s.includes(targetY);
+                });
+
+                if (colIndex === -1) return 0;
+
+                // 4. Extract Value
+                let valStr = metricRow[colIndex];
+                if (valStr === undefined || valStr === null) return 0;
+
+                if (typeof valStr === 'string') {
+                    // Remove $ , and %
+                    valStr = valStr.replace(/[$,%]/g, '');
+                }
+                return parseFloat(valStr) || 0;
+            } catch (e) {
+                // console.warn('Error in getMetricValue', propType, metricKey, e);
+                return 0;
+            }
+        }
+
+        // === REPORT SWITCHING LOGIC ===
+        function switchReport(type) {
+            // Update buttons
+            const btnFast = document.getElementById('btn-show-faststats');
+            const btnInd = document.getElementById('btn-show-indicators');
+
+            if (type === 'faststats') {
+                btnFast.style.background = 'var(--primary)';
+                btnFast.style.color = 'white';
+                btnInd.style.background = '#e2e8f0';
+                btnInd.style.color = '#64748b';
+
+                // Show/Hide controls
+                document.getElementById('fast-stats-controls').style.display = 'block';
+                document.getElementById('indicators-controls').style.display = 'none';
+
+                // Show/Hide reports
+                document.getElementById('report').style.display = 'block';
+                document.getElementById('monthly-indicators-container').style.display = 'none';
+            } else {
+                btnInd.style.background = 'var(--primary)';
+                btnInd.style.color = 'white';
+                btnFast.style.background = '#e2e8f0';
+                btnFast.style.color = '#64748b';
+
+                // Show/Hide controls
+                document.getElementById('fast-stats-controls').style.display = 'none';
+                document.getElementById('indicators-controls').style.display = 'block';
+
+                // Show/Hide reports
+                document.getElementById('report').style.display = 'none';
+                document.getElementById('monthly-indicators-container').style.display = 'block';
+            }
+        }
+
+        function generateMonthlyIndicators() {
+            const container = document.getElementById('monthly-indicators-container');
+            container.innerHTML = '';
+
+            // Check if essential keys are present
+            // We need closedSales and maybe inventory/medianPrice for basic functionality
+            // But ideally we check if ALL are present? Or Just warn?
+            // Let's just generate what we can.
+
+
+
+
+            // 1. Render Cover Page
+            renderCoverPage(container);
+
+            // 2. Single Family Market Overview
+            renderOverviewPage(container, 'singleFamily', 2);
+
+            // 3. Condo Market Overview
+            renderOverviewPage(container, 'condo', 3);
+
+            // Pages 4-11: Metric Details
+            const detailMetrics = [
+                { key: 'newListings', page: 4 },
+                { key: 'pendingSales', page: 5 },
+                { key: 'closedSales', page: 6 },
+                { key: 'daysOnMarket', page: 7 },
+                { key: 'medianPrice', page: 8 },
+                { key: 'listPriceReceived', page: 9 },
+                { key: 'inventory', page: 10 },
+                { key: 'monthsSupply', page: 11 }
+            ];
+
+            detailMetrics.forEach(m => {
+                renderMetricPage(container, m.key, m.page);
+            });
+
+            // 12. Southwest Florida Overview
+            renderOverviewPage(container, 'all', 12);
+        }
+
+
+        // Helper to get month index from name
+        function getMonthIndex(name) {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            return monthNames.indexOf(name) + 1;
+        }
+
+        function calculateQuickFacts() {
+            try {
+                const monthName = document.getElementById('selectMonth').value;
+                const year = parseInt(document.getElementById('selectYear').value);
+                const prevYear = year - 1;
+                const monthIdx = getMonthIndex(monthName);
+
+                const formatPct = (val) => {
+                    const s = val.toFixed(1) + '%';
+                    return val > 0 ? '+' + s : s;
+                };
+
+                // Helper to get value for ALL properties (SF + Condo)
+                const getAllVal = (metricKey, y) => {
+                    return getMetricValue('all', metricKey, monthIdx, y);
+                };
+
+                // 1. Closed Sales
+                const currClosed = getAllVal('closedSales', year);
+                const prevClosed = getAllVal('closedSales', prevYear);
+                const chgClosed = prevClosed ? ((currClosed - prevClosed) / prevClosed) * 100 : 0;
+
+                // 2. Median Price (Weighted)
+                const currMedian = getAllVal('medianPrice', year);
+                const prevMedian = getAllVal('medianPrice', prevYear);
+                const chgMedian = prevMedian ? ((currMedian - prevMedian) / prevMedian) * 100 : 0;
+
+                // 3. Inventory
+                const currInv = getAllVal('inventory', year);
+                const prevInv = getAllVal('inventory', prevYear);
+                const chgInv = prevInv ? ((currInv - prevInv) / prevInv) * 100 : 0;
+
+                return {
+                    closedSales: formatPct(chgClosed),
+                    medianPrice: formatPct(chgMedian),
+                    activeListings: formatPct(chgInv)
+                };
+            } catch (e) {
+                console.warn('Error in calculateQuickFacts', e);
+                return { closedSales: 'N/A', medianPrice: 'N/A', activeListings: 'N/A' };
+            }
+        }
+
+        function renderCoverPage(container) {
+            const monthName = document.getElementById('selectMonth').value;
+            const year = document.getElementById('selectYear').value;
+            const summaryText = document.getElementById('cover-summary').value ||
+                `${monthName} showed firm buyer momentum... (Default placeholder text)`;
+
+            // Calculate Quick Facts (Mock data for now, will implement calc logic)
+            const facts = calculateQuickFacts();
+
+            const page = document.createElement('div');
+            page.className = 'indicator-page';
+            page.innerHTML = `
+                <div class="cover-header">
+                    <div class="cover-title">Monthly Indicators</div>
+                    <img src="https://bonitaesterorealtors.com/wp-content/uploads/2025/12/Ber-logo-2026-scaled.png" style="width: 200px;">
+                </div>
+
+                <div class="cover-grid">
+                    <div class="left-col">
+                        <div style="color: #00A6CE; font-size: 24px; margin-bottom: 15px;">${monthName} ${year}</div>
+                        <div class="summary-text">${summaryText}</div>
+                    </div>
+                    
+                    <div class="right-col">
+                        <div class="quick-facts">
+                            <div class="quick-facts-header">Quick Facts</div>
+                            
+                            <div class="fact-row">
+                                <div class="fact-item">
+                                    <div class="fact-value">${facts.closedSales}</div>
+                                    <div class="fact-label">Change in Closed<br>Sales All Properties</div>
+                                </div>
+                                <div class="fact-item">
+                                    <div class="fact-value">${facts.medianPrice}</div>
+                                    <div class="fact-label">Change in Median<br>Sales Price All</div>
+                                </div>
+                                <div class="fact-item">
+                                    <div class="fact-value">${facts.activeListings}</div>
+                                    <div class="fact-label">Change in Homes for<br>Sale All Properties</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <ul class="toc-list">
+                            <li class="toc-item"><span>Single Family Market Overview</span> <span class="toc-page">2</span></li>
+                            <li class="toc-item"><span>Condo Market Overview</span> <span class="toc-page">3</span></li>
+                            <li class="toc-item"><span>New Listings</span> <span class="toc-page">4</span></li>
+                            <li class="toc-item"><span>Pending Sales</span> <span class="toc-page">5</span></li>
+                            <li class="toc-item"><span>Closed Sales</span> <span class="toc-page">6</span></li>
+                            <li class="toc-item"><span>Days on Market Until Sale</span> <span class="toc-page">7</span></li>
+                            <li class="toc-item"><span>Median Sales Price</span> <span class="toc-page">8</span></li>
+                            <li class="toc-item"><span>Percent of List Price Received</span> <span class="toc-page">9</span></li>
+                            <li class="toc-item"><span>Inventory of Homes for Sale</span> <span class="toc-page">10</span></li>
+                            <li class="toc-item"><span>Months Supply of Inventory</span> <span class="toc-page">11</span></li>
+                            <li class="toc-item"><span>Bonita Springs-Estero</span> <span class="toc-page">12</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="position: absolute; bottom: 30px; right: 40px; font-size: 10px; color: #999;">
+                    Current as of <span id="coverDate">${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>. All data from Bonita Springs-Estero Board of Realtors® MLS.
+                </div>
+            `;
+            container.appendChild(page);
+        }
+
+
+
+
+
+
+        // Update report triggers
+        function reprocessAllData() {
+            // Since we now pull data on demand via getMetricValue, 
+            // we just need to refresh the UI.
+            if (document.getElementById('monthly-indicators-container').style.display !== 'none') {
+                generateMonthlyIndicators();
+            } else {
+                updateReport();
+            }
+        }
+
+        // Reset data to empty state (not the hardcoded defaults)
+
+
+        // Set current date in footer
+        function setCurrentDate() {
+            const now = new Date();
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const day = now.getDate();
+            const month = monthNames[now.getMonth()];
+            const year = now.getFullYear();
+
+            // Add ordinal suffix (1st, 2nd, 3rd, etc.)
+            const suffix = (day === 1 || day === 21 || day === 31) ? 'st' :
+                (day === 2 || day === 22) ? 'nd' :
+                    (day === 3 || day === 23) ? 'rd' : 'th';
+
+            document.getElementById('currentDate').textContent = month + ' ' + day + suffix + ', ' + year;
+        }
+
         // Initialize
+        setCurrentDate();
+
+        // === MONTHLY INDICATORS HELPERS & RENDERERS ===
+
+        // Global helper to get metric value
+
+
+        // Redefined calculateQuickFacts using global helper
+        function calculateQuickFacts() {
+            try {
+                const year = parseInt(document.getElementById('selectYear').value);
+                const monthName = document.getElementById('selectMonth').value;
+                const monthIdx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
+                const prevYear = year - 1;
+
+                const totalClosedCurr = getMetricValue('all', 'closedSales', monthIdx, year);
+                const totalClosedPrev = getMetricValue('all', 'closedSales', monthIdx, prevYear);
+                const changeClosed = totalClosedPrev ? ((totalClosedCurr - totalClosedPrev) / totalClosedPrev) * 100 : 0;
+
+                const medianCurr = getMetricValue('all', 'medianPrice', monthIdx, year);
+                const medianPrev = getMetricValue('all', 'medianPrice', monthIdx, prevYear);
+                const changeMedian = medianPrev ? ((medianCurr - medianPrev) / medianPrev) * 100 : 0;
+
+                const invCurr = getMetricValue('all', 'inventory', monthIdx, year);
+                const invPrev = getMetricValue('all', 'inventory', monthIdx, prevYear);
+                const changeInv = invPrev ? ((invCurr - invPrev) / invPrev) * 100 : 0;
+
+                const formatPct = (val) => {
+                    const s = val.toFixed(2) + '%';
+                    return val > 0 ? '+' + s : s;
+                };
+
+                return {
+                    closedSales: formatPct(changeClosed),
+                    medianPrice: formatPct(changeMedian),
+                    activeListings: formatPct(changeInv)
+                };
+            } catch (e) {
+                return { closedSales: 'N/A', medianPrice: 'N/A', activeListings: 'N/A' };
+            }
+        }
+
+        function renderOverviewPage(container, propType, pageNum) {
+            const monthName = document.getElementById('selectMonth').value;
+            const year = parseInt(document.getElementById('selectYear').value);
+            const monthIdx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
+            const prevYear = year - 1;
+
+            let title = "";
+            let subTitle = "Key metrics by report month and for year-to-date (YTD) starting from the first of the year.";
+            if (propType === 'singleFamily') {
+                title = "Single Family Market Overview";
+                subTitle += " Single Family properties only.";
+            } else if (propType === 'condo') {
+                title = "Condo Market Overview";
+                subTitle += " Condo properties only.";
+            } else {
+                title = "Southwest Florida (Lee, Collier, Hendry)";
+                subTitle += " PropertyTypes: Single Family, Condo, Townhome & Multi-Family.";
+            }
+
+            const page = document.createElement('div');
+            page.className = 'indicator-page';
+            page.innerHTML = `
+                <div class="cover-header" style="border:none; margin-bottom: 10px;">
+                    <div class="cover-title" style="font-size: 28px;">${title}</div>
+                    <img src="https://bonitaesterorealtors.com/wp-content/uploads/2025/12/Ber-logo-2026-scaled.png" style="width: 150px;">
+                </div>
+                <div style="font-size: 11px; color: #666; margin-bottom: 20px;">${subTitle}</div>
+
+                <div class="overview-table-container">
+                    <table class="data-table" style="font-size: 9pt;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; background: var(--primary); color: white;">Key Metrics</th>
+                                <th style="background: var(--primary); color: white; width: 120px;">Historical Graph</th>
+                                <th style="background: var(--primary); color: white;">${monthIdx}-${prevYear}</th>
+                                <th style="background: var(--primary); color: white;">${monthIdx}-${year}</th>
+                                <th style="background: var(--primary); color: white;">% Change</th>
+                                <th style="background: var(--primary); color: white;">YTD ${prevYear}</th>
+                                <th style="background: var(--primary); color: white;">YTD ${year}</th>
+                                <th style="background: var(--primary); color: white;">% Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${metrics.filter(m => m.key !== 'soldVolume').map((m, i) => {
+                const mCurr = getMetricValue(propType, m.key, monthIdx, year);
+                const mPrev = getMetricValue(propType, m.key, monthIdx, prevYear);
+                const mChange = mPrev ? ((mCurr - mPrev) / mPrev) * 100 : 0;
+
+                let ytdCurr = 0, ytdPrev = 0;
+                if (m.hasYtd) {
+                    for (let k = 1; k <= monthIdx; k++) {
+                        ytdCurr += getMetricValue(propType, m.key, k, year);
+                        ytdPrev += getMetricValue(propType, m.key, k, prevYear);
+                    }
+                    if (m.key === 'daysOnMarket' || m.key === 'medianPrice' || m.key === 'listPriceReceived' || m.key === 'monthsSupply') {
+                        ytdCurr /= monthIdx;
+                        ytdPrev /= monthIdx;
+                    }
+                }
+
+                const ytdChange = ytdPrev ? ((ytdCurr - ytdPrev) / ytdPrev) * 100 : 0;
+                const fmt = (val) => {
+                    if (m.format === 'currency') return '$' + Math.round(val).toLocaleString();
+                    if (m.format === 'percent') return val.toFixed(1) + '%';
+                    return Math.round(val).toLocaleString();
+                };
+                const fmtPct = (val) => (val > 0 ? '+' : '') + val.toFixed(1) + '%';
+                const canvasId = `spark-${propType}-${i}`;
+
+                return `<tr>
+                                    <td style="text-align:left;">${m.label}</td>
+                                    <td style="padding: 2px;"><canvas id="${canvasId}" style="width:100px; height:30px;"></canvas></td>
+                                    <td>${fmt(mPrev)}</td>
+                                    <td>${fmt(mCurr)}</td>
+                                    <td>${fmtPct(mChange)}</td>
+                                    <td>${m.hasYtd ? fmt(ytdPrev) : ''}</td>
+                                    <td>${m.hasYtd ? fmt(ytdCurr) : ''}</td>
+                                    <td>${m.hasYtd ? fmtPct(ytdChange) : ''}</td>
+                                </tr>`;
+            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="position: absolute; bottom: 30px; right: 40px; font-size: 10px; color: #999;">
+                    Current as of <span id="coverDate">${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>. All data from Bonita Springs-Estero Board of Realtors® MLS.
+                </div>
+                <div style="position: absolute; bottom: 30px; right: 20px; font-size: 14px; font-weight: bold; color: #00A6CE;">${pageNum}</div>
+            `;
+            container.appendChild(page);
+
+            metrics.filter(m => m.key !== 'soldVolume').forEach((m, i) => {
+                const cvs = document.getElementById(`spark-${propType}-${i}`);
+                if (!cvs) return;
+                const ctx = cvs.getContext('2d');
+                const history = [];
+                for (let k = 0; k < 24; k++) {
+                    let y = year;
+                    let mo = monthIdx - k;
+                    while (mo <= 0) { mo += 12; y--; }
+                    history.unshift(getMetricValue(propType, m.key, mo, y));
+                }
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Array(24).fill(''),
+                        datasets: [{
+                            data: history,
+                            backgroundColor: '#ffb700',
+                            barPercentage: 0.9,
+                            categoryPercentage: 1.0
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: { x: { display: false }, y: { display: false, min: 0 } },
+                        animation: false
+                    }
+                });
+            });
+        }
+        function renderMetricPage(container, metricKey, pageNum) {
+            const year = parseInt(document.getElementById('selectYear').value);
+            const monthName = document.getElementById('selectMonth').value;
+            const monthIdx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
+
+            const metricObj = metrics.find(m => m.key === metricKey);
+            const title = metricObj ? metricObj.label : metricKey;
+
+            // Subtitle mapping
+            const subtitles = {
+                'newListings': 'A count of the properties that have been newly listed on the market in a given month.',
+                'pendingSales': 'A count of the properties on which offers have been accepted in a given month.',
+                'closedSales': 'A count of the actual sales that closed in a given month.',
+                'daysOnMarket': 'Average number of days between when a property is listed and when an offer is accepted in a given month.',
+                'medianPrice': 'Point at which half of the sales sold for more and half sold for less, not accounting for seller concessions, in a given month.',
+                'listPriceReceived': 'Percentage found when dividing a property\'s sales price by its most recent list price, then taking the average for all properties sold in a given month, not accounting for seller concessions.',
+                'inventory': 'The number of properties available for sale in active status at the end of a given month.',
+                'monthsSupply': 'The inventory of homes for sale at the end of a given month, divided by the average monthly pending sales from the last 12 months.'
+            };
+            const desc = subtitles[metricKey] || "";
+
+            const page = document.createElement('div');
+            page.className = 'indicator-page';
+            page.innerHTML = `
+                <div class="cover-header" style="border:none; margin-bottom: 5px;">
+                    <div class="cover-title" style="font-size: 32px;">${title}</div>
+                    <img src="https://bonitaesterorealtors.com/wp-content/uploads/2025/12/Ber-logo-2026-scaled.png" style="width: 150px;">
+                </div>
+                <div style="font-size: 11px; color: #666; margin-bottom: 30px; font-style: italic;">${desc}</div>
+
+                <!-- Three Columns: Monthly Bar, YTD Bar, Map -->
+                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr; gap: 20px; margin-bottom: 20px; height: 200px;">
+                    <div>
+                        <div style="font-weight:bold; margin-bottom: 5px;">${monthName}</div>
+                        <canvas id="chart-month-${metricKey}" style="width:100%; height:180px;"></canvas>
+                    </div>
+                    <div>
+                        <div style="font-weight:bold; margin-bottom: 5px;">Year to Date</div>
+                        <canvas id="chart-ytd-${metricKey}" style="width:100%; height:180px;"></canvas>
+                    </div>
+                    <div>
+                         <?xml version="1.0" encoding="utf-8"?><!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  --><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 width="150px" height="150px" viewBox="0 0 150 150" enable-background="new 0 0 150 150" xml:space="preserve"><rect x="10" y="10" fill="#E6E6E6" width="130" height="130"/><text transform="matrix(1 0 0 1 35 75)" fill="#666666" font-family="'ArialMT'" font-size="12">Map Placeholder</text></svg>
+                    </div>
+                </div>
+
+                <!-- Historical Line Chart -->
+                <div>
+                     <div style="font-weight:bold; margin-bottom: 5px; margin-top: 20px;">${title} by Month</div>
+                     <canvas id="chart-hist-${metricKey}" style="width:100%; height:350px;"></canvas>
+                </div>
+
+                <div style="position: absolute; bottom: 30px; right: 40px; font-size: 10px; color: #999;">
+                    Current as of <span id="coverDate">${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>. All data from Bonita Springs-Estero Board of Realtors® MLS.
+                </div>
+                <div style="position: absolute; bottom: 30px; right: 20px; font-size: 14px; font-weight: bold; color: #00A6CE;">${pageNum}</div>
+            `;
+            container.appendChild(page);
+
+            // --- Charts ---
+            const ctxMonth = document.getElementById(`chart-month-${metricKey}`).getContext('2d');
+            const ctxYtd = document.getElementById(`chart-ytd-${metricKey}`).getContext('2d');
+            const ctxHist = document.getElementById(`chart-hist-${metricKey}`).getContext('2d');
+
+            const years = [year - 2, year - 1, year];
+
+            // Data for Bar Charts
+            // SF: [Val(y-2), Val(y-1), Val(y)]
+            const sfMonthData = years.map(y => getMetricValue('singleFamily', metricKey, monthIdx, y));
+            const condoMonthData = years.map(y => getMetricValue('condo', metricKey, monthIdx, y));
+
+            // YTD Data
+            // We need helper for YTD aggregation if not already present in getMetricValue (getMetricValue is monthly)
+            // We'll just loop nicely.
+            const getYtd = (prop, y) => {
+                let sum = 0; let count = 0;
+                for (let k = 1; k <= monthIdx; k++) {
+                    const val = getMetricValue(prop, metricKey, k, y);
+                    if (val) { sum += val; count++; }
+                }
+                if (metricKey === 'daysOnMarket' || metricKey === 'medianPrice' || metricKey === 'listPriceReceived' || metricKey === 'monthsSupply') {
+                    return count ? sum / count : 0;
+                }
+                return sum;
+            };
+
+            const sfYtdData = years.map(y => getYtd('singleFamily', y));
+            const condoYtdData = years.map(y => getYtd('condo', y));
+
+            const barOptions = {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { font: { size: 10 } } },
+                    y: { ticks: { font: { size: 10 } } }
+                },
+                maintainAspectRatio: false
+            };
+
+            // Month and YTD charts are Grouped Bars: Labels: Years? No, Labels: Categories (SF, Condo). Bars: Years.
+            // Screenshot shows specific grouping.
+            // Actually, screenshot 4 shows: Labels on bottom are "Single Family" and "Condo". And within each, 3 bars for years.
+
+            const barConfig = (dataSF, dataCondo) => ({
+                type: 'bar',
+                data: {
+                    labels: ['Single Family', 'Condo'],
+                    datasets: [
+                        { label: (year - 2).toString(), data: [dataSF[0], dataCondo[0]], backgroundColor: '#4dc9e6' },
+                        { label: (year - 1).toString(), data: [dataSF[1], dataCondo[1]], backgroundColor: '#00a6ce' },
+                        { label: year.toString(), data: [dataSF[2], dataCondo[2]], backgroundColor: '#006b85' }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            new Chart(ctxMonth, barConfig(sfMonthData, condoMonthData));
+            new Chart(ctxYtd, barConfig(sfYtdData, condoYtdData));
+
+            // Historical Line Chart
+            // 5 Years history? Or since 2017? Screenshot shows 2017-Jan start.
+            // Let's generate data from 2017-01 to Today.
+            const histLabels = [];
+            const histSF = [];
+            const histCondo = [];
+
+            // Loop from 2017 to current year
+            for (let y = 2017; y <= year; y++) {
+                const endM = (y === year) ? monthIdx : 12;
+                for (let m = 1; m <= endM; m++) {
+                    histLabels.push(`${y}-${m}`);
+                    histSF.push(getMetricValue('singleFamily', metricKey, m, y));
+                    histCondo.push(getMetricValue('condo', metricKey, m, y));
+                }
+            }
+
+            new Chart(ctxHist, {
+                type: 'line',
+                data: {
+                    labels: histLabels,
+                    datasets: [
+                        { label: 'Single Family', data: histSF, borderColor: '#ca8a04', borderWidth: 2, pointRadius: 0, tension: 0.1 },
+                        { label: 'Condo', data: histCondo, borderColor: '#4dc9e6', borderWidth: 2, pointRadius: 0, tension: 0.1 }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 12,
+                                callback: function (val, index) {
+                                    // Custom tick formatting if needed
+                                    const label = this.getLabelForValue(val);
+                                    return label.split('-')[0]; // Show Year
+                                }
+                            }
+                        },
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function renderMetricPage(container, metricKey, pageNum) {
+            const year = parseInt(document.getElementById('selectYear').value);
+            const monthName = document.getElementById('selectMonth').value;
+            const monthIdx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
+
+            const metricObj = metrics.find(m => m.key === metricKey);
+            const title = metricObj ? metricObj.label : metricKey;
+
+            // Subtitle mapping
+            const subtitles = {
+                'newListings': 'A count of the properties that have been newly listed on the market in a given month.',
+                'pendingSales': 'A count of the properties on which offers have been accepted in a given month.',
+                'closedSales': 'A count of the actual sales that closed in a given month.',
+                'daysOnMarket': 'Average number of days between when a property is listed and when an offer is accepted in a given month.',
+                'medianPrice': 'Point at which half of the sales sold for more and half sold for less, not accounting for seller concessions, in a given month.',
+                'listPriceReceived': 'Percentage found when dividing a property\'s sales price by its most recent list price, then taking the average for all properties sold in a given month, not accounting for seller concessions.',
+                'inventory': 'The number of properties available for sale in active status at the end of a given month.',
+                'monthsSupply': 'The inventory of homes for sale at the end of a given month, divided by the average monthly pending sales from the last 12 months.'
+            };
+            const desc = subtitles[metricKey] || "";
+
+            const page = document.createElement('div');
+            page.className = 'indicator-page';
+            page.innerHTML = `
+                <div class="cover-header" style="border:none; margin-bottom: 5px;">
+                    <div class="cover-title" style="font-size: 32px;">${title}</div>
+                    <img src="https://bonitaesterorealtors.com/wp-content/uploads/2025/12/Ber-logo-2026-scaled.png" style="width: 150px;">
+                </div>
+                <div style="font-size: 11px; color: #666; margin-bottom: 30px; font-style: italic;">${desc}</div>
+
+                <!-- Three Columns: Monthly Bar, YTD Bar, Map -->
+                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr; gap: 20px; margin-bottom: 20px; height: 200px;">
+                    <div>
+                        <div style="font-weight:bold; margin-bottom: 5px;">${monthName}</div>
+                        <canvas id="chart-month-${metricKey}" style="width:100%; height:180px;"></canvas>
+                    </div>
+                    <div>
+                        <div style="font-weight:bold; margin-bottom: 5px;">Year to Date</div>
+                        <canvas id="chart-ytd-${metricKey}" style="width:100%; height:180px;"></canvas>
+                    </div>
+                    <div>
+                         <?xml version="1.0" encoding="utf-8"?><!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  --><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 width="150px" height="150px" viewBox="0 0 150 150" enable-background="new 0 0 150 150" xml:space="preserve"><rect x="10" y="10" fill="#E6E6E6" width="130" height="130"/><text transform="matrix(1 0 0 1 35 75)" fill="#666666" font-family="'ArialMT'" font-size="12">Map Placeholder</text></svg>
+                    </div>
+                </div>
+
+                <!-- Historical Line Chart -->
+                <div>
+                     <div style="font-weight:bold; margin-bottom: 5px; margin-top: 20px;">${title} by Month</div>
+                     <canvas id="chart-hist-${metricKey}" style="width:100%; height:350px;"></canvas>
+                </div>
+
+                <div style="position: absolute; bottom: 30px; right: 40px; font-size: 10px; color: #999;">
+                    Current as of <span id="coverDate">${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>. All data from Bonita Springs-Estero Board of Realtors® MLS.
+                </div>
+                <div style="position: absolute; bottom: 30px; right: 20px; font-size: 14px; font-weight: bold; color: #00A6CE;">${pageNum}</div>
+            `;
+            container.appendChild(page);
+
+            // --- Charts ---
+            const ctxMonth = document.getElementById(`chart-month-${metricKey}`).getContext('2d');
+            const ctxYtd = document.getElementById(`chart-ytd-${metricKey}`).getContext('2d');
+            const ctxHist = document.getElementById(`chart-hist-${metricKey}`).getContext('2d');
+
+            const years = [year - 2, year - 1, year];
+
+            // Monthly Data
+            const sfMonthData = years.map(y => getMetricValue('singleFamily', metricKey, monthIdx, y));
+            const condoMonthData = years.map(y => getMetricValue('condo', metricKey, monthIdx, y));
+
+            // YTD Data logic
+            const getYtd = (prop, y) => {
+                let sum = 0; let count = 0;
+                for (let k = 1; k <= monthIdx; k++) {
+                    const val = getMetricValue(prop, metricKey, k, y);
+                    if (val) { sum += val; count++; }
+                }
+                if (metricKey === 'daysOnMarket' || metricKey === 'medianPrice' || metricKey === 'listPriceReceived' || metricKey === 'monthsSupply') {
+                    return count ? sum / count : 0;
+                }
+                return sum;
+            };
+
+            const sfYtdData = years.map(y => getYtd('singleFamily', y));
+            const condoYtdData = years.map(y => getYtd('condo', y));
+
+            // Config for Grouped Bars
+            const barConfig = (dataSF, dataCondo) => ({
+                type: 'bar',
+                data: {
+                    labels: ['Single Family', 'Condo'],
+                    datasets: [
+                        { label: (year - 2).toString(), data: [dataSF[0], dataCondo[0]], backgroundColor: '#4dc9e6' },
+                        { label: (year - 1).toString(), data: [dataSF[1], dataCondo[1]], backgroundColor: '#00a6ce' },
+                        { label: year.toString(), data: [dataSF[2], dataCondo[2]], backgroundColor: '#006b85' }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            new Chart(ctxMonth, barConfig(sfMonthData, condoMonthData));
+            new Chart(ctxYtd, barConfig(sfYtdData, condoYtdData));
+
+            // Historical Line Chart
+            const histLabels = [];
+            const histSF = [];
+            const histCondo = [];
+
+            for (let y = 2017; y <= year; y++) {
+                const endM = (y === year) ? monthIdx : 12;
+                for (let m = 1; m <= endM; m++) {
+                    histLabels.push(`${y}-${m}`);
+                    histSF.push(getMetricValue('singleFamily', metricKey, m, y));
+                    histCondo.push(getMetricValue('condo', metricKey, m, y));
+                }
+            }
+
+            new Chart(ctxHist, {
+                type: 'line',
+                data: {
+                    labels: histLabels,
+                    datasets: [
+                        { label: 'Single Family', data: histSF, borderColor: '#ca8a04', borderWidth: 2, pointRadius: 0, tension: 0.1 },
+                        { label: 'Condo', data: histCondo, borderColor: '#4dc9e6', borderWidth: 2, pointRadius: 0, tension: 0.1 }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 12,
+                                callback: function (val, index) {
+                                    const label = this.getLabelForValue(val);
+                                    return label.split('-')[0];
+                                }
+                            }
+                        },
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
         updateReport();
     </script>
 </body>
