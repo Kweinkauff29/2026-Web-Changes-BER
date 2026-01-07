@@ -815,15 +815,49 @@
         }
 
         // Render unified table body (all 7 columns: metric + monthly + ytd)
-        function renderTableBody(containerId, sectionData) {
+        function renderTableBody(containerId, propType) {
             const tbody = document.getElementById(containerId);
+            const monthName = document.getElementById('month').value;
+            const year = parseInt(document.getElementById('year').value);
+            const prevYear = year - 1;
+            const monthIdx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
+
             let html = '';
 
             metrics.forEach(metric => {
-                const monthlyPrev = sectionData.monthly.prev[metric.key];
-                const monthlyCurr = sectionData.monthly.curr[metric.key];
-                const ytdPrev = sectionData.ytd.prev[metric.key];
-                const ytdCurr = sectionData.ytd.curr[metric.key];
+                // Monthly Values
+                const monthlyPrev = getMetricValue(propType, metric.key, monthIdx, prevYear);
+                const monthlyCurr = getMetricValue(propType, metric.key, monthIdx, year);
+
+                // YTD Values (Calculate on the fly)
+                let ytdPrev = 0, ytdCurr = 0;
+                let ytdPrevCount = 0, ytdCurrCount = 0;
+
+                // Simple YTD Loop
+                if (metric.hasYtd) {
+                    for (let m = 1; m <= monthIdx; m++) {
+                        const vPrev = getMetricValue(propType, metric.key, m, prevYear);
+                        const vCurr = getMetricValue(propType, metric.key, m, year);
+
+                        // For Sum metrics
+                        if (metric.key !== 'daysOnMarket' && metric.key !== 'medianPrice' && metric.key !== 'listPriceReceived') {
+                            ytdPrev += vPrev;
+                            ytdCurr += vCurr;
+                        } else {
+                            // For Avg metrics, we need to be careful. 
+                            // Simple average of months isn't perfectly weighted but close enough for this generator's purpose 
+                            // unless we want to do full weighted calc. 
+                            // Existing logic did simple average in processMetricData.
+                            if (vPrev > 0) { ytdPrev += vPrev; ytdPrevCount++; }
+                            if (vCurr > 0) { ytdCurr += vCurr; ytdCurrCount++; }
+                        }
+                    }
+                    if (metric.key === 'daysOnMarket' || metric.key === 'medianPrice' || metric.key === 'listPriceReceived') {
+                        ytdPrev = ytdPrevCount ? ytdPrev / ytdPrevCount : 0;
+                        ytdCurr = ytdCurrCount ? ytdCurr / ytdCurrCount : 0;
+                    }
+                }
+
                 const hasYtd = metric.hasYtd;
 
                 html += '<tr>';
@@ -885,8 +919,8 @@
             document.getElementById('condoYtdCurrYear').textContent = 'Thru ' + monthNumStr + '-' + year;
 
             // Render tables (unified 7-column format)
-            renderTableBody('sfMonthlyBody', data.singleFamily);
-            renderTableBody('condoMonthlyBody', data.condo);
+            renderTableBody('sfMonthlyBody', 'singleFamily');
+            renderTableBody('condoMonthlyBody', 'condo');
         }
 
         // Reset to default data
@@ -918,7 +952,7 @@
             'soldVolume': { pattern: /sold.?dollar.?volume/i, col: 5 },
             'listPriceReceived': { pattern: /percent.?of.?list.?price/i, col: 8 },
             'monthsSupply': { pattern: /months?.?supply/i, col: 10 },
-            'inventory': { pattern: /inventory|homes?.?for.?sale/i, col: 7 }
+            'inventory': { pattern: /^(?!.*supply).*inventory|homes?.?for.?sale/i, col: 7 }
         };
 
         // Initialize metric storage - now keyed by METRIC KEY
@@ -970,10 +1004,7 @@
         function assignData(metricKey, rows) {
             rawRowsData[metricKey] = rows;
             updateFileStatus();
-            // Don't auto-reprocess? Or do? 
-            // Better to wait for user or maybe update if enough data.
-            // Let's safe-update.
-            // But we need to update report only if we have data.
+            reprocessAllData();
         }
 
         function renderUnassignedFiles() {
