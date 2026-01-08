@@ -288,11 +288,23 @@ function parseVisualPlan() {
 
             // Parse position from style
             let posX = 50, posY = 50;
-            if (style.includes('top-left') || style.includes('top left')) { posX = 15; posY = 15; }
-            else if (style.includes('top-right')) { posX = 85; posY = 15; }
-            else if (style.includes('center-left')) { posX = 15; posY = 50; }
-            else if (style.includes('bottom')) { posX = 50; posY = 85; }
-            else if (style.includes('top')) { posY = 20; }
+            if (style.includes('top-left') || style.includes('top left')) { posX = 20; posY = 15; }
+            else if (style.includes('top-right')) { posX = 80; posY = 15; }
+            else if (style.includes('center-left')) { posX = 20; posY = 50; }
+            else if (style.includes('bottom')) { posX = 50; posY = 82; }
+            else if (style.includes('top')) { posY = 18; }
+            else if (style.includes('center')) { posX = 50; posY = 50; }
+
+            // Stacking logic for multiple center overlays
+            if (posY === 50 && posX === 50) {
+                if (overlayIdx === 0 && seg.content.includes('Overlay (smaller)')) {
+                    posY = 42; // Move headline up
+                } else if (overlayIdx > 0 && style.includes('smaller')) {
+                    posY = 58; // Move subline down
+                }
+            }
+
+            if (style.includes('tiny')) posY = 92;
 
             // Parse size
             const isBig = style.includes('big');
@@ -315,7 +327,7 @@ function parseVisualPlan() {
                 fontSize: isBig ? 72 : (isTiny ? 24 : (isSmall ? 32 : 48)),
                 color: '#ffffff',
                 animation: 'fadeIn',
-                textStyle: isBig ? 'label-brand' : (isSmall ? 'label-black' : 'none')
+                textStyle: isBig ? 'label-brand' : (isSmall ? 'label-white' : 'none')
             });
             overlayIdx++;
         }
@@ -895,6 +907,13 @@ function renderProperties() {
                         <input type="number" min="0" max="100" value="${clip.posY || 50}" onchange="updateClipProp('posY', parseFloat(this.value))">
                     </div>
                 </div>
+                <div style="display:flex; gap:4px; margin-top:8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="centerClip('x')" title="Center Horizontal">↔️</button>
+                    <button class="btn btn-secondary btn-sm" onclick="centerClip('y')" title="Center Vertical">↕️</button>
+                    <button class="btn btn-secondary btn-sm" onclick="centerClip('both')" title="Full Center">🎯</button>
+                    <button class="btn btn-secondary btn-sm" onclick="centerClip('top')" title="Top Safe Area">🔝</button>
+                    <button class="btn btn-secondary btn-sm" onclick="centerClip('bottom')" title="Bottom Safe Area">🔚</button>
+                </div>
             </div>
             <div class="property-group">
                 <div class="property-row">
@@ -1052,6 +1071,7 @@ function renderProperties() {
                     <label>Clip Layout</label>
                     <select onchange="updateClipProp('layout', this.value)">
                         <option value="full" ${clip.layout === 'full' || !clip.layout ? 'selected' : ''}>📱 Full Screen</option>
+                        <option value="custom" ${clip.layout === 'custom' ? 'selected' : ''}>🎯 Custom (PIP)</option>
                         <option value="top" ${clip.layout === 'top' ? 'selected' : ''}>🔼 Top Half</option>
                         <option value="bottom" ${clip.layout === 'bottom' ? 'selected' : ''}>🔽 Bottom Half</option>
                         <option value="left" ${clip.layout === 'left' ? 'selected' : ''}>⬅️ Left Half</option>
@@ -1059,6 +1079,31 @@ function renderProperties() {
                     </select>
                 </div>
             </div>
+            ${clip.layout === 'custom' ? `
+            <div class="property-group">
+                <div class="property-row">
+                    <div>
+                        <label>Scale %</label>
+                        <input type="number" min="10" max="200" value="${clip.manualScale || 50}" onchange="updateClipProp('manualScale', parseFloat(this.value))">
+                    </div>
+                    <div>
+                        <label>Position X %</label>
+                        <input type="number" min="0" max="100" value="${clip.posX || 50}" onchange="updateClipProp('posX', parseFloat(this.value))">
+                    </div>
+                </div>
+                <div class="property-row" style="margin-top:8px">
+                    <div>
+                        <label>Position Y %</label>
+                        <input type="number" min="0" max="100" value="${clip.posY || 50}" onchange="updateClipProp('posY', parseFloat(this.value))">
+                    </div>
+                </div>
+                <div style="display:flex; gap:4px; margin-top:8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="centerClip('x')" title="Center Horizontal">↔️</button>
+                    <button class="btn btn-secondary btn-sm" onclick="centerClip('y')" title="Center Vertical">↕️</button>
+                    <button class="btn btn-secondary btn-sm" onclick="centerClip('both')" title="Full Center">🎯</button>
+                </div>
+            </div>
+            ` : ''}
             <div class="property-group">
                 <div class="property-row">
                     <div>
@@ -1231,6 +1276,18 @@ function updateClipProp(prop, value) {
     saveToStorage();
 }
 
+function centerClip(axis) {
+    if (!state.selectedClip) return;
+    const clip = state.selectedClip;
+    if (axis === 'x' || axis === 'both') clip.posX = 50;
+    if (axis === 'y' || axis === 'both') clip.posY = 50;
+    if (axis === 'top') { clip.posX = 50; clip.posY = 18; }
+    if (axis === 'bottom') { clip.posX = 50; clip.posY = 82; }
+
+    renderProperties();
+    renderPreview();
+    saveToStorage();
+}
 function appendEmoji(emoji) {
     if (state.selectedClip && state.selectedClip.type === 'overlay') {
         state.selectedClip.text = (state.selectedClip.text || '') + emoji;
@@ -1353,7 +1410,7 @@ function makeDraggable(el, clip) {
 // CANVAS INTERACTION - Drag overlays in preview
 // ========================================
 function setupCanvasInteraction() {
-    let draggingOverlay = null;
+    let draggingClip = null;
     let startMouseX, startMouseY, startPosX, startPosY;
 
     canvas.addEventListener('mousedown', (e) => {
@@ -1363,31 +1420,50 @@ function setupCanvasInteraction() {
         const x = (e.clientX - rect.left) * scaleX;
         const y = (e.clientY - rect.top) * scaleY;
 
-        // Find overlay at this position
-        const activeOverlays = state.clips.filter(c =>
-            c.type === 'overlay' && state.currentTime >= c.startTime && state.currentTime < c.endTime
+        // Find draggable element at this position
+        // Priority: Text Overlays first, then Custom Videos
+        const activeClips = state.clips.filter(c =>
+            state.currentTime >= c.startTime && state.currentTime < c.endTime
         );
 
-        for (const overlay of activeOverlays) {
+        // Check Text Overlays
+        const overlays = activeClips.filter(c => c.type === 'overlay');
+        for (const overlay of overlays) {
             const pos = getOverlayCanvasPosition(overlay);
             const hw = ctx.measureText(overlay.text).width / 2 + 20;
             const hh = overlay.fontSize / 2 + 10;
 
             if (x >= pos.x - hw && x <= pos.x + hw && y >= pos.y - hh && y <= pos.y + hh) {
-                draggingOverlay = overlay;
-                startMouseX = x;
-                startMouseY = y;
-                startPosX = overlay.posX || 50;
-                startPosY = overlay.posY || 50;
+                draggingClip = overlay;
+                startMouseX = x; startMouseY = y;
+                startPosX = overlay.posX || 50; startPosY = overlay.posY || 50;
                 state.selectedClip = overlay;
                 renderProperties();
-                break;
+                return;
+            }
+        }
+
+        // Check Custom Video Overlays
+        const videos = activeClips.filter(c => c.type === 'video' && c.layout === 'custom');
+        for (const vid of videos) {
+            const pos = getOverlayCanvasPosition(vid);
+            const scale = (vid.manualScale || 50) / 100;
+            const hw = (canvas.width * scale) / 2;
+            const hh = (canvas.height * scale) / 2;
+
+            if (x >= pos.x - hw && x <= pos.x + hw && y >= pos.y - hh && y <= pos.y + hh) {
+                draggingClip = vid;
+                startMouseX = x; startMouseY = y;
+                startPosX = vid.posX || 50; startPosY = vid.posY || 50;
+                state.selectedClip = vid;
+                renderProperties();
+                return;
             }
         }
     });
 
     canvas.addEventListener('mousemove', (e) => {
-        if (!draggingOverlay) return;
+        if (!draggingClip) return;
 
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
@@ -1398,22 +1474,45 @@ function setupCanvasInteraction() {
         const deltaX = (x - startMouseX) / canvas.width * 100;
         const deltaY = (y - startMouseY) / canvas.height * 100;
 
-        draggingOverlay.posX = Math.max(5, Math.min(95, startPosX + deltaX));
-        draggingOverlay.posY = Math.max(5, Math.min(95, startPosY + deltaY));
+        let newX = startPosX + deltaX;
+        let newY = startPosY + deltaY;
+
+        // Snapping (Canva style)
+        state.snapLines = { x: null, y: null };
+        const snapThreshold = 2.5; // % threshold for snapping
+
+        if (Math.abs(newX - 50) < snapThreshold) {
+            newX = 50;
+            state.snapLines.x = 50;
+        }
+        if (Math.abs(newY - 50) < snapThreshold) {
+            newY = 50;
+            state.snapLines.y = 50;
+        }
+        // Snap to common safe areas
+        if (Math.abs(newY - 82) < snapThreshold - 1) { newY = 82; state.snapLines.y = 82; }
+        if (Math.abs(newY - 18) < snapThreshold - 1) { newY = 18; state.snapLines.y = 18; }
+
+        draggingClip.posX = Math.max(0, Math.min(100, newX));
+        draggingClip.posY = Math.max(0, Math.min(100, newY));
 
         renderPreview();
         renderProperties();
     });
 
     canvas.addEventListener('mouseup', () => {
-        if (draggingOverlay) {
-            draggingOverlay = null;
+        if (draggingClip) {
+            draggingClip = null;
+            state.snapLines = { x: null, y: null };
+            renderPreview();
             saveToStorage();
         }
     });
 
     canvas.addEventListener('mouseleave', () => {
-        draggingOverlay = null;
+        draggingClip = null;
+        state.snapLines = { x: null, y: null };
+        renderPreview();
     });
 }
 
@@ -1539,6 +1638,30 @@ function renderPreview() {
     if (state.showProgressBar) {
         renderGlobalProgressBar();
     }
+
+    // Draw Snap Lines (Canva Style)
+    if (state.snapLines) {
+        ctx.save();
+        ctx.strokeStyle = '#00f2ff'; // Bright neon blue for snapping
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+
+        if (state.snapLines.x !== null) {
+            const x = (state.snapLines.x / 100) * canvas.width;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        if (state.snapLines.y !== null) {
+            const y = (state.snapLines.y / 100) * canvas.height;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
 }
 
 const easings = {
@@ -1564,12 +1687,22 @@ function renderVideoClip(clip) {
     const inAnimDuration = 0.5;
     const inProgress = Math.min(timeSinceStart / inAnimDuration, 1);
 
-    let scale = 1, offsetX = 0, offsetY = 0, alpha = 1, rotation = 0;
+    // Initial transforms from clip properties (or defaults)
+    let scale = clip.manualScale !== undefined ? (clip.manualScale / 100) : 1;
+    let alpha = 1, rotation = 0;
 
-    // Entry Animations
+    // Normalizing manual positions for translate later
+    // If it's a "Full" layout, we stay at center-center
+    // If it's "Custom", we use posX/posY
+    let manualX = (clip.posX !== undefined) ? (clip.posX / 100 * canvas.width) : (canvas.width / 2);
+    let manualY = (clip.posY !== undefined) ? (clip.posY / 100 * canvas.height) : (canvas.height / 2);
+
+    let offsetX = 0, offsetY = 0;
+
+    // Entry Animations (multiply/add to base)
     switch (clip.inAnimation) {
         case 'pop':
-            scale = easings.easeOutBack(inProgress);
+            scale *= easings.easeOutBack(inProgress);
             alpha = inProgress;
             break;
         case 'fadeIn':
@@ -1610,7 +1743,9 @@ function renderVideoClip(clip) {
 
     // Apply Layout Clipping
     let drawX = 0, drawY = 0, drawW = canvas.width, drawH = canvas.height;
-    if (clip.layout && clip.layout !== 'full') {
+
+    // Preset Layouts (Snap to halves)
+    if (clip.layout && clip.layout !== 'full' && clip.layout !== 'custom') {
         ctx.beginPath();
         if (clip.layout === 'top') {
             ctx.rect(0, 0, canvas.width, canvas.height / 2);
@@ -1642,11 +1777,21 @@ function renderVideoClip(clip) {
         }
     }
 
-    // Apply transformations from center of canvas
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.scale(scale, scale);
-    ctx.rotate(rotation);
-    ctx.translate(-canvas.width / 2 + offsetX, -canvas.height / 2 + offsetY);
+    // Apply transformations
+    if (clip.layout === 'custom') {
+        // Picture in Picture mode
+        ctx.translate(manualX + offsetX, manualY + offsetY);
+        ctx.scale(scale, scale);
+        ctx.rotate(rotation);
+        // Drawing relative to center of transformed box
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    } else {
+        // Standard full-screen behavior
+        ctx.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
+        ctx.scale(scale, scale);
+        ctx.rotate(rotation);
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    }
 
     if (clip.videoElement) {
         ctx.drawImage(clip.videoElement, drawX, drawY, drawW, drawH);
@@ -2156,6 +2301,103 @@ function uploadAudioForClip(clipId) {
         saveToStorage();
     };
     input.click();
+}
+
+// ========================================
+// TOOLBAR ACTIONS
+// ========================================
+function addTextOverlay() {
+    const clip = {
+        id: state.nextClipId++,
+        type: 'overlay',
+        track: 'text1',
+        startTime: state.currentTime,
+        endTime: Math.min(state.currentTime + 3, state.duration),
+        text: 'New Text',
+        posX: 50,
+        posY: 50,
+        fontSize: 50,
+        color: '#ffffff',
+        fontFamily: 'Bebas Neue',
+        animation: 'pop',
+        textStyle: 'none'
+    };
+    state.clips.push(clip);
+    state.selectedClip = clip;
+    renderTimeline();
+    renderProperties();
+    saveToStorage();
+}
+
+function addOverlayVideo() {
+    const clip = {
+        id: state.nextClipId++,
+        type: 'video',
+        track: 'video2',
+        startTime: state.currentTime,
+        endTime: Math.min(state.currentTime + 5, state.duration),
+        label: 'Overlay Video',
+        layout: 'custom',
+        posX: 50,
+        posY: 50,
+        manualScale: 50,
+        inAnimation: 'fadeIn'
+    };
+    state.clips.push(clip);
+    state.selectedClip = clip;
+    renderTimeline();
+    renderProperties();
+    saveToStorage();
+}
+
+function addTransition() {
+    const clip = {
+        id: state.nextClipId++,
+        type: 'effect',
+        track: 'effects',
+        startTime: state.currentTime,
+        endTime: Math.min(state.currentTime + 0.5, state.duration),
+        label: 'fade',
+        transitionType: 'fade'
+    };
+    state.clips.push(clip);
+    state.selectedClip = clip;
+    renderTimeline();
+    renderProperties();
+    saveToStorage();
+}
+
+function addAudioTrackClip() {
+    const clip = {
+        id: state.nextClipId++,
+        type: 'audio',
+        track: 'audio1',
+        startTime: state.currentTime,
+        endTime: Math.min(state.currentTime + 5, state.duration),
+        label: 'New Audio',
+        needsAudio: true
+    };
+    state.clips.push(clip);
+    state.selectedClip = clip;
+    renderTimeline();
+    renderProperties();
+    saveToStorage();
+}
+
+function quickAddSFX(type) {
+    const clip = {
+        id: state.nextClipId++,
+        type: 'audio',
+        track: 'audio1',
+        startTime: state.currentTime,
+        endTime: state.currentTime + 1,
+        label: 'SFX: ' + type,
+        bgType: 'sfx',
+        sfxType: type
+    };
+    state.clips.push(clip);
+    renderTimeline();
+    saveToStorage();
 }
 
 // ========================================
