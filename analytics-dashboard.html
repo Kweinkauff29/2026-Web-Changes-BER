@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BER Analytics Command Center</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --yt-red: #ff0000;
+            --fb-blue: #1877f2;
+            --ig-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 80px;
+            background: var(--bg-card);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 2rem;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar:hover {
+            width: 240px;
+            align-items: flex-start;
+            padding-left: 1.5rem;
+        }
+
+        .brand-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.2s;
+            width: 100%;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar:hover .nav-item {
+            width: 90%;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-item i {
+            min-width: 24px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 80px;
+            padding: 2rem;
+            flex: 1;
+            max-width: 1600px;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .date-filter {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        /* Dashboard Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .icon-yt {
+            background: rgba(255, 0, 0, 0.1);
+            color: var(--yt-red);
+        }
+
+        .icon-fb {
+            background: rgba(24, 119, 242, 0.1);
+            color: var(--fb-blue);
+        }
+
+        .icon-ig {
+            background: rgba(225, 48, 108, 0.1);
+            color: #e1306c;
+        }
+
+        /* Simplified IG color */
+        .icon-web {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-trend {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chart-header {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Refresh Button */
+        .btn-refresh {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-refresh:hover {
+            opacity: 0.9;
+        }
+
+        /* Mock Content Notice */
+        .mock-notice {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid var(--warning);
+            color: #fbbf24;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            max-width: 300px;
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="brand-icon">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>BER Analytics</span>
+        </div>
+
+        <a class="nav-item active">
+            <i class="fa-solid fa-border-all"></i>
+            <span>Overview</span>
+        </a>
+        <a class="nav-item">
+            <i class="fa-brands fa-youtube"></i>
+            <span>YouTube</span>
+        </a>
+        <a class="nav-item">
+            <i class="fa-brands fa-instagram"></i>
+            <span>Instagram</span>
+        </a>
+        <a class="nav-item">
+            <i class="fa-brands fa-facebook"></i>
+            <span>Facebook</span>
+        </a>
+        <a class="nav-item">
+            <i class="fa-solid fa-globe"></i>
+            <span>Website</span>
+        </a>
+
+        <div style="flex: 1;"></div>
+
+        <a class="nav-item" onclick="toggleConfig()">
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <div>
+                <h1>Command Center</h1>
+                <p style="color: var(--text-muted);">Real-time cross-platform performance metrics</p>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <select class="date-filter">
+                    <option>Last 7 Days</option>
+                    <option selected>Last 30 Days</option>
+                    <option>Last 90 Days</option>
+                    <option>This Year</option>
+                </select>
+
+                <button class="btn-refresh" onclick="refreshData()">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid-container">
+            <!-- YouTube Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">YouTube Views</span>
+                    <div class="card-icon icon-yt"><i class="fa-brands fa-youtube"></i></div>
+                </div>
+                <div class="stat-value" id="yt-views">12.5k</div>
+                <div class="stat-trend trend-up">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                    <span>18.2% vs last period</span>
+                </div>
+                <div id="yt-subs" style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                    Targeting 50k views/month
+                </div>
+            </div>
+
+            <!-- Instagram Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">IG Reach</span>
+                    <div class="card-icon icon-ig"><i class="fa-brands fa-instagram"></i></div>
+                </div>
+                <div class="stat-value" id="ig-reach">45.2k</div>
+                <div class="stat-trend trend-up">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                    <span>24.5% vs last period</span>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                    Driven by Reels (+40%)
+                </div>
+            </div>
+
+            <!-- Facebook Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">FB Engagement</span>
+                    <div class="card-icon icon-fb"><i class="fa-brands fa-facebook-f"></i></div>
+                </div>
+                <div class="stat-value" id="fb-eng">1.8k</div>
+                <div class="stat-trend trend-down">
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                    <span>5.1% vs last period</span>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                    Organic reach down
+                </div>
+            </div>
+
+            <!-- Website Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Web Traffic</span>
+                    <div class="card-icon icon-web"><i class="fa-solid fa-globe"></i></div>
+                </div>
+                <div class="stat-value" id="web-visits">8.4k</div>
+                <div class="stat-trend trend-up">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                    <span>12.3% vs last period</span>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                    Top Source: Google Search
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chart -->
+        <div class="grid-container" style="grid-template-columns: 2fr 1fr;">
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h3>Growth Trends</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">View Growth across all channels</p>
+                </div>
+                <div style="position: relative; height: 400px; width: 100%;">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h3>Audience Split</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">By Platform</p>
+                </div>
+                <div
+                    style="position: relative; height: 300px; width: 100%; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIG MODAL -->
+        <div id="configModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2><i class="fa-solid fa-plug"></i> Connect Data Sources</h2>
+                    <button onclick="toggleConfig()"
+                        style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
+                </div>
+
+                <div class="config-group">
+                    <label><i class="fa-brands fa-youtube" style="color: var(--yt-red);"></i> YouTube API Key</label>
+                    <input type="text" id="ytApiKey" placeholder="Paste API Key from Google Cloud Console"
+                        class="config-input">
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                        Required to pull subscriber count & view stats. <br>
+                        <a href="https://console.cloud.google.com/apis/credentials" target="_blank"
+                            style="color: var(--primary);">Get API Key Here</a>
+                    </small>
+                </div>
+
+                <div class="config-group">
+                    <label><i class="fa-brands fa-youtube" style="color: var(--yt-red);"></i> YouTube Channel ID</label>
+                    <input type="text" id="ytChannelId" placeholder="e.g. UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                        class="config-input">
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                        Your Channel ID (Advanced Settings).
+                    </small>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 2rem 0;">
+
+                <!-- Manual Overrides -->
+                <h3 style="margin-bottom: 1rem; color: var(--text-main);">Manual Data Overrides</h3>
+
+                <div class="config-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label><i class="fa-brands fa-instagram" style="color: #e1306c;"></i> IG Reach</label>
+                        <input type="number" id="igReach" placeholder="45000" class="config-input">
+                    </div>
+                    <div>
+                        <label><i class="fa-brands fa-facebook" style="color: var(--fb-blue);"></i> FB
+                            Engagement</label>
+                        <input type="number" id="fbEng" placeholder="1800" class="config-input">
+                    </div>
+                    <div>
+                        <label><i class="fa-solid fa-globe" style="color: var(--primary);"></i> Web Visits</label>
+                        <input type="number" id="webVisits" placeholder="8500" class="config-input">
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <button onclick="saveConfig()" class="btn-refresh"
+                        style="width: 100%; justify-content: center;">Save & Connect</button>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            /* Modal Styles */
+            .hidden {
+                display: none !important;
+            }
+
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .modal-content {
+                background: var(--bg-card);
+                padding: 2rem;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 500px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .config-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .config-group label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: var(--text-main);
+            }
+
+            .config-input {
+                width: 100%;
+                padding: 0.75rem;
+                background: var(--bg-dark);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                color: var(--text-main);
+                font-family: inherit;
+            }
+
+            .config-input:focus {
+                outline: none;
+                border-color: var(--primary);
+            }
+        </style>
+
+        <!-- Video Performance Table (Top 5) -->
+        <div class="card" style="overflow-x: auto;">
+            <div class="card-header">
+                <h3 style="font-size: 1.1rem; font-weight: 600;">Top Performing Content (Last 30 Days)</h3>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 600px;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Content Title</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Platform</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Views</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Engagement</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Trend</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 0.95rem;">
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <img src="https://via.placeholder.com/40" style="border-radius: 4px;">
+                            Market Update: Jan 2026
+                        </td>
+                        <td style="padding: 1rem;"><span style="color: var(--yt-red);"><i
+                                    class="fa-brands fa-youtube"></i> YouTube</span></td>
+                        <td style="padding: 1rem;">15,234</td>
+                        <td style="padding: 1rem;">8.4%</td>
+                        <td style="padding: 1rem; color: var(--success);"><i class="fa-solid fa-arrow-trend-up"></i>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <img src="https://via.placeholder.com/40" style="border-radius: 4px;">
+                            Luxury Home Tour #42
+                        </td>
+                        <td style="padding: 1rem;"><span style="color: #e1306c;"><i class="fa-brands fa-instagram"></i>
+                                Instagram</span></td>
+                        <td style="padding: 1rem;">8,921</td>
+                        <td style="padding: 1rem;">12.1%</td>
+                        <td style="padding: 1rem; color: var(--success);"><i class="fa-solid fa-arrow-trend-up"></i>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <img src="https://via.placeholder.com/40" style="border-radius: 4px;">
+                            New Member Orientation
+                        </td>
+                        <td style="padding: 1rem;"><span style="color: var(--fb-blue);"><i
+                                    class="fa-brands fa-facebook"></i> Facebook</span></td>
+                        <td style="padding: 1rem;">3,102</td>
+                        <td style="padding: 1rem;">4.2%</td>
+                        <td style="padding: 1rem; color: var(--text-muted);"><i class="fa-solid fa-minus"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <div class="mock-notice">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <strong>Prototype Mode</strong><br>
+        Displaying mock data for demonstration. Connect APIs in settings to view real data.
+    </div>
+
+    <!-- Analytics Logic -->
+    <script>
+        // Chart Config
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+
+        const ctxMain = document.getElementById('mainChart').getContext('2d');
+        const mainChart = new Chart(ctxMain, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [
+                    {
+                        label: 'YouTube Views',
+                        data: [2500, 3200, 4100, 3800],
+                        borderColor: '#ff0000',
+                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'IG Reach',
+                        data: [15000, 18000, 22000, 28000],
+                        borderColor: '#e1306c',
+                        backgroundColor: 'rgba(225, 48, 108, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Web Traffic',
+                        data: [1200, 1400, 1350, 1600],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['YouTube', 'Instagram', 'Facebook', 'Web'],
+                datasets: [{
+                    data: [25, 45, 15, 15],
+                    backgroundColor: [
+                        '#ff0000',
+                        '#e1306c',
+                        '#1877f2',
+                        '#3b82f6'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Config Modal Logic
+        function toggleConfig() {
+            const modal = document.getElementById('configModal');
+            modal.classList.toggle('hidden');
+
+            // Load saved values or defaults
+            if (!modal.classList.contains('hidden')) {
+                document.getElementById('ytApiKey').value = localStorage.getItem('ber_yt_api_key') || 'AIzaSyDzhbDYD56_e1LKK3ERXcbHzrna20dSWXM';
+                document.getElementById('ytChannelId').value = localStorage.getItem('ber_yt_channel_id') || 'UCfK9mJfXgVpV2caAU1equlQ';
+
+                // Load Manual Overrides
+                document.getElementById('igReach').value = localStorage.getItem('ber_ig_reach') || '';
+                document.getElementById('fbEng').value = localStorage.getItem('ber_fb_eng') || '';
+                document.getElementById('webVisits').value = localStorage.getItem('ber_web_visits') || '';
+            }
+        }
+
+        function saveConfig() {
+            const key = document.getElementById('ytApiKey').value;
+            const channelId = document.getElementById('ytChannelId').value;
+
+            localStorage.setItem('ber_yt_api_key', key);
+            localStorage.setItem('ber_yt_channel_id', channelId);
+
+            // Save Manual Overrides
+            const igReach = document.getElementById('igReach').value;
+            const fbEng = document.getElementById('fbEng').value;
+            const webVisits = document.getElementById('webVisits').value;
+
+            localStorage.setItem('ber_ig_reach', igReach);
+            localStorage.setItem('ber_fb_eng', fbEng);
+            localStorage.setItem('ber_web_visits', webVisits);
+
+            alert('Settings Saved!');
+            toggleConfig();
+            refreshData(); // Refresh immediately
+        }
+
+        // Apply Manual Overrides on Load/Refresh
+        function applyManualOverrides() {
+            const igReach = localStorage.getItem('ber_ig_reach');
+            const fbEng = localStorage.getItem('ber_fb_eng');
+            const webVisits = localStorage.getItem('ber_web_visits');
+
+            if (igReach) document.getElementById('ig-reach').innerText = parseInt(igReach).toLocaleString();
+            if (fbEng) document.getElementById('fb-eng').innerText = parseInt(fbEng).toLocaleString();
+            if (webVisits) document.getElementById('web-visits').innerText = parseInt(webVisits).toLocaleString();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshData();
+        });
+
+        async function refreshData() {
+            // Simulate loading
+            const btn = document.querySelector('.btn-refresh');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Updating...';
+            btn.disabled = true;
+
+            // Try to fetch real YouTube Data if keys exist (use defaults if not in storage)
+            const apiKey = localStorage.getItem('ber_yt_api_key') || 'AIzaSyDzhbDYD56_e1LKK3ERXcbHzrna20dSWXM';
+            const channelId = localStorage.getItem('ber_yt_channel_id') || 'UCfK9mJfXgVpV2caAU1equlQ';
+
+            if (apiKey && channelId) {
+                await fetchYouTubeStats(apiKey, channelId);
+            } else {
+                // Randomize data slightly to show interaction if no API key
+                setTimeout(() => {
+                    mainChart.data.datasets.forEach(dataset => {
+                        dataset.data = dataset.data.map(v => v + Math.floor(Math.random() * 500 - 200));
+                    });
+                    mainChart.update();
+                }, 1000);
+            }
+
+            applyManualOverrides(); // Apply manual data
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+
+        async function fetchYouTubeStats(apiKey, channelId) {
+            try {
+                // 1. Get Channel Stats & Uploads Playlist ID
+                const channelResponse = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics,contentDetails&id=${channelId}&key=${apiKey}`);
+                const channelData = await channelResponse.json();
+
+                if (channelData.items && channelData.items.length > 0) {
+                    const stats = channelData.items[0].statistics;
+                    const uploadsId = channelData.items[0].contentDetails.relatedPlaylists.uploads;
+
+                    // Update Overview Card
+                    document.getElementById('yt-views').innerText = parseInt(stats.viewCount).toLocaleString();
+                    const subElement = document.getElementById('yt-subs');
+                    if (subElement) subElement.innerText = `${parseInt(stats.subscriberCount).toLocaleString()} Subscribers`;
+
+                    // 2. Get Recent Videos
+                    const videosResponse = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=10&key=${apiKey}`);
+                    const videosData = await videosResponse.json();
+
+                    const videoIds = videosData.items.map(item => item.snippet.resourceId.videoId).join(',');
+
+                    // 3. Get Video Stats (Views, Duration, Snippet)
+                    const statsResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails,snippet&id=${videoIds}&key=${apiKey}`);
+                    const statsData = await statsResponse.json();
+
+                    console.log('YouTube Data:', statsData); // Debugging
+
+                    // Update Chart (Super basic implementation)
+                    const recentViews = statsData.items.slice(0, 4).map(v => parseInt(v.statistics.viewCount)).reverse();
+                    mainChart.data.datasets[0].data = recentViews;
+                    mainChart.data.labels = statsData.items.slice(0, 4).map(v => 'Vid ' + v.id.substring(0, 4)).reverse();
+                    mainChart.update();
+
+                    // 4. Update Top Content Table
+                    const tableBody = document.querySelector('.card table tbody');
+                    tableBody.innerHTML = ''; // Clear mock data
+
+                    statsData.items.forEach(video => {
+                        const views = parseInt(video.statistics.viewCount || 0);
+                        const likes = parseInt(video.statistics.likeCount || 0);
+                        const comments = parseInt(video.statistics.commentCount || 0);
+                        const engagementRate = views > 0 ? ((likes + comments) / views * 100).toFixed(1) + '%' : '0%';
+
+                        // Detect Shorts (Duration <= 60s)
+                        const durationSecs = parseISO8601Duration(video.contentDetails.duration);
+                        const isShort = durationSecs <= 60;
+                        const typeLabel = isShort ? '<i class="fa-solid fa-bolt"></i> YouTube Short' : '<i class="fa-brands fa-youtube"></i> YouTube Video';
+
+                        // Simplified random trend for now as we don't have historical data for each video in this API call
+                        const trendIcon = Math.random() > 0.5 ? '<i class="fa-solid fa-arrow-trend-up" style="color: var(--success)"></i>' : '<i class="fa-solid fa-minus" style="color: var(--text-muted)"></i>';
+
+                        const row = `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <a href="https://youtu.be/${video.id}" target="_blank" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 0.8rem;">
+                                        <img src="${video.snippet.thumbnails.default.url}" style="border-radius: 4px; width: 40px; height: ${isShort ? '70px' : '30px'}; object-fit: cover;">
+                                        ${video.snippet.title.substring(0, 40)}${video.snippet.title.length > 40 ? '...' : ''}
+                                    </a>
+                                </td>
+                                <td style="padding: 1rem;"><span style="color: var(--yt-red);">${typeLabel}</span></td>
+                                <td style="padding: 1rem;">${views.toLocaleString()}</td>
+                                <td style="padding: 1rem;">${engagementRate}</td>
+                                <td style="padding: 1rem;">${trendIcon}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+
+                }
+            } catch (error) {
+                console.error('Error fetching YouTube data:', error);
+                alert('Failed to fetch YouTube data. Check Console for details.');
+            }
+        }
+
+        // Helper: Parse ISO 8601 Duration (PT1H2M10S) to seconds
+        function parseISO8601Duration(duration) {
+            const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+            const hours = (parseInt(match[1]) || 0);
+            const minutes = (parseInt(match[2]) || 0);
+            const seconds = (parseInt(match[3]) || 0);
+            return (hours * 3600) + (minutes * 60) + seconds;
+        }
+    </script>
+</body>
+
+</html>
