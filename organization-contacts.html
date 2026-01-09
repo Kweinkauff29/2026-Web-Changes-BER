@@ -5075,61 +5075,82 @@
                                 });
                             }
 
+                            // API helper to add a signup or update volume
+                            async function addSignup(key, checkedBy = undefined, salesVolume = undefined) {
+                                try {
+                                    const payload = { key };
+                                    if (checkedBy !== undefined) payload.checkedBy = checkedBy;
+                                    if (salesVolume !== undefined) payload.salesVolume = salesVolume;
+
+                                    await fetch(`${API_URL}/signups`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(payload)
+                                    });
+                                } catch (err) {
+                                    console.error('Failed to save signup/volume to API:', err);
+                                }
+                                // Save locally too
+                                if (salesVolume) {
+                                    if (!checkedState[key]) checkedState[key] = {};
+                                    checkedState[key].salesVolume = salesVolume;
+                                }
+                                localStorage.setItem('ber_contacts_checked', JSON.stringify(checkedState));
+                            }
+
                             function createContactCard(contact) {
                                 const div = document.createElement('div');
                                 div.className = 'contact-card';
 
                                 const initials = getInitials(contact.FirstName, contact.LastName);
                                 const name = `${contact.FirstName || ''} ${contact.LastName || ''}`.trim() || 'Unknown Name';
-                                // const role = contact.Role || 'Member'; // Hiding role for compactness if not critical
                                 const email = contact.Email || '';
                                 const phone = contact.PriPhone || contact.MobilePhone || '';
                                 const cityState = [contact.City, contact.State].filter(Boolean).join(', ');
-                                const salesVolume = contact.SalesVolume;
 
-                                // Determine Tier Class
-                                let tierClass = '';
-                                if (salesVolume) {
-                                    // Remove commas and parse
-                                    const vol = parseInt(salesVolume.replace(/,/g, ''), 10);
-                                    if (!isNaN(vol)) {
-                                        if (vol > 20000000) {
-                                            tierClass = 'tier-diamond';
-                                        } else if (vol > 10000000) {
-                                            tierClass = 'tier-platinum';
-                                        } else if (vol > 5000000) {
-                                            tierClass = 'tier-gold';
-                                        }
-                                    }
+                                // Unique Key
+                                const uniqueKey = `${contact.Organization || 'Other'}_${email || name}`;
+
+                                // Volume Logic (Merged with API data if exists)
+                                // API data overrides embedded data for this session view if present
+                                let salesVolume = contact.SalesVolume;
+                                if (checkedState[uniqueKey] && checkedState[uniqueKey].salesVolume) {
+                                    salesVolume = checkedState[uniqueKey].salesVolume;
                                 }
 
+                                // Determine Tier Class Helper
+                                const getTierClass = (volStr) => {
+                                    if (!volStr) return '';
+                                    const vol = parseInt(volStr.replace(/,/g, ''), 10);
+                                    if (isNaN(vol)) return '';
+                                    if (vol > 20000000) return 'tier-diamond';
+                                    if (vol > 10000000) return 'tier-platinum';
+                                    if (vol > 5000000) return 'tier-gold';
+                                    return '';
+                                };
+
+                                let tierClass = getTierClass(salesVolume);
+
                                 // Checkbox ID
-                                const uniqueKey = `${contact.Organization || 'Other'}_${email || name}`;
-                                const isChecked = checkedState[uniqueKey] ? 'checked' : '';
+                                const isChecked = (checkedState[uniqueKey] && checkedState[uniqueKey].checkedBy) ? 'checked' : '';
 
                                 // Checker Info
                                 let checkedByHtml = '';
                                 if (checkedState[uniqueKey] && checkedState[uniqueKey].checkedBy) {
-                                    // API returns object { checkedBy, createdAt }
                                     const info = checkedState[uniqueKey];
-                                    // Format Date: "Jan 12, 10:30 AM"
                                     let dateStr = '';
                                     if (info.createdAt) {
                                         try {
-                                            const date = new Date(info.createdAt + 'Z'); // Appending Z to force UTC parsing if needed, but D1 returns UTC string usually
-                                            // Actually D1 `datetime('now')` is UTC string like "2025-01-09 19:30:00"
-                                            // A simple parse might work best
                                             dateStr = new Date(info.createdAt + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                                         } catch (e) { dateStr = ''; }
                                     }
                                     checkedByHtml = `<span class="checked-by-info"><i class="fa-solid fa-check-double"></i> Verified by ${info.checkedBy} <span style="color:#94a3b8; font-size: 0.7em;">(${dateStr})</span></span>`;
-                                } else if (isChecked) {
-                                    // Legacy or local
+                                } else if (checkedState[uniqueKey] === true) { // Legacy
                                     checkedByHtml = `<span class="checked-by-info"><i class="fa-solid fa-check"></i> Checked</span>`;
                                 }
 
                                 if (isChecked) div.classList.add('is-checked');
-                                if (tierClass) div.classList.add(tierClass); // Add Tier Class
+                                if (tierClass) div.classList.add(tierClass);
 
                                 // HTML Components
                                 const emailHtml = (email && email.toLowerCase() !== 'do not email')
@@ -5144,10 +5165,17 @@
                                     ? `<div class="detail-item"><i class="fa-solid fa-location-dot"></i> <span>${cityState}</span></div>`
                                     : `<div class="detail-item"></div>`;
 
-                                const volumeHtml = salesVolume
-                                    ? `<div class="detail-item volume-icon" style="color: #0d9488; font-weight: 500;" title="Sales Based off MLS Records"><i class="fa-solid fa-sack-dollar"></i> $${salesVolume}</div>`
-                                    : `<div class="detail-item"></div>`;
-
+                                // Volume HTML with Edit Interaction
+                                // We use a data attribute to store the raw value
+                                const volumeValue = salesVolume ? `$${salesVolume}` : 'Add Volume';
+                                // Add volume-editable class for click listener
+                                const volumeHtml = `
+                    <div class="detail-item volume-icon volume-editable" 
+                         style="color: #0d9488; font-weight: 500; cursor: pointer;" 
+                         title="Click to edit Sales Volume"
+                         data-key="${uniqueKey}">
+                        <i class="fa-solid fa-sack-dollar"></i> <span>${volumeValue}</span>
+                    </div>`;
 
                                 div.innerHTML = `
                     <div class="card-checkbox-area">
@@ -5218,7 +5246,47 @@
                             function truncate(str, n) {
                                 return (str.length > n) ? str.substr(0, n - 1) + '&hellip;' : str;
                             }
-                        });
+
+                            // Global Click Listener for Volume Editing (Event Delegation)
+                            document.addEventListener('click', async (e) => {
+                                const target = e.target.closest('.volume-editable');
+                                if (target) {
+                                    const key = target.dataset.key;
+                                    const currentText = target.querySelector('span').textContent.replace('$', '').replace('Add Volume', '');
+
+                                    // Prompt for new volume
+                                    const newVolume = prompt("Enter Sales Volume (e.g. 15,000,000):", currentText.trim());
+
+                                    if (newVolume !== null) {
+                                        // Basic validation/formatting
+                                        const cleanVol = newVolume.replace(/[^0-9]/g, '');
+                                        if (cleanVol) {
+                                            // Format with commas
+                                            const formattedVol = parseInt(cleanVol, 10).toLocaleString();
+
+                                            // Update UI immediately
+                                            target.querySelector('span').textContent = `$${formattedVol}`;
+
+                                            // Update Card Tier
+                                            const card = target.closest('.contact-card');
+                                            card.classList.remove('tier-gold', 'tier-platinum', 'tier-diamond');
+
+                                            let tierClass = '';
+                                            const vol = parseInt(cleanVol, 10);
+                                            if (vol > 20000000) tierClass = 'tier-diamond';
+                                            else if (vol > 10000000) tierClass = 'tier-platinum';
+                                            else if (vol > 5000000) tierClass = 'tier-gold';
+
+                                            if (tierClass) card.classList.add(tierClass);
+
+                                            // Sync to API
+                                            await addSignup(key, undefined, formattedVol);
+                                        }
+                                    }
+                                }
+                            });
+
+                        }); // End DOMContentLoaded Wrapper
 
 
             </script>
