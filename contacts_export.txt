@@ -1,0 +1,186 @@
+﻿FirstName	LastName	CommonName	Organization	Email	Role	JoinDate	DropDate	Disabled	Status	PriPhone	PriAddress	PriAddressLine2	City	State	Country	PostalCode	OptedBy
+Anthony	Yimin		EXP Realty LLC	anthony@guillettegroup.com		1/5/2026				239-322-0596	6576 Bay Ridge Way		Fort Myers	FL	United States	33908	
+H. Max	Lummis		Royal Shell Real Estate, Inc.	maxlummis@gmail.com		1/5/2026				(239) 289-3541	26132 Fawnwood Court		Bonita Springs	FL	United States	34134	
+Miluska	Chlebowski		Group 3 Realty	mchlebowskim@yahoo.com		1/5/2026				(239) 281-8497	19021 S Tampa Road		Estero	FL	United States	33967	
+Brad	Graves PA		Premiere Plus Realty Company	brad@floridaheritageteam.com		1/5/2026			Do Not Email	(239) 908-1310	3990 Horse Creek Blvd		Fort Myers	FL	United States	33905	
+Josh	Bohling 		LPT Realty, LLC	josh@sellmyhouseswfl.com		1/5/2026				239-320-5326							
+Destiny	Bockholt		Premier Sotheby's Int'l Realty	destiny.bockholt@premiersir.com		1/5/2026				(239) 405-2616	25171 Killdeer Dr		Bonita Springs	FL	United States	34135	
+Amber	Reyes		Local Real Estate LLC	amberreyesrealtor@gmail.com		1/5/2026				239-220-5198	109 Tropicana PkWY W		Cape Coral	FL	United States	33993	
+Jennifer	Smyth		John R. Wood Properties	jennifersmyth312@gmail.com		1/5/2026				312-953-5809	22341 Banyan Hideaway Dr		Estero	FL	United States	34135	
+Hunter	Kent		Premiere Plus Realty Company	hunterkenthomes@gmail.com		1/5/2026				239-231-5520	19075 Elston Way		Estero	FL	United States	33928	
+Mary	Abshire		John R. Wood Properties	mabshire@johnrwood.com		1/5/2026				239-292-3636	120 3rd Street		Bonita Springs	FL	United States	34134	
+Nikki	Hagmann	Nicole	Keller Williams Elevate Luxury	nikki@flrise.com		1/5/2026			Do Not Email	239-322-0797	24821 S. Tamiami Tr Suite 2		Bonita Springs	FL	United States	34134	
+Bettina	Koss		Premiere Plus Realty Company	bettinakoss85@gmail.com		1/5/2026				2396821366	7890 Buccaneer Dr		Fort Myers Beach	FL	United States	33931	
+Andrew	Brinkoetter	Andy	Keller Williams Elite Realty	andy@myhomewise.com		1/5/2026				2392936524	19296 Pine Glen Drive		Fort Myers	FL	United States	33967	
+Sue Ellen	Mathers		Royal Shell Real Estate, Inc.	sueellen@royalshellsales.com		1/5/2026				(239) 877-2726	25063 Luci Dr		Bonita Springs	FL	United States	34135	
+Matt 	Loveall 		DomainRealty.com LLC	matt@loveallflorida.com		1/5/2026				239-293-2045	28061 Captiva Shell Loop		Bonita Springs	FL	United States	34135	
+Rachel	Rodriguez		Builders Land Associates	builderslandassociates@gmail.com		1/5/2026				(239) 834-7642	3781 Costa Maya Way	#201	Estero	FL	United States	33928	
+Linda Marie	Anderson	Linda		lvial32@gmail.com		1/5/2026				(732) 688-8576	17476 Ashcomb Way		Estero	FL	United States	33928	
+Kayla	Hunter		Keller Williams Elite Realty	kaylahunterrealty@gmail.com		1/5/2026				239-850-7719	8052 Sanibel Blvd		Fort Myers	FL	United States	33967	
+Todd	Golnick		Premiere Plus Realty Company	todd@swfldreamproperties.com		1/5/2026				(231) 920-9111	11588 Golden Oak Ter		Fort Myers	FL	United States	33913	
+Timothy	Byal		John R. Wood Properties	tbyal@comcast.net		1/5/2026			Do Not Email	239-287-1074	11641 Roseto Ct		Miromar Lakes	FL	United States	33913	
+Kim	Swope Schott		Premiere Plus Realty Company	kimpremiereplusrealty@gmail.com		1/5/2026				239-938-4811	28421 Rochester Ct		Bonita Springs	FL	United States	34135	
+Molly	Jackson		Realty One Group MVP	molly@laurelmcgarelgroup.com		1/5/2026				239-350-6224	18111 Montelago Court		Miromar Lakes	FL	United States	33913	
+Jayson	Matthews		Downing-Frye Realty Inc	jayson@matthewsfl.com		1/5/2026				(239) 989-5949	20588 Porthole Court		Estero	FL	United States	33928	
+Drew	Fagan		Royal Shell Real Estate, Inc.	drew@thefaganteam.com		1/5/2026				2394700582	17601 Sterling lake Dr		Fort Myers	FL	United States	33967	
+Allan	Hase		Allan R Hase PA	allan@allanhaseteam.com		1/5/2026				(239) 770-8924							
+Dennis	Wagaman		Realty One Group MVP	dwswfl@gmail.com		1/5/2026				(239) 940-7749	1899 Monte Vista St		Fort Myers	FL	United States	33901	
+Elizabeth	Baker	Betsy	Keller Williams Elite Realty	betsyh801@aol.com		1/5/2026			Do Not Email	(239) 404-3567	22201 Fairview Bend Dr		Bonita Springs	FL	United States	34135	
+Lance	Martinicchio		Compass Florida, LLC	lance.m@compass.com		1/5/2026				(239) 770-1908	800 Laurel Oak Drive, Suite 400		Naples	FL	United States	34108	
+Amanda	Bolduc		EXP Realty LLC	amandasellsswfl@gmail.com		1/5/2026				2074745370	17142 Ashcomb Way		Estero	FL	United States	33928	
+Mary Kate	Collins		Orchid Realty International	marykate@orchidrealtygroup.com		1/5/2026				(203) 767-5016	21330 Lancaster Run	unit 1221	Estero	FL	United States	33928	
+Christy	Lominack			christyreservices@gmail.com		1/5/2026				(239) 398-0909	369 15th St NW		Naples	FL	United States	34120	
+Steven	Katsoufis		Keller Williams Elite Realty	steven.katsoufis@kw.com		1/5/2026				(914) 844-9221	3681 Winkler Ave #1022		Fort Myers	FL	United States	33916	
+Kevin	Shelly		Kevin Shelly Realty Inc.	kevin@kevinshellyrealty.com		1/5/2026			Do Not Email	(239) 344-6428	10060 Bonita Beach Rd		Bonita Springs	FL	United States	34135	
+Andrew	Lynch	Andy	Potter Trinity	andy@pottertrinity.com		1/5/2026				(239) 887-9558	24821 S Tamiami Trail	Suite 2	Bonita Springs	FL	United States	34134	
+Lisa	Schroeder		Coldwell Banker Realty	lisa@sellingflorida.net		1/5/2026				(239) 297-4128	20551 Corkscrew Shores Blvd		Estero	FL	United States	33928	
+Christine	Pecoraro		Realty One Group MVP	christine@mprealtygroup.com		1/5/2026				(239) 910-1180	1495 Pine Ridge	Suite 1	Naples	FL	United States	34109	
+Sherry	Reeves		Coldwell Banker Realty	sherry.reeves@floridamoves.com		1/5/2026				(859) 512-1613	8963 Baytowne Loop		Ft Myers	FL	United States	33908	
+Sarah	Guglielmo	Sally	John R. Wood Properties	sallyg@johnrwood.com		1/5/2026				(617) 320-4843	23600 Via Las Palmas		Bonita Springs	FL	United States	34134	
+Kerry	Hartman		Compass Florida, LLC	kerry@ttpgrealty.com		1/5/2026				724-816-2917	3409 Pelican Landing Parkway	Suite 1	Bonita Springs	FL	United States	34134	
+Mike	Hagan		John R. Wood Properties	mphagan@comcast.net		1/5/2026			Do Not Email	(239) 910-4359	24701 Sweet Gum Ct		Bonita Springs	FL	United States	34134	
+Autumn	Taylor		Premiere Plus Realty Company	autumnsales@msn.com		1/5/2026				239-691-7253	19016 Marquesa Drive		Fort Myers	FL	United States	33913	
+Sylvia	Maietta		RE/MAX Realty Group	sylvia@maiettahomes.com		1/5/2026				(239) 339-7575	6220 Augusta Dr #417		Fort Myers	FL	United States	33907	
+James	Hutch	Hagmann	Local Real Estate LLC	hutchj54@gmail.com		1/5/2026				239-302-8422	43000 Green Way Blvd	#146	Punta Gorda	FL	United States	33982	
+Paul	Kolaczynski		Compass Florida, LLC	paulkolaczynski@hotmail.com		1/5/2026				(239) 770-6968	14238 Moonlit Way		Estero	FL	United States	33928	
+Kathryn	Zangrilli		Broker Brothers LLC	kz@brokerbrothersre.com		1/5/2026				2395722600	3935 Jasmine Lake Cir		Naples	FL	United States	34119-7956	
+Justin	Jordan		Local Real Estate LLC	justin@jordanteamswfl.com		1/5/2026				(239) 287-1371	21645 Brixham Run Loop		Estero	FL	United States	33928	
+Dianne	Anderson		Premier Sotheby's Int'l Realty	dianne.anderson@premiersir.com		1/5/2026			Do Not Email	(239) 850-5089	28410 Bonita Crossings Boulevard	Suite 225	Bonita Springs	FL	United States	34135	
+Kyle	Suhr		John R. Wood Properties	ksuhr@johnrwood.com		1/5/2026				(239) 860-4663	4915 Esplande St		Bonita Springs	FL	United States	34134	
+Nanette	Padgett LLC		Keller Williams Elevate Luxury	nanette@matchinglifestyles.com		1/5/2026				502-523-6795	3409 Pelican Landing Parkway	Suite 1	Bonita Springs	FL	United States	34134	
+Philip	Chaffee		Potter Trinity	philip@pottertrinity.com		1/5/2026			Do Not Email	2603856086	61 Southport Cove		Bonita Springs	FL	United States	34134	
+Scott	Fogel		Berkshire Hathaway FL Realty	scottfogel@bhhsfloridarealty.net		1/5/2026				(239) 989-2152	3771 Lakemont Drive		Bonita Springs	FL	United States	34134	
+Julianne	Hook		DomainRealty.com LLC	julianne@domainrealtygroup.com		1/5/2026				(239) 634-0235	6899 Kimberly Terrace		Fort Myers	FL	United States	33919	
+Kathy	Brooks	Kathy Jo	Miromar Realty LLC	kjbrooks@miromar.com		1/5/2026				630-542-1081	928 Se 34th Terrace		Cape Coral	FL	United States	33904	
+Joseph	Pavich		Realty World J. PAVICH R.E.	joe@jpavich.com		1/5/2026				(239) 470-7837	21301 S Tamiami Trail, #340		Estero	FL	United States	33928	
+Michael	Monge	Mike	Keller Williams Elevate Luxury	sales@mikemonge.com		1/5/2026				(239) 560-5523	21675 Windham Run		Estero	FL	United States	33928	
+Candace	Farmer		Local Real Estate LLC	candace@candacefarmer.com		1/5/2026				(239) 898-9926	20552 Charing Cross Circle		Estero	FL	United States	33928	
+Adria	Scott		Keller Williams Elevate Luxury	adria@scottgrouphomes.com		1/5/2026				2392239069	11544 Chaplis Ln		Estero	FL	United States	33928	
+Martin	Pecoraro	Marty	Realty One Group MVP	marty@mprealtygroup.com		1/5/2026			Do Not Email	(716) 602-5988	17433 Elkgrove Lane		Estero	FL	United States	33928	
+Dena	Wilcoxen		Premier Sotheby's Int'l Realty	denawilcoxen@gmail.com		1/5/2026				(239) 989-2436	24410 Stillwell Parkway		Bonita Springs	FL	United States	34135	
+John	Neal		Neal Communities Realty, Inc.	southadmin@nealcommunities.com		1/5/2026				2396030431	28100 Bonita Grande Drive	Suite 106	Bonita Springs	FL	United States	34135	
+Jeanne	Siciliano		Realty World J. PAVICH R.E.	jeannesiciliano@yahoo.com		1/5/2026				(239) 438-5935	24561 Woodsage Dr		Bonita Springs	FL	United States	34134	
+Marianne	Fechter		John R. Wood Properties	mfechter@johnrwood.com		1/5/2026				239-771-0854	18974 Wildblue Blvd		FORT MYERS	FL	United States	33913	
+Dina Marie	Skaff	Dina	Dina Marie Realty LLC	dina@dinamarierealty.com		1/5/2026				(201) 394-9606	10351 Via Anacapri Ct		Miromar Lakes	FL	United States	33913	
+Stacey	Reed		DomainRealty.com LLC	staceysellsestero@gmail.com		1/5/2026				2392473657	21474 Sheridan Run		Estero	FL	United States	33928	
+Bret	Borshell		John R. Wood Properties	bborshell@johnrwood.com		1/5/2026				239-250-1805	26330 Coco Cay Circle	Unit 202	Bonita Springs	FL	United States	34135	
+Thereza	Zager	Maria	Downing-Frye Realty Inc	therezazrealtor@gmail.com		1/5/2026			Do Not Email	(682) 706-4959	20053 Castlemaine Ave		Estero	FL	United States	33928	
+Carla	Huyler		Grandeur Realty Co	carlasellsswfl@icloud.com		1/5/2026				239-634-5352							
+Danielle	Allen		Keller Williams Elevate Luxury	danielleallenswfl@gmail.com		1/5/2026			Do Not Email	2393226222	1408 Park Shore Cir	Apt 2	Fort Myers	FL	United States	33901	
+Cynthia	Zairis		Realty World J. PAVICH R.E.	cynthiazairis@gmail.com		1/5/2026				(239) 287-4439	13040 Castle Harbour Drive	T12	Naples	FL	United States	34110	
+J Alex	King	Alex	Premiere Plus Realty Company	beach.realtor11@gmail.com		1/5/2026				(239) 849-3663	7841 Buccaneer Dr.		Fort Myers Beach	FL	United States	33931	
+Jacqueline	Fogel	Jackie	Berkshire Hathaway FL Realty	jackiefogel@bhhsfloridarealty.net		1/5/2026			Do Not Email	(610) 283-3843	24099 Rodas Drive		Bonita Springs	FL	United States	34135	
+Adam	DeArmond		DomainRealty.com LLC	adamd@adamdrealtor.com		1/5/2026				239-290-6790	9801 Las Casas Dr.		Fort Myers	FL	United States	33919	
+Steve	Perusse P.A.		Realty One Group MVP	steve.perusse.realtor@gmail.com		1/5/2026				239-273-6069	2363 Butterfly Palm Dr		Naples	FL	United States	34119	
+Jesse	McGreevy		DomainRealty.com LLC	jesse@domainrealtygroup.com		1/5/2026				(239) 898-6072	21694 Helmsdale Run		Estero	FL	United States	33928	
+Megan 	Reusch		DomainRealty.com LLC	megan@reuschrealty.com		1/5/2026				5085140222	9670 Mirada Blvd.		Fort Myers	FL	United States	33908	
+Lisa	Mishler		John R. Wood Properties	lmishler@waterfrontlifestylegroup.com		1/5/2026				(239) 691-2487							
+Marsha	Lynn		Hunters Ridge Realty Co.	marsha@huntersridge.net		1/5/2026				(239) 273-8114	541 Forest Ave.		Bonita Springs	FL	United States	34134	
+Kelly	McCann		Keller Williams Elite Realty	kelly.mccann@kw.com		1/5/2026				(239) 297-9504	7920 Summer Lake Ct		Fort Myers	FL	United States	33907	
+Arianna	Jorrin		Realty One Group MVP	arijorrin@gmail.com		1/5/2026			Do Not Email	(239) 200-8996	2290 48th st sw		Naples	FL	United States	34116	
+Jill	Kushner		John R. Wood Properties	jillbkushner@aol.com		1/5/2026			Do Not Email	(239) 691-5505	23701 Trevi Ct		Bonita Springs	FL	United States	34134	
+Shasta	DeGraw		Realty One Group MVP	shastaswfl@gmail.com		1/5/2026				(239) 785-5546	10067 hidden pines lane		Bonita Springs	FL	United States	34135	
+Billie	Jans		John R. Wood Properties	bjans@johnrwood.com		1/5/2026				(239) 980-0522	6117 Deer Run		Fort Myers	FL	United States	33908	
+Jay	Westerlund		Premier Sotheby's Int'l Realty	team@jaywesterlund.com		1/5/2026				239-216-1211	24578 Claire Street		Bonita Springs	FL	United States	34135	
+Jennifer	Springer-Rinden		Orchid Properties	jennifer@orchidrealtygroup.com		1/5/2026				920-540-6822	17990 Via Bellamare Ln		Miromar Lakes	FL	United States	33913	
+Renee	Moore		Keller Williams Elite Realty	thereneeteam@gmail.com		1/5/2026				(239) 281-4794	23753 Pebble Pointe Ln		Bonita Springs	FL	United States	34135	
+Wayne	Taylor		John R. Wood Properties	waynetaylor9761@gmail.com		1/5/2026				(239) 300-1554	22341 Banyan Hideaway Drive		Estero	FL	United States	34135	
+Dotty	Rydell		Local Real Estate LLC	dottyrydell@gmail.com		1/5/2026				(239) 287-7896	9124 Spring Run Blvd		Bonita Springs	FL	United States	34135	
+Kevin	Bartlett		Knowledge Base Real Estate	office@knowledgebasefl.com		1/5/2026				239-579-7912	1661 whiskey creek dr		ft myers	FL	United States	33919	
+Tyler	Butcher		Keller Williams Elevate Luxury	tylerbutcherhomes@gmail.com		1/5/2026				(239) 357-8460	20347 Black tree lane		Estero	FL	United States	33928	
+Michael	Fagan		Royal Shell Real Estate, Inc.	mike@royalshell.com		1/5/2026				(239) 340-5455	26811 South Tamiami Tr		Bonita Springs	FL	United States	34134	
+Emily	Prescott		DomainRealty.com LLC	emily@domainrealtygroup.com		1/5/2026				(239) 273-3645	23430 Alamanda Dr Unit 204		Bonita Springs	FL	United States	34135	
+Nicholas	Ruddy		Jason Mitchell Real Estate Flo	nick@ruddyrealestate.com		1/5/2026				407-558-8954	28750 Trails Edge Blvd unit 404		Bonita Springs	FL	United States	34134	
+Patrick	Reinert		Baybeach Realty	patrickreinert@msn.com		1/5/2026				(239) 287-2217	25295 Catskill Dr		Bonita Springs	FL	United States	34135	
+Andrea	Mollica		Realty World J. PAVICH R.E.	andreamollica33@gmail.com		1/5/2026				2399894645	19794 Coconut Harbor Cir		Fort Myers	FL	United States	33908	
+Amber	Teeters		Pulte Realty Inc	amber.teeters@pulte.com		1/5/2026				239-390-5433	1305 Mariposa Circle	Apt 103	Naples	FL	United States	34105	
+Michael	Jackson	MJ	Local Real Estate LLC	michael@michaeljacksonteam.com		1/5/2026				(239) 919-6315	19405 The Place Blvd		Estero	FL	United States	33928	
+Teresa	Garella		Decatur Real Estate Group	teresa@decaturrealestategroup.com		1/5/2026				4129969291	17372 WALNUT Run Drive	17372 WALNUT Run Drive	Alva	FL	United States	33920	
+Edward	Burnham		William Raveis Real Estate	eddie@burnhamgroup.net		1/5/2026				239-734-0776	11166 Coimbra Ln		Bonita Springs	FL	United States	34135	
+Leslie	Prinz		Orchid Realty International	leslie@orchidrealtygroup.com		1/5/2026			Do Not Email	(508) 954-2865	28278 Koi Way		Bonita Springs	FL	United States	34135	
+Shelly	Olsen		Local Real Estate LLC	shelly@shellyolsenrealtor.com		1/5/2026			Do Not Email	(239) 322-8457	28066 Kerry Ct		Bonita Springs	FL	United States	34135	
+Callie	Zintz		Local Real Estate LLC	callie.zintz@gmail.com		1/5/2026				(239) 896-5806	22210 Fairview Bend DR		Estero	FL	United States	34135	
+William	Gubelman		Knowledge Base Real Estate	billy@knowledgebasefl.com		1/5/2026				239-788-2855	27081 Flossmor Dr		Bonita Springs	FL	United States	34135	
+Michel	Kanigsberg		Realty One Group MVP	kanigsberg@gmail.com		1/5/2026				(239) 231-9444	20942 Napa Loop		Estero	FL	United States	33928	
+Joey	Remington LLC		Compass Florida, LLC	joey@joeyremington.com		1/5/2026			Do Not Email	(239) 462-2031	3301 Prince Edwards Isle Cir 4	Joey J Remington	FORT MYERS	FL	United States	33907	
+Astrid	Hayes		Realty World J. PAVICH R.E.	swflrealtorastrid@gmail.com		1/5/2026				(239) 994-3253	20624 Charing Cross Circle		Estero	FL	United States	33928	
+James	Hunter		Realty One Group MVP	james.hunter39@gmail.com		1/5/2026				(239) 210-8973	5050 SOLEADO WAY	#203	Fort Myers	FL	United States	33966	
+Marc	Lobdell		Coldwell Banker Realty	marc.lobdell@cbrealty.com		1/5/2026				239-281-7653	2514 26th St., W		Lehigh Acres	FL	United States	33971	
+Gregory	Lewis		Downing-Frye Realty Inc	greglewis1121@gmail.com		1/5/2026				(239) 287-1158	10024 Ginger Pointe Ct		Bonita Springs	FL	United States	34135	
+Matthew	Stepan		Premier Commercial Inc	matts@premiermail.net		1/5/2026				---	10391 Windsor Way		Naples	FL	United States	34109	
+Julia	Hill	Julie	Local Real Estate LLC	julie@livelocalre.com		1/5/2026					4230 Siderno Court		Naples	FL	United States	34119	
+Michael 	Stevens	Michael	Premiere Plus Realty Company	mstevens22289@gmail.com		1/5/2026				2394659782	2960 Sanborn Avenue		Naples	FL	United States	34120	
+Sandra	Kass	Sandy	Royal Shell Real Estate, Inc.	sandy@thefaganteam.com		1/5/2026					9096 Isla Bella Circle		Bonita Springs	FL	United States	34135	
+Marc	Comisar		Domain Realty 	marc@domainrealtygroup.com		1/5/2026					17213 Hidden Estates Cir		Estero	FL	United States	33908	
+Rebecca	Troyer		Real Broker, LLC	rebecca@bonitaflproperties.com		1/5/2026					27311 Patrick St		Bonita Springs	FL	United States	34135	
+Anne	Franco		John R. Wood Properties	afranco@johnrwood.com		1/5/2026					26269 Tamiami Trail South		Bonita Springs	FL	United States	34134	
+Emily	Loveall		DomainRealty.com LLC	emily@loveallflorida.com		1/5/2026				239-322-4849	24031 S. Tamiami Trl Ste 101		Bonita Springs	FL	United States	34134	
+Jodi Lynn	Wachman		Premier Sotheby's Int'l Realty	jodi.wachman@premiersir.com		1/5/2026				2393598114	4540 COlony Villas Dr	Unit #1901	Bonita Springs	FL	United States	34134	
+Lisa	Ninchritz		Royal Shell Real Estate, Inc.	lisa@lisaninchritzrealtor.com		1/5/2026				(239) 405-0700	13636 Troia Dr		Estero	FL	United States	33928	
+Zachary	Rosen	Zach	Compass Florida, LLC	zach@zachrosen.com		1/5/2026				239-691-6811	20734 Corkscrew Shores Blvd		Estero	FL	United States	33928	
+Charles	Ruck	Charlie	Potter Trinity	charlie@pottertrinity.com		1/5/2026				239-464-0191	1247 BURTWOOD DR	Charles Ruck	FORT MYERS	FL	United States	33901	
+Stefan	Bolsen		CoastalHaus Realty Inc	info@bolsenteam.com		1/5/2026				2392851332	4500 3rd Ave SW		Naples	FL	United States	34119	
+Judith	Gietzen		Elite Realty of SWFL	judigietzen@gmail.com		1/5/2026				(239) 405-3503	10600 Chevrolet Way #250		Estero	FL	United States	33928	
+Donna	Mason		Keller Williams Elite Realty	donnamasonteam@gmail.com		1/5/2026				239-357-7093	9696 Bonita Beach Road	Suite 102	Bonita Springs	FL	United States	34135	
+Beth	Wardlaw		Local Real Estate LLC	beth@bethwardlaw.com		1/5/2026				(239) 290-6000	19533 Silver Oak Dr.		Estero	FL	United States	33967-5505	
+Missey	Weatherly		Premiere Plus Realty Company	missey2800@gmail.com		1/5/2026				(239) 292-9225	20671 Wildcat Run Dr., #101		Estero	FL	United States	33928	
+Carrie	Martus			carriemartusrealtor@gmail.com		1/5/2026				2392295524	19901 Maddelena Cir		Estero	FL	United States	33967	
+Diego	Barreto		Keller Williams Elevate Luxury	diego@diegobarretohomes.com		1/5/2026				(239) 745-1201	17441 E Carnegie Circle		Fort Myers	FL	United States	33967	
+Susan	Heller		EXP Realty LLC	sold@susanheller.com		1/5/2026				239-280-0939	24830 Tamiami Trail	Suite 1200	Bonita Springs	FL	United States	34134	
+Roxanne	Jeske		John R. Wood Properties	rjeske@johnrwood.com		1/5/2026				(239)450-5210	342 Tradewinds Ave		Naples	FL	United States	34108	
+Ellen	Boyce		Keller Williams Elite Realty	ellenboyce@kw.com		1/5/2026				410-310-1115	26381 South Tamiami Trail	Suite 300A	Bonita Springs	FL	United States	34134	
+Chris	Griffith		Downing-Frye Realty Inc	lifeinbonitasprings@gmail.com		1/5/2026				239-273-7430	PO Box 2363		Bonita Springs	FL	United States	34133	
+Alison	Pollitt		Keller Williams Elite Realty	alisonpollitt@comcast.net		1/5/2026				6304524459	22972 Shady Knoll Drive		Estero	FL	United States	34135	
+Mary Jo	Selden		DomainRealty.com LLC	mj4realtor@aol.com		1/5/2026				(239) 994-3770	3751 Riviera Circle		Bonita Springs	FL	United States	34134	
+Timothy	Logiovino		Keller Williams Elevate Luxury	tim@sold-in-naples.com		1/5/2026			Do Not Email	(239) 319-2083	16917 Timberlakes Dr		Fort Myers	FL	United States	33908	
+Constance	Lummis	Connie	Royal Shell Real Estate, Inc.	connielummis@gmail.com		1/5/2026				(239) 289-3543	26132 Fawnwood Court		Bonita Springs	FL	United States	34134	
+Michelle	Decatur		Decatur Real Estate Group	michelle@decaturrealestategroup.com		1/5/2026				(317)507-0227	13571 Palmetto Grove Drive		Fort Myers	FL	United States	33905	
+Amy	Summerlot		DomainRealty.com LLC	amy@twosellingsisters.com		1/5/2026				239-410-4869	16659 Bobcat Ct		Fort Myers	FL	United States	33912	
+Peggy	Lotz		Realty One Group MVP	lotzrealestate@gmail.com		1/5/2026				(239) 564-2140	9939 Isola Way		Miromar Lakes	FL	United States	33913	
+Tessa	Perry		Local Real Estate LLC	tessa@tessaperryrealtor.com		1/5/2026				(239) 293-7541	23811 Merano Court #201		Bonita Springs	FL	United States	34134	
+Arlene	Santangelo		Keller Williams Elite Realty	realestate@arlenesantangelo.com		1/5/2026				(978) 590-8433	9696 Bonita Beach Road		Bonita Springs	FL	United States	34135	
+Pam	Umscheid		Premier Sotheby's Int'l Realty	pam.umscheid@premiersir.com		1/5/2026				(239) 691-3541	16800 Seasons Coast Dr.		Bonita Springs	FL	United States	34135	
+Becky	Jaarda		John R. Wood Properties	becky@jaarda.com		1/5/2026				(239) 273-4596	26968 Montego Pointe Ct #103		Bonita Springs	FL	United States	34134	
+Donna	Pyle		Realty One Group MVP	donnapyle99@gmail.com		1/5/2026				(865) 771-1819	632 SW 57th St		Cape Coral	FL	United States	33914	
+Evan	Correale		Keller Williams Elevate Luxury	ejcorreale@gmail.com		1/5/2026				239-222-9263	17201 Anesbury Place		Fort Myers	FL	United States	33967	
+Barbara	Rich		Sun Village Realty LLC	barb.rich@bonitavillage.com		1/5/2026				239 450 0930	14861 Mahoe Court		Fort Myers	FL	United States	33908	
+Joe	Crimaldi	Jolie	Crimaldi and Associates, LLC	joe@buyfla.com		1/5/2026			Do Not Email	(239) 270-1249	8910 Paseo De Valencia		Fort Myers	FL	United States	33908	
+Ryan	Johnson		John R. Wood Properties	ryan@ryanangelasellsfl.com		1/5/2026				(239) 398-5131	8011 Via Monte Carlo Way	103	Estero	FL	United States	33928	
+Glenroy 	Huggins 		Premiere Plus Realty Company	glenroyrealty@gmail.com		1/5/2026				2398230075	14525 abaco lakes drive 		Fort myers 	FL	United States	33908	
+Dennis	Graham		William Raveis Real Estate	dennis.graham@raveis.com		1/5/2026				239-898-5136	26269 Tamiami Trail South		Bonita Springs	FL	United States	34134	
+Laura	Vance PA		LPT Realty, LLC	listitandloveit@gmail.com		1/5/2026				239-888-0290	18421 Hepatica Rd		Fort Myers	FL	United States	33967	
+Teresa	Rucker		John R. Wood Properties	trucker@johnrwood.com		1/5/2026				(239) 281-2376	24841 Pennyroyal Drive		Bonita Springs	FL	United States	34134	
+Jason	Pavich		Realty World J. PAVICH R.E.	jason@jasonpavich.com		1/5/2026				(239) 229-7483	20940 Torre Del lago St		Estero	FL	United States	33928	
+Brenda	Duren	Bren	HomeSmart	chambers.brenda07@gmail.com		1/5/2026				239-826-1021	19748 Maddalena Circle		Estero	FL	United States	33967	
+Shawn	Tanner		Real Broker, LLC	realshawntanner@gmail.com		1/5/2026				8609302620	12462 KENTWOOD AVENUE		FORT MYERS	FL	United States	33913	
+Jere	Marvin		DomainRealty.com LLC	jere@twosellingsisters.com		1/5/2026				2398981952	7552 Eagles Flight Lane		Fort Myers	FL	United States	33912-1830	
+Jack	Mancini		Keller Williams Elite Realty	jack@jackmancini.com		1/5/2026			Do Not Email	(239) 218-2685	20625 Porthole Court		Estero	FL	United States	33928	
+Shane	Mazurek		Downing-Frye Realty Inc	mazrealtygroup@gmail.com		1/5/2026				239-240-6008	5551 Luckett Rd	D145	Fort Myers	FL	United States	33905	
+Joni	Pavich		Realty World J. PAVICH R.E.	joni@jpavich.com		1/5/2026				(239) 410-6791	22569 Island Lakes Dr.		Estero	FL	United States	33928	
+Kathleen	Wegwert	Kathy	Keller Williams Elite Realty	kwegwert@gmail.com		1/5/2026				(239) 293-1075	4367 Mourning Dove Drive		Naples	FL	United States	34119	
+Angela	Johnson		John R. Wood Properties	angela@ryanangelasellsfl.com		1/5/2026				239-676-8547	8011	Via Monte Carlo Way 2103	Estero	FL	United States	33928	
+Maria Dorota	Harris	Dorota	John R. Wood Properties	dharris@johnrwood.com		1/5/2026				(239) 273-4927	26041 Osprey Nest Court		Bonita Springs	FL	United States	34134	
+Corye	Reiter		Royal Shell Real Estate, Inc.	coryereiter@gmail.com		1/5/2026				(239) 273-3722	17100 Coral Cay Lane		Fort Myers	FL	United States	33908	
+Mason	Burge		Keller Williams Elite Realty	burgesells@kw.com		1/5/2026				239-600-2713	26381 South Tamiami Trail	Suite 300A	Bonita Springs	FL	United States	34134	
+Ashley	Prescott		DomainRealty.com LLC	ashley@domainrealtygroup.com		1/5/2026				239-300-5260	15177 Butler Lake Dr unit 201		Naples	FL	United States	34109	
+Joseph	Casella		Compass Florida, LLC	josephcasellapa@gmail.com		1/5/2026				(239) 249-9717	1627 SW 45th St.		Cape Coral	FL	United States	33914	
+Samantha 	Pasquino		Local Real Estate LLC	sam@livelocalre.com		1/5/2026				239-287-0512	10100 Tropical Dr		Bonita Springs	FL	United States	34135	
+Bette	Pitzer		Royal Shell Real Estate, Inc.	bpitzer14@gmail.com		1/5/2026				(239) 560-2627	3000 9th Street North		Naples	FL	United States	34103	
+Raimel	Gonzalez Carril		American Homes Real Estate Inm	americanhomes.bs@gmail.com		1/5/2026				239-227-0329	2910 37th Ave Ne		Naples	FL	United States	34120	
+David	Urban		John R. Wood Properties	durban@johnrwood.com		1/5/2026				(239) 313-9106	11901 Izarra Way	#8602	Fort Myers	FL	United States	33912	
+Donna	Marcotte		Premier Sotheby's Int'l Realty	donna.marcotte@premiersir.com		1/5/2026				239-851-1964	9831 Rookery Circle		ESTERO	FL	United States	33928	
+Rita	Murray		Premiere Plus Realty Company	murrayrita770@gmail.com		1/5/2026				6304177892	219 Curlew St		Fort Myers Beach	FL	United States	33931	
+Angela	Guillette	Angie	EXP Realty LLC	angie@guillettegroup.com		1/5/2026				(239) 246-2322	18806 WildBlue Blvd		Fort Myers	FL	United States	33913	
+Joe	Pavich		Realty World J. PAVICH R.E.	pavich123@gmail.com		1/5/2026				(239) 910-0304	22150 Red Laurel Lane		Estero	FL	United States	33928	
+Michael	Knoerlein		Premiere Plus Realty Company	mjteamswfl@gmail.com		1/5/2026				(239) 223.4418	20576 Ardore Lane		Estero	FL	United States	33928	
+Wade	Abed		Royal Shell Real Estate, Inc.	wade.abed@royalshellsales.com		1/5/2026				(612) 414-3438	26381 S. Tamiami Trail		Bonita Springs	FL	United States	34134	
+Nikki	Crovato		RE/MAX GOLD	nikki@nikkicrovato.com		1/5/2026				(786) 566-1645	9773 SW EASTBROOK CIRCLE		PORT SAINT LUCIE	FL	United States	34987	
+Alley	Zuardi		Keller Williams Elite Realty	alleycaliguire@kw.com		1/5/2026				2398506075	20564 pebble glen drive		estero	FL	United States	33928	
+Kylie	Fowler		Compass Florida, LLC	kylie.fowler@compass.com		1/5/2026				16035836842	11881 Canal Grande Dr		Fort Myers	FL	United States	33913	
+Kathleen	Felszer	Kathy	Downing-Frye Realty Inc	kathy@kathyfelszer.com		1/5/2026				(239) 851-1947	22213 Via Palazzo Pl		Estero	FL	United States	33928	
+Victoria	Ventresca		Berkshire Hathaway FL Realty	vickieflsunshine@gmail.com		1/5/2026				(518) 573-0988	24880 S Tamiami Trail	Suite 1	Bonita Springs	FL	United States	34134	
+Lisa	Perry		Berkshire Hathaway FL Realty	lisa@lisaperrysells.com		1/5/2026				(239) 770-6359	19681 Estero Pointe Lane		Fort Myers	FL	United States	33908	
+Lindsey	Moffat		DomainRealty.com LLC	lindsey@domainrealtygroup.com		1/5/2026				8633680598	43000 Greenway Blvd Unit 145	Babcock National	Babcock Ranch	FL	United States	33982	
+Tyler	Mattingly		Keller Williams Elite Realty	tylermattingly@kw.com		1/5/2026				(239) 691-1252	9696 Bonita Beach Rd SE # 102.		Bonita Springs	FL	United States	34135	
+Justin	O'Hara		Premiere Plus Realty Company	joh.swfl@gmail.com		1/5/2026				9738655040	3546 avocado dr		fort myers	FL	United States	33901	
+Allyson	Evans		Keller Williams Elite Realty	allysonev@kw.com		1/5/2026				(214) 704-8299	9696 Bonita Beach Rd	Suite 102	Bonita Springs	FL	United States	34135	
