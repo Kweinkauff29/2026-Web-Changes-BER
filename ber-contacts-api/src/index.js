@@ -2,8 +2,8 @@
  * BER Contacts API - Cloudflare Worker
  * 
  * Endpoints:
- *   GET  /signups       - Get all signed-up contact keys
- *   POST /signups       - Add a contact key (body: { key: "..." })
+ *   GET  /signups       - Get all signed-up contact keys with checker info
+ *   POST /signups       - Add a contact key (body: { key: "...", checkedBy: "..." })
  *   DELETE /signups/:key - Remove a contact key
  */
 
@@ -25,15 +25,22 @@ export default {
         const path = url.pathname;
 
         try {
-            // GET /signups - List all signed-up keys
+            // GET /signups - List all signed-up keys with checker info
             if (request.method === 'GET' && path === '/signups') {
                 const { results } = await env.DB.prepare(
-                    'SELECT contact_key FROM signups'
+                    'SELECT contact_key, checked_by, created_at FROM signups'
                 ).all();
 
-                const keys = results.map(row => row.contact_key);
+                // Return as object with key -> { checkedBy, createdAt }
+                const signups = {};
+                results.forEach(row => {
+                    signups[row.contact_key] = {
+                        checkedBy: row.checked_by || '',
+                        createdAt: row.created_at || ''
+                    };
+                });
 
-                return new Response(JSON.stringify({ signups: keys }), {
+                return new Response(JSON.stringify({ signups }), {
                     headers: {
                         'Content-Type': 'application/json',
                         ...corsHeaders,
@@ -41,10 +48,11 @@ export default {
                 });
             }
 
-            // POST /signups - Add a key
+            // POST /signups - Add a key with checker info
             if (request.method === 'POST' && path === '/signups') {
                 const body = await request.json();
                 const key = body.key;
+                const checkedBy = body.checkedBy || '';
 
                 if (!key) {
                     return new Response(JSON.stringify({ error: 'Missing key' }), {
@@ -53,12 +61,12 @@ export default {
                     });
                 }
 
-                // Upsert - insert or ignore if exists
+                // Insert or replace to update checker info
                 await env.DB.prepare(
-                    'INSERT OR IGNORE INTO signups (contact_key) VALUES (?)'
-                ).bind(key).run();
+                    'INSERT OR REPLACE INTO signups (contact_key, checked_by, created_at) VALUES (?, ?, datetime("now"))'
+                ).bind(key, checkedBy).run();
 
-                return new Response(JSON.stringify({ success: true, key }), {
+                return new Response(JSON.stringify({ success: true, key, checkedBy }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                 });
             }

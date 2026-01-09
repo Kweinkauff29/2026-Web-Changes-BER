@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organization Contacts | BER</title>
+    <title>2025 Sales Excellence Eligible | BER</title>
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -365,6 +365,54 @@
 
         /* No label text needed, just the box */
 
+        /* Copy Emails Button & Controls */
+        .org-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+        }
+
+        .filter-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .filter-toggle input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+
 
         /* Loading */
         #loading-state {
@@ -419,7 +467,7 @@
 
     <header>
         <div class="container header-content">
-            <h1>Organization Directory</h1>
+            <h1>2025 Sales Excellence Eligible</h1>
             <div class="search-container">
                 <i class="fa-solid fa-search search-icon"></i>
                 <input type="text" id="searchInput" class="search-input"
@@ -449,6 +497,124 @@
         </div>
 
     </main>
+
+    <!-- User Selection Modal -->
+    <div id="userModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2><i class="fa-solid fa-user-check"></i> Select Your Name</h2>
+            <p>Please select who you are before continuing:</p>
+            <select id="userSelect">
+                <option value="">-- Choose --</option>
+                <option value="Kevin">Kevin</option>
+                <option value="Katie">Katie</option>
+                <option value="Jenna">Jenna</option>
+                <option value="Meighan">Meighan</option>
+                <option value="Erica">Erica</option>
+            </select>
+            <button id="userSelectBtn" class="modal-btn" disabled>Continue</button>
+        </div>
+    </div>
+
+    <style>
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin: 0 0 0.5rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .modal-content h2 i {
+            color: var(--primary);
+        }
+
+        .modal-content p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-content select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-family: inherit;
+        }
+
+        .modal-content select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .modal-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .modal-btn:not(:disabled):hover {
+            background: var(--primary-dark);
+        }
+
+        /* Checked By Info */
+        .checked-by-info {
+            font-size: 0.75rem;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+        }
+
+        .checked-by-info i {
+            font-size: 0.7rem;
+        }
+    </style>
 
     <script>
 
@@ -511,6 +677,128 @@
 
             // EMBEDDED JSON DATA FOR WORDPRESS
             const CONTACTS_DATA = [
+                // Pre-submitted contacts (from 2025 Sales Excellence list)
+                {
+                    "FirstName": "Mary Jo",
+                    "LastName": "Selden",
+                    "CommonName": "",
+                    "Organization": "DomainRealty.com LLC",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Marc",
+                    "LastName": "Lobdell",
+                    "CommonName": "",
+                    "Organization": "Coldwell Banker Realty",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Don",
+                    "LastName": "Droke",
+                    "CommonName": "",
+                    "Organization": "Berkshire Hathaway FL Realty",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Scott",
+                    "LastName": "Hansen",
+                    "CommonName": "",
+                    "Organization": "Premiere Plus Realty Company",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Amy",
+                    "LastName": "Velyvis",
+                    "CommonName": "",
+                    "Organization": "John R. Wood Properties",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Michelle",
+                    "LastName": "Lyons",
+                    "CommonName": "",
+                    "Organization": "John R. Wood Properties",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Kerry",
+                    "LastName": "Wilson",
+                    "CommonName": "",
+                    "Organization": "Veris Realty, LLC",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Ursula",
+                    "LastName": "Weinkauff PA",
+                    "CommonName": "",
+                    "Organization": "Local Real Estate LLC",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Ashley",
+                    "LastName": "Wells",
+                    "CommonName": "",
+                    "Organization": "Royal Shell Real Estate, Inc.",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                {
+                    "FirstName": "Andrew",
+                    "LastName": "Coppens",
+                    "CommonName": "",
+                    "Organization": "Premiere Plus Realty Company",
+                    "Email": "",
+                    "Role": "",
+                    "PriPhone": "",
+                    "City": "",
+                    "State": "FL",
+                    "_preSubmitted": true
+                },
+                // Original contacts from Excel
                 {
                     "FirstName": "Anthony",
                     "LastName": "Yimin",
@@ -4234,8 +4522,8 @@
 
 
             // ===== API Configuration =====
-            // IMPORTANT: Update this URL after deploying your Cloudflare Worker
-            const API_URL = 'https://ber-contacts-api.YOUR_SUBDOMAIN.workers.dev';
+            // Deployed Cloudflare Worker API
+            const API_URL = 'https://ber-contacts-api.bonitaspringsrealtors.workers.dev';
 
             // Checked state (will be loaded from API)
             let checkedState = {};
@@ -4287,7 +4575,19 @@
 
             // Initialize: Load signups then render
             allContacts = CONTACTS_DATA;
-            loadSignups().then(() => {
+            loadSignups().then(async () => {
+                // Auto-check pre-submitted contacts
+                for (const contact of allContacts) {
+                    if (contact._preSubmitted) {
+                        const name = `${contact.FirstName || ''} ${contact.LastName || ''}`.trim();
+                        const email = contact.Email || '';
+                        const uniqueKey = `${contact.Organization || 'Other'}_${email || name}`;
+                        if (!checkedState[uniqueKey]) {
+                            checkedState[uniqueKey] = true;
+                            await addSignup(uniqueKey); // Sync to API
+                        }
+                    }
+                }
                 renderData(allContacts);
             });
 
@@ -4354,6 +4654,9 @@
                 `;
                     }
 
+                    // Unique ID for this org's controls
+                    const orgId = orgName.replace(/[^a-zA-Z0-9]/g, '_');
+
                     const groupHeader = `
                 <div class="org-header">
                     <div class="org-title-row">
@@ -4361,11 +4664,21 @@
                         <span class="org-count">${orgContacts.length}</span>
                     </div>
                     ${brokerInfoHtml}
+                    <div class="org-actions">
+                        <button class="copy-btn" data-org="${orgName}" data-org-id="${orgId}">
+                            <i class="fa-regular fa-copy"></i> Copy Names
+                        </button>
+                        <label class="filter-toggle">
+                            <input type="checkbox" id="toggle-${orgId}" checked>
+                            <span>Unregistered only</span>
+                        </label>
+                    </div>
                 </div>
             `;
 
                     const cardsGrid = document.createElement('div');
                     cardsGrid.className = 'contacts-grid';
+                    cardsGrid.dataset.org = orgName;
 
                     orgContacts.forEach(contact => {
                         const card = createContactCard(contact);
@@ -4375,6 +4688,41 @@
                     groupSection.innerHTML = groupHeader;
                     groupSection.appendChild(cardsGrid);
                     contentArea.appendChild(groupSection);
+
+                    // Attach copy button event
+                    const copyBtn = groupSection.querySelector('.copy-btn');
+                    const toggleInput = groupSection.querySelector(`#toggle-${orgId}`);
+
+                    copyBtn.addEventListener('click', () => {
+                        const unregisteredOnly = toggleInput.checked;
+                        const names = [];
+
+                        orgContacts.forEach(contact => {
+                            const name = `${contact.FirstName || ''} ${contact.LastName || ''}`.trim();
+                            const email = contact.Email || '';
+                            const uniqueKey = `${contact.Organization || 'Other'}_${email || name}`;
+
+                            if (unregisteredOnly) {
+                                // Only include if NOT checked
+                                if (!checkedState[uniqueKey]) {
+                                    names.push(name);
+                                }
+                            } else {
+                                // Include all
+                                names.push(name);
+                            }
+                        });
+
+                        const textToCopy = names.join('\n');
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            copyBtn.classList.add('copied');
+                            copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                            setTimeout(() => {
+                                copyBtn.classList.remove('copied');
+                                copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy Names';
+                            }, 2000);
+                        });
+                    });
                 });
             }
 
