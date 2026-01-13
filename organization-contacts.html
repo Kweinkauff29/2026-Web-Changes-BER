@@ -615,6 +615,63 @@
         .checked-by-info i {
             font-size: 0.7rem;
         }
+
+        /* Tracking Controls Area */
+        .tracking-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 0;
+            border-top: 1px dashed var(--border);
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tracking-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .tracking-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .tracking-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #10b981;
+        }
+
+        .tracking-label.is-set {
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .award-select {
+            padding: 0.3rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: inherit;
+            background: white;
+        }
+
+        .award-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .tracking-attr {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -4924,6 +4981,22 @@
             localStorage.setItem('ber_contacts_checked', JSON.stringify(checkedState));
         }
 
+        // API helper to update tracking fields
+        async function updateTracking(key, data) {
+            try {
+                const payload = { key, ...data };
+                await fetch(`${API_URL}/signups`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.error('Failed to update tracking data:', err);
+            }
+            // Save locally too
+            localStorage.setItem('ber_contacts_checked', JSON.stringify(checkedState));
+        }
+
         // Helpers
         function getInitials(first, last) {
             return (first && first[0] ? first[0] : '') + (last && last[0] ? last[0] : '').toUpperCase() || '?';
@@ -5003,6 +5076,60 @@
                                 <i class="fa-solid fa-sack-dollar"></i> <span>${volumeValue}</span>
                             </div>`;
 
+            // Get tracking data from checkedState
+            const trackingData = checkedState[uniqueKey] || {};
+            const numbersConfirmed = trackingData.numbersConfirmed || false;
+            const numbersConfirmedBy = trackingData.numbersConfirmedBy || '';
+            const numbersConfirmedAt = trackingData.numbersConfirmedAt || '';
+            const eventRegistered = trackingData.eventRegistered || false;
+            const eventRegisteredBy = trackingData.eventRegisteredBy || '';
+            const eventRegisteredAt = trackingData.eventRegisteredAt || '';
+            const awardPref = trackingData.awardPref || '';
+            const awardPrefBy = trackingData.awardPrefBy || '';
+            const awardPrefAt = trackingData.awardPrefAt || '';
+
+            // Format attribution text
+            const formatAttr = (by, at) => {
+                if (!by) return '';
+                let dateStr = '';
+                if (at) {
+                    try { dateStr = new Date(at + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric' }); } catch (e) { }
+                }
+                return `Set by ${by}${dateStr ? ' (' + dateStr + ')' : ''}`;
+            };
+
+            // Tracking Controls HTML
+            const trackingHtml = `
+                <div class="tracking-controls" style="grid-column: 1 / -1;">
+                    <div class="tracking-item">
+                        <label class="tracking-label ${numbersConfirmed ? 'is-set' : ''}">
+                            <input type="checkbox" class="track-numbers" data-key="${uniqueKey}" ${numbersConfirmed ? 'checked' : ''}>
+                            <i class="fa-solid fa-calculator"></i> Numbers Confirmed
+                        </label>
+                        <span class="tracking-attr numbers-attr">${formatAttr(numbersConfirmedBy, numbersConfirmedAt)}</span>
+                    </div>
+                    <div class="tracking-item">
+                        <label class="tracking-label ${eventRegistered ? 'is-set' : ''}">
+                            <input type="checkbox" class="track-registered" data-key="${uniqueKey}" ${eventRegistered ? 'checked' : ''}>
+                            <i class="fa-solid fa-calendar-check"></i> Event Registered
+                        </label>
+                        <span class="tracking-attr registered-attr">${formatAttr(eventRegisteredBy, eventRegisteredAt)}</span>
+                    </div>
+                    <div class="tracking-item">
+                        <label class="tracking-label ${awardPref ? 'is-set' : ''}">
+                            <i class="fa-solid fa-trophy"></i> Award:
+                            <select class="award-select" data-key="${uniqueKey}">
+                                <option value="" ${!awardPref ? 'selected' : ''}>Select...</option>
+                                <option value="trophy" ${awardPref === 'trophy' ? 'selected' : ''}>Trophy</option>
+                                <option value="certificate" ${awardPref === 'certificate' ? 'selected' : ''}>Paper Certificate</option>
+                                <option value="none" ${awardPref === 'none' ? 'selected' : ''}>Nothing</option>
+                            </select>
+                        </label>
+                        <span class="tracking-attr award-attr">${formatAttr(awardPrefBy, awardPrefAt)}</span>
+                    </div>
+                </div>
+            `;
+
             div.innerHTML = `
                             <div class="card-checkbox-area">
                                     <label class="custom-checkbox">
@@ -5023,6 +5150,7 @@
                             ${phoneHtml}
                             ${locationHtml}
                             ${volumeHtml}
+                            ${trackingHtml}
                         `;
 
             // Event listener (Checkbox)
@@ -5055,6 +5183,99 @@
                     await removeSignup(uniqueKey);
                 }
             });
+
+            // Event listener: Numbers Confirmed checkbox
+            const numbersCheckbox = div.querySelector('.track-numbers');
+            if (numbersCheckbox) {
+                numbersCheckbox.addEventListener('change', async (e) => {
+                    const userSelect = document.getElementById('userSelect');
+                    const currentUser = userSelect ? (userSelect.value || 'Unknown') : 'Unknown';
+                    const isChecked = e.target.checked;
+                    const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+                    // Update local state
+                    if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
+                    checkedState[uniqueKey].numbersConfirmed = isChecked;
+                    checkedState[uniqueKey].numbersConfirmedBy = currentUser;
+                    checkedState[uniqueKey].numbersConfirmedAt = new Date().toISOString();
+
+                    // Update UI
+                    const label = e.target.closest('.tracking-label');
+                    const attrSpan = div.querySelector('.numbers-attr');
+                    if (isChecked) {
+                        label.classList.add('is-set');
+                        attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+                    } else {
+                        label.classList.remove('is-set');
+                        attrSpan.textContent = '';
+                    }
+
+                    // Save to API
+                    await updateTracking(uniqueKey, { numbersConfirmed: isChecked, updatedBy: currentUser });
+                });
+            }
+
+            // Event listener: Event Registered checkbox
+            const registeredCheckbox = div.querySelector('.track-registered');
+            if (registeredCheckbox) {
+                registeredCheckbox.addEventListener('change', async (e) => {
+                    const userSelect = document.getElementById('userSelect');
+                    const currentUser = userSelect ? (userSelect.value || 'Unknown') : 'Unknown';
+                    const isChecked = e.target.checked;
+                    const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+                    // Update local state
+                    if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
+                    checkedState[uniqueKey].eventRegistered = isChecked;
+                    checkedState[uniqueKey].eventRegisteredBy = currentUser;
+                    checkedState[uniqueKey].eventRegisteredAt = new Date().toISOString();
+
+                    // Update UI
+                    const label = e.target.closest('.tracking-label');
+                    const attrSpan = div.querySelector('.registered-attr');
+                    if (isChecked) {
+                        label.classList.add('is-set');
+                        attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+                    } else {
+                        label.classList.remove('is-set');
+                        attrSpan.textContent = '';
+                    }
+
+                    // Save to API
+                    await updateTracking(uniqueKey, { eventRegistered: isChecked, updatedBy: currentUser });
+                });
+            }
+
+            // Event listener: Award Preference dropdown
+            const awardSelect = div.querySelector('.award-select');
+            if (awardSelect) {
+                awardSelect.addEventListener('change', async (e) => {
+                    const userSelect = document.getElementById('userSelect');
+                    const currentUser = userSelect ? (userSelect.value || 'Unknown') : 'Unknown';
+                    const value = e.target.value;
+                    const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+                    // Update local state
+                    if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
+                    checkedState[uniqueKey].awardPref = value;
+                    checkedState[uniqueKey].awardPrefBy = currentUser;
+                    checkedState[uniqueKey].awardPrefAt = new Date().toISOString();
+
+                    // Update UI
+                    const label = e.target.closest('.tracking-label');
+                    const attrSpan = div.querySelector('.award-attr');
+                    if (value) {
+                        label.classList.add('is-set');
+                        attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+                    } else {
+                        label.classList.remove('is-set');
+                        attrSpan.textContent = '';
+                    }
+
+                    // Save to API
+                    await updateTracking(uniqueKey, { awardPref: value, updatedBy: currentUser });
+                });
+            }
 
             return div;
         }

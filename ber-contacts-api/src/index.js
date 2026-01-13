@@ -22,7 +22,7 @@ const corsHeaders = {
 // Metric type constants
 const METRIC_TYPES = [
     'closed_sales',
-    'new_listings', 
+    'new_listings',
     'active_inventory',
     'median_sales_price',
     'days_on_market',
@@ -34,8 +34,8 @@ const METRIC_TYPES = [
 ];
 
 // Month names for display
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 
-                'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
 
 // Helper: Calculate percentage changes
 function calculateChanges(data, metricType, year, month) {
@@ -82,7 +82,7 @@ function calculateChanges(data, metricType, year, month) {
 // Helper: Build structured data from DB results
 function buildMetricsData(results) {
     const data = {};
-    
+
     // Initialize all metric types
     METRIC_TYPES.forEach(type => {
         data[type] = {};
@@ -102,7 +102,7 @@ function buildMetricsData(results) {
 // Helper: Add calculations to data
 function addCalculations(data) {
     const result = {};
-    
+
     METRIC_TYPES.forEach(metricType => {
         result[metricType] = {
             years: data[metricType] || {},
@@ -146,8 +146,8 @@ export default {
                 const rawData = buildMetricsData(results);
                 const dataWithCalcs = addCalculations(rawData);
 
-                return new Response(JSON.stringify({ 
-                    success: true, 
+                return new Response(JSON.stringify({
+                    success: true,
                     data: dataWithCalcs,
                     metricTypes: METRIC_TYPES,
                     months: MONTHS
@@ -163,7 +163,7 @@ export default {
                 ).all();
 
                 const rawData = buildMetricsData(results);
-                
+
                 // Get all years from data
                 const years = new Set();
                 Object.values(rawData).forEach(metricData => {
@@ -173,29 +173,29 @@ export default {
 
                 // Build CSV content
                 let csv = '';
-                
+
                 METRIC_TYPES.forEach(metricType => {
                     // Metric header
                     const displayName = metricType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
                     csv += `\n${displayName}\n`;
-                    
+
                     // Column headers
                     csv += 'Month,' + sortedYears.join(',') + ',% chg MoM,% chg YoY,% Change YTD\n';
-                    
+
                     // Data rows for each month
                     for (let month = 1; month <= 12; month++) {
                         const row = [MONTHS[month - 1]];
-                        
+
                         // Add value for each year
                         sortedYears.forEach(year => {
                             const value = rawData[metricType]?.[year]?.[month];
                             row.push(value !== undefined ? value : '');
                         });
-                        
+
                         // Calculate changes for current year
                         const currentYear = sortedYears[sortedYears.length - 1];
                         const calc = calculateChanges(rawData, metricType, currentYear, month);
-                        
+
                         if (calc) {
                             row.push((calc.pct_chg_mom).toFixed(2) + '%');
                             row.push((calc.pct_chg_yoy).toFixed(2) + '%');
@@ -203,7 +203,7 @@ export default {
                         } else {
                             row.push('', '', '');
                         }
-                        
+
                         csv += row.join(',') + '\n';
                     }
                 });
@@ -220,7 +220,7 @@ export default {
             // GET /metrics/:type - Get specific metric data
             if (request.method === 'GET' && path.startsWith('/metrics/') && path !== '/metrics/export') {
                 const metricType = path.replace('/metrics/', '');
-                
+
                 if (!METRIC_TYPES.includes(metricType)) {
                     return new Response(JSON.stringify({ error: 'Invalid metric type' }), {
                         status: 400,
@@ -238,10 +238,10 @@ export default {
                     data[row.year][row.month] = row.value;
                 });
 
-                return new Response(JSON.stringify({ 
-                    success: true, 
+                return new Response(JSON.stringify({
+                    success: true,
                     metricType,
-                    data 
+                    data
                 }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders }
                 });
@@ -250,7 +250,7 @@ export default {
             // POST /metrics - Add/update metric value (single or batch)
             if (request.method === 'POST' && path === '/metrics') {
                 const body = await request.json();
-                
+
                 // Support batch updates
                 const updates = Array.isArray(body) ? body : [body];
                 const results = [];
@@ -289,9 +289,9 @@ export default {
                     results.push({ success: true, metric_type, year, month, value });
                 }
 
-                return new Response(JSON.stringify({ 
-                    success: true, 
-                    results 
+                return new Response(JSON.stringify({
+                    success: true,
+                    results
                 }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders }
                 });
@@ -299,18 +299,32 @@ export default {
 
             // ==================== ORIGINAL SIGNUPS ENDPOINTS ====================
 
-            // GET /signups - List all signed-up keys with checker info
+            // GET /signups - List all signed-up keys with checker info and tracking data
             if (request.method === 'GET' && path === '/signups') {
                 const { results } = await env.DB.prepare(
-                    'SELECT contact_key, checked_by, created_at FROM signups'
+                    `SELECT contact_key, checked_by, created_at, sales_volume,
+                            numbers_confirmed, numbers_confirmed_by, numbers_confirmed_at,
+                            event_registered, event_registered_by, event_registered_at,
+                            award_pref, award_pref_by, award_pref_at
+                     FROM signups`
                 ).all();
 
-                // Return as object with key -> { checkedBy, createdAt }
+                // Return as object with key -> { checkedBy, createdAt, ... }
                 const signups = {};
                 results.forEach(row => {
                     signups[row.contact_key] = {
                         checkedBy: row.checked_by || '',
-                        createdAt: row.created_at || ''
+                        createdAt: row.created_at || '',
+                        salesVolume: row.sales_volume || '',
+                        numbersConfirmed: row.numbers_confirmed === 1,
+                        numbersConfirmedBy: row.numbers_confirmed_by || '',
+                        numbersConfirmedAt: row.numbers_confirmed_at || '',
+                        eventRegistered: row.event_registered === 1,
+                        eventRegisteredBy: row.event_registered_by || '',
+                        eventRegisteredAt: row.event_registered_at || '',
+                        awardPref: row.award_pref || '',
+                        awardPrefBy: row.award_pref_by || '',
+                        awardPrefAt: row.award_pref_at || ''
                     };
                 });
 
@@ -319,14 +333,15 @@ export default {
                 });
             }
 
-            // POST /signups - Add/Update a signup or Sales Volume
+            // POST /signups - Add/Update a signup, Sales Volume, or tracking fields
             if (request.method === 'POST' && url.pathname === '/signups') {
-                const { key, checkedBy, salesVolume } = await request.json();
+                const { key, checkedBy, salesVolume, numbersConfirmed, eventRegistered, awardPref, updatedBy } = await request.json();
 
                 if (!key) return new Response('Missing key', { status: 400, headers: corsHeaders });
 
                 const now = new Date().toISOString().replace('T', ' ').split('.')[0];
 
+                // Handle sales volume update
                 if (salesVolume !== undefined) {
                     await env.DB.prepare(`
                         INSERT INTO signups (contact_key, sales_volume, created_at) VALUES (?, ?, ?)
@@ -334,11 +349,48 @@ export default {
                     `).bind(key, salesVolume, now).run();
                 }
 
+                // Handle checkedBy update
                 if (checkedBy !== undefined) {
                     await env.DB.prepare(`
                         INSERT INTO signups (contact_key, checked_by, created_at) VALUES (?, ?, ?)
                         ON CONFLICT(contact_key) DO UPDATE SET checked_by=excluded.checked_by, created_at=excluded.created_at
                     `).bind(key, checkedBy, now).run();
+                }
+
+                // Handle numbers confirmed update
+                if (numbersConfirmed !== undefined) {
+                    await env.DB.prepare(`
+                        INSERT INTO signups (contact_key, numbers_confirmed, numbers_confirmed_by, numbers_confirmed_at, created_at) 
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(contact_key) DO UPDATE SET 
+                            numbers_confirmed=excluded.numbers_confirmed,
+                            numbers_confirmed_by=excluded.numbers_confirmed_by,
+                            numbers_confirmed_at=excluded.numbers_confirmed_at
+                    `).bind(key, numbersConfirmed ? 1 : 0, updatedBy || '', now, now).run();
+                }
+
+                // Handle event registered update
+                if (eventRegistered !== undefined) {
+                    await env.DB.prepare(`
+                        INSERT INTO signups (contact_key, event_registered, event_registered_by, event_registered_at, created_at) 
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(contact_key) DO UPDATE SET 
+                            event_registered=excluded.event_registered,
+                            event_registered_by=excluded.event_registered_by,
+                            event_registered_at=excluded.event_registered_at
+                    `).bind(key, eventRegistered ? 1 : 0, updatedBy || '', now, now).run();
+                }
+
+                // Handle award preference update
+                if (awardPref !== undefined) {
+                    await env.DB.prepare(`
+                        INSERT INTO signups (contact_key, award_pref, award_pref_by, award_pref_at, created_at) 
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(contact_key) DO UPDATE SET 
+                            award_pref=excluded.award_pref,
+                            award_pref_by=excluded.award_pref_by,
+                            award_pref_at=excluded.award_pref_at
+                    `).bind(key, awardPref, updatedBy || '', now, now).run();
                 }
 
                 return new Response(JSON.stringify({ success: true }), {
