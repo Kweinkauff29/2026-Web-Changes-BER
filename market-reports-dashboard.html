@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BER Market Reports Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary: #0f172a;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 50%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(30, 41, 59, 0.8) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-section h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-section p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-secondary.active {
+            background: linear-gradient(135deg, var(--accent) 0%, #0891b2 100%);
+            border-color: var(--accent);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border-color: var(--primary-light);
+        }
+
+        /* Multi-Compare Selector */
+        .compare-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .compare-section h4 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .compare-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .compare-chip {
+            padding: 0.5rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+        }
+
+        .compare-chip:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .compare-chip.selected {
+            background: linear-gradient(135deg, var(--accent) 0%, #0891b2 100%);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Data Entry Section */
+        .data-entry {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .data-entry h2 {
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+        }
+
+        /* Password Gate */
+        .password-gate {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .password-gate input {
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            width: 250px;
+            margin-right: 1rem;
+        }
+
+        .password-gate input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Metric Cards */
+        .metric-section {
+            display: none;
+        }
+
+        .metric-section.active {
+            display: block;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .metric-card h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            height: 450px;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th:first-child,
+        .data-table td:first-child {
+            text-align: left;
+        }
+
+        .data-table th {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .positive {
+            color: var(--success);
+        }
+
+        .negative {
+            color: var(--error);
+        }
+
+        /* Loading & Status */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--error);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header-actions {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <h1>📊 BER Market Reports</h1>
+                <p>Bonita & Estero Realtors Market Statistics Dashboard</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-success" onclick="exportData()">
+                    📥 Download Excel
+                </button>
+            </div>
+        </header>
+
+        <!-- Multi-Metric Compare Section -->
+        <section class="compare-section">
+            <h4>📈 Compare Multiple Metrics (select up to 3 to overlay)</h4>
+            <div class="compare-chips" id="compareChips">
+                <span class="compare-chip" data-metric="closed_sales">Closed Sales</span>
+                <span class="compare-chip" data-metric="new_listings">New Listings</span>
+                <span class="compare-chip" data-metric="active_inventory">Active Inventory</span>
+                <span class="compare-chip" data-metric="median_sales_price">Median Sales Price</span>
+                <span class="compare-chip" data-metric="days_on_market">Days on Market</span>
+                <span class="compare-chip" data-metric="pending_inventory">Pending Inventory</span>
+                <span class="compare-chip" data-metric="months_supply">Months Supply</span>
+                <span class="compare-chip" data-metric="price_increases">Price Increases</span>
+                <span class="compare-chip" data-metric="price_decreases">Price Decreases</span>
+            </div>
+        </section>
+
+        <!-- Metric Tabs -->
+        <nav class="tabs" id="metricTabs">
+            <button class="tab active" data-metric="closed_sales">Closed Sales</button>
+            <button class="tab" data-metric="new_listings">New Listings</button>
+            <button class="tab" data-metric="active_inventory">Active Inventory</button>
+            <button class="tab" data-metric="median_sales_price">Median Sales Price</button>
+            <button class="tab" data-metric="days_on_market">Days on Market</button>
+            <button class="tab" data-metric="pending_inventory">Pending Inventory</button>
+            <button class="tab" data-metric="months_supply">Months Supply</button>
+            <button class="tab" data-metric="price_increases">Price Increases</button>
+            <button class="tab" data-metric="price_decreases">Price Decreases</button>
+            <button class="tab" data-metric="sold_dollar_volume">Sold Dollar Volume</button>
+        </nav>
+
+        <!-- Metric Content -->
+        <main id="metricContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>Loading market data...</span>
+            </div>
+        </main>
+
+        <!-- Data Entry Section (at bottom, password protected) -->
+        <section class="data-entry" id="dataEntry">
+            <h2>🔐 Admin: Enter Monthly Statistics</h2>
+
+            <!-- Password Gate -->
+            <div class="password-gate" id="passwordGate">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Enter password to access data entry</p>
+                <input type="password" id="adminPassword" placeholder="Enter password...">
+                <button class="btn btn-primary" onclick="checkPassword()">Unlock</button>
+            </div>
+
+            <!-- Actual Form (hidden until password entered) -->
+            <div id="dataEntryForm" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="entryYear">Year</label>
+                        <select id="entryYear">
+                            <option value="2026">2026</option>
+                            <option value="2025" selected>2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                            <option value="2019">2019</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryMonth">Month</label>
+                        <select id="entryMonth">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="closedSales">Closed Sales</label>
+                        <input type="number" id="closedSales" placeholder="e.g. 203">
+                    </div>
+                    <div class="form-group">
+                        <label for="newListings">New Listings</label>
+                        <input type="number" id="newListings" placeholder="e.g. 305">
+                    </div>
+                    <div class="form-group">
+                        <label for="activeInventory">Active Inventory</label>
+                        <input type="number" id="activeInventory" placeholder="e.g. 2415">
+                    </div>
+                    <div class="form-group">
+                        <label for="medianSalesPrice">Median Sales Price ($)</label>
+                        <input type="number" id="medianSalesPrice" placeholder="e.g. 575000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="daysOnMarket">Days on Market</label>
+                        <input type="number" id="daysOnMarket" placeholder="e.g. 45">
+                    </div>
+                    <div class="form-group">
+                        <label for="pendingInventory">Pending Inventory</label>
+                        <input type="number" id="pendingInventory" placeholder="e.g. 307">
+                    </div>
+                    <div class="form-group">
+                        <label for="monthsSupply">Months Supply</label>
+                        <input type="number" step="0.01" id="monthsSupply" placeholder="e.g. 11.89">
+                    </div>
+                    <div class="form-group">
+                        <label for="soldDollarVolume">Sold Dollar Volume ($)</label>
+                        <input type="number" id="soldDollarVolume" placeholder="e.g. 125000000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="priceIncreases">Price Increases</label>
+                        <input type="number" id="priceIncreases" placeholder="e.g. 10">
+                    </div>
+                    <div class="form-group">
+                        <label for="priceDecreases">Price Decreases</label>
+                        <input type="number" id="priceDecreases" placeholder="e.g. 217">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="saveData()">
+                    💾 Save Data
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'https://ber-contacts-api.bonitaspringsrealtors.workers.dev';
+        const ADMIN_PASSWORD = 'Everblade@29';
+
+        // Year colors for charts
+        const YEAR_COLORS = {
+            2019: '#94a3b8',
+            2020: '#a78bfa',
+            2021: '#f472b6',
+            2022: '#fb923c',
+            2023: '#fbbf24',
+            2024: '#4ade80',
+            2025: '#22d3ee',
+            2026: '#f43f5e'
+        };
+
+        // Metric colors for comparison overlay
+        const METRIC_COLORS = {
+            closed_sales: '#22d3ee',
+            new_listings: '#4ade80',
+            active_inventory: '#a78bfa',
+            median_sales_price: '#fbbf24',
+            days_on_market: '#f472b6',
+            pending_inventory: '#fb923c',
+            months_supply: '#94a3b8',
+            price_increases: '#10b981',
+            price_decreases: '#ef4444',
+            sold_dollar_volume: '#8b5cf6'
+        };
+
+        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+
+        let metricsData = null;
+        let charts = {};
+        let currentMetric = 'closed_sales';
+        let compareMetrics = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            setupTabs();
+            setupCompareChips();
+        });
+
+        // Setup tab navigation
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentMetric = tab.dataset.metric;
+                    renderMetricSection(currentMetric);
+                });
+            });
+        }
+
+        // Setup multi-compare chips
+        function setupCompareChips() {
+            document.querySelectorAll('.compare-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const metric = chip.dataset.metric;
+
+                    if (chip.classList.contains('selected')) {
+                        chip.classList.remove('selected');
+                        compareMetrics = compareMetrics.filter(m => m !== metric);
+                    } else if (compareMetrics.length < 3) {
+                        chip.classList.add('selected');
+                        compareMetrics.push(metric);
+                    } else {
+                        showToast('Maximum 3 metrics for comparison', 'error');
+                        return;
+                    }
+
+                    if (compareMetrics.length > 0) {
+                        renderComparisonChart();
+                    } else {
+                        renderMetricSection(currentMetric);
+                    }
+                });
+            });
+        }
+
+        // Password check
+        function checkPassword() {
+            const input = document.getElementById('adminPassword');
+            if (input.value === ADMIN_PASSWORD) {
+                document.getElementById('passwordGate').style.display = 'none';
+                document.getElementById('dataEntryForm').style.display = 'block';
+                showToast('Access granted!', 'success');
+            } else {
+                showToast('Incorrect password', 'error');
+                input.value = '';
+            }
+        }
+
+        // Load data from API
+        async function loadData() {
+            try {
+                const response = await fetch(`${API_URL}/metrics`);
+                const result = await response.json();
+
+                if (result.success) {
+                    metricsData = result.data;
+                    renderMetricSection(currentMetric);
+                } else {
+                    showToast('Failed to load data', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('Error connecting to server', 'error');
+                document.getElementById('metricContent').innerHTML = `
+                    <div class="metric-card">
+                        <h3>⚠️ Connection Error</h3>
+                        <p>Unable to connect to the data server. Please check your connection and refresh.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Render comparison chart with multiple metrics
+        function renderComparisonChart() {
+            if (!metricsData || compareMetrics.length === 0) return;
+
+            const currentYear = 2025;
+
+            let html = `
+                <div class="metric-card">
+                    <h3>📊 Trend Comparison: ${compareMetrics.map(m => formatMetricName(m)).join(' vs ')}</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Showing ${currentYear} data normalized to percentage of January value</p>
+                    <div class="chart-container">
+                        <canvas id="chart-comparison"></canvas>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('metricContent').innerHTML = html;
+            createComparisonChart();
+        }
+
+        function createComparisonChart() {
+            const ctx = document.getElementById('chart-comparison');
+            if (!ctx) return;
+
+            if (charts['comparison']) {
+                charts['comparison'].destroy();
+            }
+
+            const currentYear = 2025;
+
+            const datasets = compareMetrics.map(metricType => {
+                const metricData = metricsData[metricType];
+                const rawData = [];
+                const normalizedData = [];
+
+                for (let month = 1; month <= 12; month++) {
+                    rawData.push(metricData?.years?.[currentYear]?.[month] || null);
+                }
+
+                // Normalize to January value (percentage of Jan)
+                const janValue = rawData[0] || 1;
+                for (let i = 0; i < rawData.length; i++) {
+                    if (rawData[i] !== null) {
+                        normalizedData.push(((rawData[i] / janValue) * 100).toFixed(1));
+                    } else {
+                        normalizedData.push(null);
+                    }
+                }
+
+                return {
+                    label: formatMetricName(metricType),
+                    data: normalizedData,
+                    borderColor: METRIC_COLORS[metricType],
+                    backgroundColor: METRIC_COLORS[metricType] + '20',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    fill: false,
+                    _rawData: rawData // Store raw data for tooltip
+                };
+            });
+
+            charts['comparison'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: MONTHS,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#94a3b8',
+                                padding: 20,
+                                usePointStyle: true,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#475569',
+                            borderWidth: 1,
+                            padding: 16,
+                            displayColors: true,
+                            callbacks: {
+                                title: function (items) {
+                                    return MONTHS_FULL[items[0].dataIndex] + ' 2025';
+                                },
+                                label: function (context) {
+                                    const rawValue = context.dataset._rawData[context.dataIndex];
+                                    const normalizedValue = context.raw;
+                                    return `${context.dataset.label}: ${rawValue?.toLocaleString() || 'N/A'} (${normalizedValue}% of Jan)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(71, 85, 105, 0.3)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(71, 85, 105, 0.3)' },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: (value) => value + '%'
+                            },
+                            title: {
+                                display: true,
+                                text: '% of January Value',
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function formatMetricName(metricType) {
+            return metricType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+
+        // Render a metric section
+        function renderMetricSection(metricType) {
+            if (!metricsData) return;
+
+            const metricData = metricsData[metricType];
+            if (!metricData) {
+                document.getElementById('metricContent').innerHTML = `
+                    <div class="metric-card">
+                        <h3>No data available for this metric</h3>
+                    </div>
+                `;
+                return;
+            }
+
+            const displayName = formatMetricName(metricType);
+            const years = Object.keys(metricData.years || {}).sort();
+
+            // Format value based on metric type
+            const formatValue = (val) => {
+                if (val === undefined || val === null) return '—';
+                if (metricType === 'median_sales_price' || metricType === 'sold_dollar_volume') {
+                    return '$' + val.toLocaleString();
+                }
+                if (metricType === 'months_supply') {
+                    return val.toFixed(2);
+                }
+                return val.toLocaleString();
+            };
+
+            const formatPercent = (val) => {
+                if (val === undefined || val === null) return '—';
+                const formatted = val.toFixed(2) + '%';
+                const className = val > 0 ? 'positive' : val < 0 ? 'negative' : '';
+                return `<span class="${className}">${formatted}</span>`;
+            };
+
+            let html = `
+                <div class="metric-card">
+                    <h3>${displayName}</h3>
+                    <div class="chart-container">
+                        <canvas id="chart-${metricType}"></canvas>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    ${years.map(y => `<th>${y}</th>`).join('')}
+                                    <th>% MoM</th>
+                                    <th>% YoY</th>
+                                    <th>% YTD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            for (let month = 1; month <= 12; month++) {
+                html += `<tr><td>${MONTHS_FULL[month - 1]}</td>`;
+
+                years.forEach(year => {
+                    const val = metricData.years[year]?.[month];
+                    html += `<td>${formatValue(val)}</td>`;
+                });
+
+                // Get calculations for current year
+                const currentYear = years[years.length - 1];
+                const calc = metricData.calculations?.[currentYear]?.[month];
+
+                html += `
+                    <td>${formatPercent(calc?.pct_chg_mom)}</td>
+                    <td>${formatPercent(calc?.pct_chg_yoy)}</td>
+                    <td>${formatPercent(calc?.pct_chg_ytd)}</td>
+                </tr>`;
+            }
+
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('metricContent').innerHTML = html;
+
+            // Create chart with enhanced tooltips
+            createChart(metricType, metricData, years);
+        }
+
+        // Create Chart.js line chart with enhanced tooltips
+        function createChart(metricType, metricData, years) {
+            const ctx = document.getElementById(`chart-${metricType}`);
+            if (!ctx) return;
+
+            // Destroy existing chart if it exists
+            if (charts[metricType]) {
+                charts[metricType].destroy();
+            }
+
+            const datasets = years.map(year => {
+                const data = [];
+                for (let month = 1; month <= 12; month++) {
+                    data.push(metricData.years[year]?.[month] || null);
+                }
+                return {
+                    label: year,
+                    data: data,
+                    borderColor: YEAR_COLORS[year] || '#ffffff',
+                    backgroundColor: (YEAR_COLORS[year] || '#ffffff') + '20',
+                    borderWidth: year == years[years.length - 1] ? 3 : 2,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    fill: false
+                };
+            });
+
+            charts[metricType] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: MONTHS,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#94a3b8',
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#475569',
+                            borderWidth: 1,
+                            padding: 16,
+                            displayColors: true,
+                            callbacks: {
+                                title: function (items) {
+                                    return MONTHS_FULL[items[0].dataIndex];
+                                },
+                                label: function (context) {
+                                    const year = context.dataset.label;
+                                    let value = context.raw;
+
+                                    // Format value
+                                    if (metricType === 'median_sales_price' || metricType === 'sold_dollar_volume') {
+                                        value = '$' + value?.toLocaleString();
+                                    } else if (metricType === 'months_supply') {
+                                        value = value?.toFixed(2);
+                                    } else {
+                                        value = value?.toLocaleString();
+                                    }
+
+                                    return `${year}: ${value || 'N/A'}`;
+                                },
+                                afterBody: function (items) {
+                                    if (items.length < 2) return '';
+
+                                    const month = items[0].dataIndex + 1;
+                                    const latestYear = years[years.length - 1];
+                                    const prevYear = years[years.length - 2];
+
+                                    const latestVal = metricData.years[latestYear]?.[month];
+                                    const prevVal = metricData.years[prevYear]?.[month];
+
+                                    if (!latestVal || !prevVal) return '';
+
+                                    const yoyChange = ((latestVal - prevVal) / prevVal * 100).toFixed(2);
+                                    const yoySign = yoyChange >= 0 ? '+' : '';
+
+                                    return [
+                                        '',
+                                        `━━━━━━━━━━━━━━━━━`,
+                                        `📊 Year-over-Year: ${yoySign}${yoyChange}%`,
+                                        `📈 ${prevYear}→${latestYear}: ${prevVal?.toLocaleString()} → ${latestVal?.toLocaleString()}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(71, 85, 105, 0.3)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(71, 85, 105, 0.3)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function (value) {
+                                    if (metricType === 'median_sales_price' || metricType === 'sold_dollar_volume') {
+                                        if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+                                        if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'K';
+                                        return '$' + value;
+                                    }
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Save data to API
+        async function saveData() {
+            const year = parseInt(document.getElementById('entryYear').value);
+            const month = parseInt(document.getElementById('entryMonth').value);
+
+            const updates = [];
+            const fields = [
+                { id: 'closedSales', metric: 'closed_sales' },
+                { id: 'newListings', metric: 'new_listings' },
+                { id: 'activeInventory', metric: 'active_inventory' },
+                { id: 'medianSalesPrice', metric: 'median_sales_price' },
+                { id: 'daysOnMarket', metric: 'days_on_market' },
+                { id: 'pendingInventory', metric: 'pending_inventory' },
+                { id: 'monthsSupply', metric: 'months_supply' },
+                { id: 'priceIncreases', metric: 'price_increases' },
+                { id: 'priceDecreases', metric: 'price_decreases' },
+                { id: 'soldDollarVolume', metric: 'sold_dollar_volume' }
+            ];
+
+            fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                if (input.value !== '') {
+                    updates.push({
+                        metric_type: field.metric,
+                        year: year,
+                        month: month,
+                        value: parseFloat(input.value)
+                    });
+                }
+            });
+
+            if (updates.length === 0) {
+                showToast('Please enter at least one value', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/metrics`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(`Saved ${updates.length} metric(s) successfully!`, 'success');
+                    // Clear inputs
+                    fields.forEach(f => document.getElementById(f.id).value = '');
+                    // Reload data
+                    await loadData();
+                } else {
+                    showToast('Failed to save data', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving data:', error);
+                showToast('Error connecting to server', 'error');
+            }
+        }
+
+        // Export data
+        async function exportData() {
+            try {
+                const response = await fetch(`${API_URL}/metrics/export`);
+                const blob = await response.blob();
+
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'BER_Market_Reports.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+
+                showToast('Download started!', 'success');
+            } catch (error) {
+                console.error('Export error:', error);
+                showToast('Failed to export data', 'error');
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toast.className = `toast ${type}`;
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Allow Enter key to submit password
+        document.getElementById('adminPassword')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+    </script>
+</body>
+
+</html>
