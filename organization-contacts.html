@@ -5176,6 +5176,11 @@
 
                     await addSignup(uniqueKey, currentUser);
                 } else {
+                    // Confirmation before unchecking
+                    if (!confirm('Are you sure you want to uncheck this contact? This will remove the verification.')) {
+                        e.target.checked = true;
+                        return;
+                    }
                     delete checkedState[uniqueKey];
                     div.classList.remove('is-checked');
                     const existing = div.querySelector('.checked-by-info');
@@ -5206,8 +5211,13 @@
                         label.classList.add('is-set');
                         attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
                     } else {
+                        // Confirmation before unchecking
+                        if (!confirm('Are you sure you want to uncheck "Numbers Confirmed"?')) {
+                            e.target.checked = true;
+                            return;
+                        }
                         label.classList.remove('is-set');
-                        attrSpan.textContent = '';
+                        attrSpan.textContent = `Cleared by ${currentUser} (${dateStr})`;
                     }
 
                     // Save to API
@@ -5237,8 +5247,13 @@
                         label.classList.add('is-set');
                         attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
                     } else {
+                        // Confirmation before unchecking
+                        if (!confirm('Are you sure you want to uncheck "Event Registered"?')) {
+                            e.target.checked = true;
+                            return;
+                        }
                         label.classList.remove('is-set');
-                        attrSpan.textContent = '';
+                        attrSpan.textContent = `Cleared by ${currentUser} (${dateStr})`;
                     }
 
                     // Save to API
@@ -5261,7 +5276,7 @@
                     checkedState[uniqueKey].awardPrefBy = currentUser;
                     checkedState[uniqueKey].awardPrefAt = new Date().toISOString();
 
-                    // Update UI
+                    // Update UI - always show who last changed it
                     const label = e.target.closest('.tracking-label');
                     const attrSpan = div.querySelector('.award-attr');
                     if (value) {
@@ -5269,7 +5284,7 @@
                         attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
                     } else {
                         label.classList.remove('is-set');
-                        attrSpan.textContent = '';
+                        attrSpan.textContent = `Cleared by ${currentUser} (${dateStr})`;
                     }
 
                     // Save to API
