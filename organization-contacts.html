@@ -5223,21 +5223,32 @@
 
                     copyBtn.addEventListener('click', () => {
                         const unregisteredOnly = toggleInput.checked;
-                        const names = [];
+                        const namesWithVolume = [];
 
                         orgContacts.forEach(contact => {
                             const name = `${contact.FirstName || ''} ${contact.LastName || ''}`.trim();
                             const email = contact.Email || '';
                             const uniqueKey = `${contact.Organization || 'Other'}_${email || name}`;
 
+                            // Get sales volume from checkedState first, then from contact data
+                            let salesVolume = '';
+                            if (checkedState[uniqueKey] && checkedState[uniqueKey].salesVolume) {
+                                salesVolume = checkedState[uniqueKey].salesVolume;
+                            } else if (contact.SalesVolume) {
+                                salesVolume = contact.SalesVolume;
+                            }
+
+                            // Format: "Name - $X,XXX,XXX" or just "Name" if no volume
+                            const entry = salesVolume ? `${name} - $${salesVolume}` : name;
+
                             if (unregisteredOnly) {
-                                if (!checkedState[uniqueKey]) names.push(name);
+                                if (!checkedState[uniqueKey]) namesWithVolume.push(entry);
                             } else {
-                                names.push(name);
+                                namesWithVolume.push(entry);
                             }
                         });
 
-                        const textToCopy = names.join('\n');
+                        const textToCopy = namesWithVolume.join('\n');
                         navigator.clipboard.writeText(textToCopy).then(() => {
                             copyBtn.classList.add('copied');
                             copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
