@@ -653,6 +653,21 @@
             font-weight: 500;
         }
 
+        .tracking-label.is-not-attending {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        .tracking-label.is-not-attending input[type="checkbox"] {
+            accent-color: #ef4444;
+        }
+
+        /* Not Attending Card State */
+        .contact-card.is-not-attending {
+            border-color: #ef4444;
+            background: linear-gradient(to right, #fef2f2, #ffffff);
+        }
+
         .award-select {
             padding: 0.3rem 0.5rem;
             border: 1px solid var(--border);
@@ -5054,6 +5069,10 @@
             if (isChecked) div.classList.add('is-checked');
             if (tierClass) div.classList.add(tierClass);
 
+            // Add not-attending class from tracking data
+            const trackingDataForClass = checkedState[uniqueKey] || {};
+            if (trackingDataForClass.notAttending) div.classList.add('is-not-attending');
+
             // HTML Components
             const emailHtml = (email && email.toLowerCase() !== 'do not email')
                 ? `<div class="detail-item"><i class="fa-regular fa-envelope"></i> <a href="mailto:${email}" title="${email}">${truncate(email, 30)}</a></div>`
@@ -5084,6 +5103,9 @@
             const eventRegistered = trackingData.eventRegistered || false;
             const eventRegisteredBy = trackingData.eventRegisteredBy || '';
             const eventRegisteredAt = trackingData.eventRegisteredAt || '';
+            const notAttending = trackingData.notAttending || false;
+            const notAttendingBy = trackingData.notAttendingBy || '';
+            const notAttendingAt = trackingData.notAttendingAt || '';
             const awardPref = trackingData.awardPref || '';
             const awardPrefBy = trackingData.awardPrefBy || '';
             const awardPrefAt = trackingData.awardPrefAt || '';
@@ -5110,10 +5132,17 @@
                     </div>
                     <div class="tracking-item">
                         <label class="tracking-label ${eventRegistered ? 'is-set' : ''}">
-                            <input type="checkbox" class="track-registered" data-key="${uniqueKey}" ${eventRegistered ? 'checked' : ''}>
+                            <input type="checkbox" class="track-registered" data-key="${uniqueKey}" ${eventRegistered ? 'checked' : ''} ${notAttending ? 'disabled' : ''}>
                             <i class="fa-solid fa-calendar-check"></i> Event Registered
                         </label>
                         <span class="tracking-attr registered-attr">${formatAttr(eventRegisteredBy, eventRegisteredAt)}</span>
+                    </div>
+                    <div class="tracking-item">
+                        <label class="tracking-label ${notAttending ? 'is-not-attending' : ''}">
+                            <input type="checkbox" class="track-not-attending" data-key="${uniqueKey}" ${notAttending ? 'checked' : ''} ${eventRegistered ? 'disabled' : ''}>
+                            <i class="fa-solid fa-calendar-xmark"></i> Not Attending
+                        </label>
+                        <span class="tracking-attr not-attending-attr">${formatAttr(notAttendingBy, notAttendingAt)}</span>
                     </div>
                     <div class="tracking-item">
                         <label class="tracking-label ${awardPref ? 'is-set' : ''}">
@@ -5243,9 +5272,13 @@
                     // Update UI
                     const label = e.target.closest('.tracking-label');
                     const attrSpan = div.querySelector('.registered-attr');
+                    const notAttendingCheckbox = div.querySelector('.track-not-attending');
+
                     if (isChecked) {
                         label.classList.add('is-set');
                         attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+                        // Disable Not Attending when Event Registered is checked
+                        if (notAttendingCheckbox) notAttendingCheckbox.disabled = true;
                     } else {
                         // Confirmation before unchecking
                         if (!confirm('Are you sure you want to uncheck "Event Registered"?')) {
@@ -5254,10 +5287,56 @@
                         }
                         label.classList.remove('is-set');
                         attrSpan.textContent = `Cleared by ${currentUser} (${dateStr})`;
+                        // Enable Not Attending when Event Registered is unchecked
+                        if (notAttendingCheckbox) notAttendingCheckbox.disabled = false;
                     }
 
                     // Save to API
                     await updateTracking(uniqueKey, { eventRegistered: isChecked, updatedBy: currentUser });
+                });
+            }
+
+            // Event listener: Not Attending checkbox
+            const notAttendingCheckbox = div.querySelector('.track-not-attending');
+            if (notAttendingCheckbox) {
+                notAttendingCheckbox.addEventListener('change', async (e) => {
+                    const userSelect = document.getElementById('userSelect');
+                    const currentUser = userSelect ? (userSelect.value || 'Unknown') : 'Unknown';
+                    const isChecked = e.target.checked;
+                    const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+                    // Update local state
+                    if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
+                    checkedState[uniqueKey].notAttending = isChecked;
+                    checkedState[uniqueKey].notAttendingBy = currentUser;
+                    checkedState[uniqueKey].notAttendingAt = new Date().toISOString();
+
+                    // Update UI
+                    const label = e.target.closest('.tracking-label');
+                    const attrSpan = div.querySelector('.not-attending-attr');
+                    const registeredCb = div.querySelector('.track-registered');
+
+                    if (isChecked) {
+                        label.classList.add('is-not-attending');
+                        attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+                        div.classList.add('is-not-attending');
+                        // Disable Event Registered when Not Attending is checked
+                        if (registeredCb) registeredCb.disabled = true;
+                    } else {
+                        // Confirmation before unchecking
+                        if (!confirm('Are you sure you want to uncheck "Not Attending"?')) {
+                            e.target.checked = true;
+                            return;
+                        }
+                        label.classList.remove('is-not-attending');
+                        attrSpan.textContent = `Cleared by ${currentUser} (${dateStr})`;
+                        div.classList.remove('is-not-attending');
+                        // Enable Event Registered when Not Attending is unchecked
+                        if (registeredCb) registeredCb.disabled = false;
+                    }
+
+                    // Save to API
+                    await updateTracking(uniqueKey, { notAttending: isChecked, updatedBy: currentUser });
                 });
             }
 
