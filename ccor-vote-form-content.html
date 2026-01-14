@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CCOR Name Change Vote</title>
+</head>
+
+<body aria-disabled="false">
+    <style>
+        :root {
+            --ccor-teal: #00A7B5;
+            --ccor-blue: #1F4E79;
+            --ccor-ink: #0f172a;
+            --ccor-muted: #475569;
+            --ccor-card: #ffffff;
+            --ccor-border: rgba(15, 23, 42, .10);
+            --ccor-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+            --ccor-radius: 14px;
+        }
+
+        body {
+            font-size: 18px;
+            line-height: 1.65;
+            color: var(--ccor-ink);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        p {
+            margin: 0 0 14px;
+        }
+
+        a {
+            color: var(--ccor-blue);
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        label,
+        .label,
+        .control-label,
+        .form-check-label,
+        .form-label {
+            font-size: 16px !important;
+            line-height: 1.4 !important;
+        }
+
+        input,
+        select,
+        textarea,
+        .form-control {
+            font-size: 16px !important;
+            line-height: 1.4 !important;
+        }
+
+        .ccor-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .ccor-card {
+            background: var(--ccor-card);
+            border: 1px solid var(--ccor-border);
+            border-radius: var(--ccor-radius);
+            box-shadow: var(--ccor-shadow);
+            padding: 24px 28px;
+            margin: 18px 0;
+        }
+
+        .ccor-intro strong {
+            color: var(--ccor-ink);
+        }
+
+        .ccor-callout {
+            margin: 18px 0;
+            padding: 18px 22px;
+            border-radius: var(--ccor-radius);
+            border: 1px solid rgba(0, 167, 181, .25);
+            background: linear-gradient(90deg, rgba(0, 167, 181, .14), rgba(0, 167, 181, .05));
+            position: relative;
+        }
+
+        .ccor-callout:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            border-radius: var(--ccor-radius) 0 0 var(--ccor-radius);
+            background: var(--ccor-teal);
+        }
+
+        .ccor-callout p {
+            margin: 0;
+            padding-left: 10px;
+            font-weight: 700;
+            color: var(--ccor-blue);
+        }
+
+        /* Section Headers */
+        h3 {
+            margin: 0 0 16px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: var(--ccor-blue);
+            font-size: 22px;
+            line-height: 1.25;
+            background: linear-gradient(90deg, rgba(0, 167, 181, .18), rgba(0, 167, 181, .06) 55%, rgba(0, 0, 0, 0) 100%);
+            border-left: 6px solid var(--ccor-teal);
+        }
+
+        ol,
+        ul {
+            margin: 12px 0 0 22px;
+        }
+
+        li {
+            margin: 10px 0;
+            color: var(--ccor-ink);
+        }
+
+        /* Video Section */
+        .video-wrap {
+            max-width: 380px;
+            margin: 6px auto 18px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--ccor-border);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, .08);
+            background: #fff;
+        }
+
+        .video-wrap iframe {
+            display: block;
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            border: 0;
+        }
+
+        /* ============================================
+           LOGO REVEAL SECTION
+           ============================================ */
+        .logo-reveal-section {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .logo-reveal-header {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--ccor-blue);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-reveal-subtext {
+            color: var(--ccor-muted);
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .logo-row {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid var(--ccor-border);
+            padding: 20px;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, .07);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .logo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, .12);
+        }
+
+        .logo-card img {
+            display: block;
+            height: auto;
+        }
+
+        .logo-card.horizontal img {
+            max-width: 380px;
+            width: 100%;
+        }
+
+        .logo-card.vertical img {
+            max-width: 220px;
+            width: 100%;
+        }
+
+        .logo-label {
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ccor-teal);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        /* ============================================
+           DECONSTRUCTING THE BRAND SECTION
+           ============================================ */
+        .brand-deconstruct-section {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .brand-image-wrap {
+            margin: 20px auto;
+            max-width: 800px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, .10);
+            border: 1px solid var(--ccor-border);
+        }
+
+        .brand-image-wrap img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* ============================================
+           HORIZONTAL TIMELINE
+           ============================================ */
+        .timeline-section {
+            padding: 20px 10px 30px;
+        }
+
+        .timeline-container {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-top: 60px;
+            overflow-x: auto;
+            gap: 10px;
+        }
+
+        /* The horizontal line */
+        .timeline-container::before {
+            content: "";
+            position: absolute;
+            top: 90px;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--ccor-teal), var(--ccor-blue));
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            flex: 1;
+            min-width: 150px;
+            max-width: 180px;
+            text-align: center;
+            position: relative;
+        }
+
+        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            background: var(--ccor-teal);
+            border: 4px solid #fff;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0, 167, 181, .35);
+        }
+
+        .timeline-item:nth-child(even) .timeline-dot {
+            background: var(--ccor-blue);
+            box-shadow: 0 2px 8px rgba(31, 78, 121, .35);
+        }
+
+        .timeline-date {
+            display: inline-block;
+            background: var(--ccor-blue);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            white-space: nowrap;
+        }
+
+        .timeline-item:nth-child(even) .timeline-date {
+            background: var(--ccor-teal);
+        }
+
+        .timeline-content {
+            background: #fff;
+            border: 1px solid var(--ccor-border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.45;
+            color: var(--ccor-muted);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, .05);
+        }
+
+        .timeline-content strong {
+            display: block;
+            color: var(--ccor-ink);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        /* Responsive Timeline */
+        @media (max-width: 768px) {
+            .timeline-container {
+                flex-direction: column;
+                align-items: stretch;
+                padding-top: 0;
+                padding-left: 40px;
+            }
+
+            .timeline-container::before {
+                top: 0;
+                bottom: 0;
+                left: 18px;
+                right: auto;
+                width: 4px;
+                height: auto;
+            }
+
+            .timeline-item {
+                max-width: none;
+                text-align: left;
+                padding-left: 30px;
+                margin-bottom: 20px;
+            }
+
+            .timeline-dot {
+                position: absolute;
+                left: -30px;
+                top: 6px;
+                margin: 0;
+            }
+
+            .timeline-date {
+                margin-bottom: 6px;
+            }
+        }
+
+        /* Media note */
+        .media-note {
+            margin: 14px 0 0;
+            text-align: center;
+            color: var(--ccor-muted);
+            font-size: 14px;
+        }
+    </style>
+
+    <div class="ccor-wrap">
+        <!-- Intro Card -->
+        <div class="ccor-card ccor-intro">
+            <p>This is an official <strong>member voting form</strong> regarding the proposed association name change
+                from <strong>Bonita Springs–Estero REALTORS®</strong> to <strong>Coconut Coast Organization of REALTORS®
+                    (CCOR)</strong>.</p>
+        </div>
+
+        <!-- Callout -->
+        <div class="ccor-callout">
+            <p><strong>Before you vote, please review the information below so you have full context.</strong></p>
+        </div>
+
+        <!-- Video Section -->
+        <div class="ccor-card">
+            <div class="video-wrap">
+                <iframe src="https://www.youtube.com/embed/mgr_jROIPdo" title="CCOR Name Change Promo (YouTube Shorts)"
+                    allowfullscreen=""></iframe>
+            </div>
+            <p class="media-note">Watch our short video explaining the vision behind CCOR.</p>
+        </div>
+
+        <!-- Logo Reveal Section -->
+        <div class="ccor-card">
+            <div class="logo-reveal-section">
+                <div class="logo-reveal-header">✨ Logo Reveal</div>
+                <p class="logo-reveal-subtext">Introducing the new Coconut Coast Organization of REALTORS® brand
+                    identity</p>
+
+                <div class="logo-row">
+                    <div class="logo-card horizontal">
+                        <img src="https://bonitaesterorealtors.com/wp-content/uploads/2026/01/Screenshot-2026-01-14-at-2.37.01-PM.png"
+                            alt="CCOR Horizontal Logo" width="420" height="178">
+                        <div class="logo-label">Horizontal Version</div>
+                    </div>
+                    <div class="logo-card vertical">
+                        <img src="https://bonitaesterorealtors.com/wp-content/uploads/2026/01/Screenshot-2026-01-14-at-2.37.11-PM.png"
+                            alt="CCOR Vertical Logo" width="260" height="291">
+                        <div class="logo-label">Vertical Version</div>
+                    </div>
+                </div>
+                <p class="media-note">Tip: The vertical logo is often easier to read on mobile devices.</p>
+            </div>
+        </div>
+
+        <!-- Deconstructing the Brand Section -->
+        <div class="ccor-card">
+            <h3>Deconstructing the Brand</h3>
+            <div class="brand-deconstruct-section">
+                <div class="brand-image-wrap">
+                    <img src="https://bonitaesterorealtors.com/wp-content/uploads/2026/01/Untitled-design9.png"
+                        alt="CCOR Brand Elements Breakdown" width="1536" height="1024">
+                </div>
+                <p class="media-note">A look at the elements and meaning behind the CCOR visual identity.</p>
+            </div>
+        </div>
+
+        <!-- Why Leadership Recommends -->
+        <div class="ccor-card">
+            <h3>Why leadership is recommending this change</h3>
+            <p>This proposal is part of long-term strategic planning built from member input, market research, and
+                feedback—designed to <strong>honor our 60-year history while positioning the association for the next 60
+                    years</strong>. The goal is to more accurately reflect how members and consumers already experience
+                our market as a connected coastal region, with Bonita Springs and Estero at its center, while reducing
+                unnecessary geographic limitations that can create confusion or barriers as our reach has expanded.</p>
+        </div>
+
+        <!-- Why Coconut Coast -->
+        <div class="ccor-card">
+            <h3>Why "Coconut Coast"?</h3>
+            <p>Coconuts were introduced to our area in the late 1800s by the Koreshans, and Southwest Florida
+                historically included coconut and pineapple farming. While the coconut is not a prominent commercial
+                crop today, it remains a recognizable symbol of our local lifestyle and identity—and it influenced
+                well-known landmarks and infrastructure such as Coconut Point, Coconut Road, and other established place
+                names that connect and represent our broader region.</p>
+        </div>
+
+        <!-- Why Not Generic Name -->
+        <div class="ccor-card">
+            <h3>Why can't we just pick something generic like "SWFL REALTORS®"?</h3>
+            <p>Association names that include the REALTOR® marks are not chosen in isolation. <strong>NAR requires an
+                    established name-change procedure</strong>, including documentation and review, and the proposed
+                name is subject to notice and potential objections through NAR's process. Because neighboring
+                associations and the broader REALTOR® organization have defined jurisdictions and established
+                identities, a broad regional name can create conflicts, overlap concerns, or confusion—and other
+                organizations have the right to object under the NAR procedure. That's why this proposal had to fit
+                within what we're allowed to do—not just what sounds intuitive.</p>
+        </div>
+
+        <!-- NAR Requirements -->
+        <div class="ccor-card">
+            <h3>NAR requirements and member-vote documentation</h3>
+            <p>Per NAR's published procedure, associations are only authorized to use names approved through NAR's
+                established process. The required checklist includes:</p>
+            <ol>
+                <li><strong>A formal name-change application</strong> signed by the Association Executive</li>
+                <li>An <strong>"Agreement to Use the Term REALTOR®"</strong> signed by the association's President and
+                    Secretary (and then executed by NAR after approval)</li>
+                <li><strong>Minutes</strong> documenting the membership or board action authorizing the change</li>
+            </ol>
+            <p>(<a href="https://www.nar.realtor/about-nar/policies/procedure-for-approving-names-of-associations"
+                    rel="noopener noreferrer" target="_blank">National Association of REALTORS®</a>)</p>
+        </div>
+
+        <!-- Timeline Section -->
+        <div class="ccor-card">
+            <h3>Timeline and collaboration (how we got here)</h3>
+            <p>This has been a structured, multi-phase effort designed to meet NAR requirements while reflecting member
+                feedback:</p>
+
+            <div class="timeline-section">
+                <div class="timeline-container">
+                    <div class="timeline-item">
+                        <div class="timeline-date">Early 2025</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <strong>Board Vote</strong>
+                            Voted to pursue a name change based on strategic plan feedback
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Spring 2025</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <strong>Marketing Partner</strong>
+                            Engaged Priority Marketing for research, naming & design
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Early Summer</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <strong>Name Selection</strong>
+                            After 12 rounds, Board selected CCOR and presented to members
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Mid-Summer</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <strong>Tagline Finalized</strong>
+                            "The CORE of Real Estate Connections" after 5 rounds
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Dec 2025</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <strong>Brand Identity</strong>
+                            After 12 rounds, finalized logo and visual identity
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p>Overall, this process took months of collaboration over more than a year to fit within what we are
+                allowed to do, reduce the chance of conflict or confusion, and incorporate the voices and perspectives
+                of members and leadership along the way.</p>
+        </div>
+    </div>
+</body>
+
+</html>
