@@ -1,0 +1,116 @@
+﻿≡ƒ¬╡  Writing logs to "C:\Users\Kevin\.wrangler\logs\wrangler-2026-01-09_19-19-46_840.log"
+Metrics dispatcher: Posting data {"deviceId":"33db5211-6ef8-4af6-b2f5-c211f5e536fe","event":"wrangler command started","timestamp":1767986386928,"properties":{"amplitude_session_id":1767986386927,"amplitude_event_id":0,"wranglerVersion":"3.114.16","osPlatform":"Windows","osVersion":"Windows 11 Home","nodeVersion":22,"packageManager":"npm","isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["remote"],"argsCombination":"remote","command":"wrangler d1 execute","args":{}}}
+.env file not found at ".env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+
+ Γ¢à∩╕Å wrangler 3.114.16 (update available 4.58.0)
+-----------------------------------------------
+
+node.exe : [33mΓû▓ [
+43;33m[[43;30mWARNING
+[43;33m][0m [1mThe 
+version of Wrangler 
+you are using is now 
+out-of-date.[0m
+At C:\Program Files\no
+dejs\npx.ps1:29 char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ([33mΓû▓    
+ [43;3...ut-of-dat    
+e.[0m:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+
+  Please update to 
+the latest version to 
+prevent critical 
+errors.
+  Run `npm install 
+--save-dev 
+wrangler@4` to update 
+to the latest version.
+  After installation, 
+run Wrangler with 
+`npx wrangler`.
+
+
+No experimental flag store instantiated
+Attempted to use flag "RESOURCES_PROVISION" which has not been instantiated
+[33mΓû▓ [43;33m[[43
+;30mWARNING[43;33m][
+0m [1mΓÜá∩╕Å This 
+process may take some 
+time, during which 
+your D1 database will 
+be unavailable to 
+serve queries.[0m
+
+
+≡ƒîÇ Executing on remote database ber-membership-db (71e49709-ee8b-4f47-a92b-9b30cd605952):
+≡ƒîÇ To execute on your local development database, remove the --remote flag from your wrangler command.
+Note: if the execution fails to complete, your DB will return to its original state and you can safely retry.
+Γö£ Checking if file needs uploading
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/5cab5e26c311d1f2a709f45f5f413015/d1/database/71e49709-ee8b-4f47-a92b-9b30cd605952/import
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+-- END CF API REQUEST
+-- START CF API RESPONSE: OK 200
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+-- END CF API RESPONSE
+Γöé
+Γö£ ≡ƒîÇ Uploading 71e49709-ee8b-4f47-a92b-9b30cd605952.10d59fe0c65d7520.sql
+Γöé ≡ƒîÇ Uploading complete.
+Γöé
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/5cab5e26c311d1f2a709f45f5f413015/d1/database/71e49709-ee8b-4f47-a92b-9b30cd605952/import
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+-- END CF API REQUEST
+-- START CF API RESPONSE: OK 200
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+-- END CF API RESPONSE
+≡ƒîÇ Starting import...
+≡ƒîÇ Processed 1 queries.
+≡ƒÜú Executed 1 queries in 3.47ms (1 rows read, 3 rows written)
+   Database is currently at bookmark 0000178b-00000006-00004fee-2e093be12c7fee726a5cbc68695f3770.
+[
+  {
+    "results": [
+      {
+        "Total queries executed": 1,
+        "Rows read": 1,
+        "Rows written": 3,
+        "Database size (MB)": "0.08"
+      }
+    ],
+    "success": true,
+    "finalBookmark": "0000178b-00000006-00004fee-2e093be12c7fee726a5cbc68695f3770",
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "ENAM",
+      "served_by_colo": "ATL",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 3.4719
+      },
+      "duration": 3.4719,
+      "changes": 1,
+      "last_row_id": 0,
+      "changed_db": true,
+      "size_after": 81920,
+      "rows_read": 1,
+      "rows_written": 3,
+      "num_tables": 5,
+      "total_attempts": 1
+    }
+  }
+]
+Metrics dispatcher: Posting data {"deviceId":"33db5211-6ef8-4af6-b2f5-c211f5e536fe","event":"wrangler command completed","timestamp":1767986389321,"properties":{"amplitude_session_id":1767986386927,"amplitude_event_id":1,"wranglerVersion":"3.114.16","osPlatform":"Windows","osVersion":"Windows 11 Home","nodeVersion":22,"packageManager":"npm","isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["remote"],"argsCombination":"remote","command":"wrangler d1 execute","args":{},"durationMs":2412,"durationSeconds":2.412,"durationMinutes":0.0402}}

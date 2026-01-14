@@ -1,0 +1,8 @@
+name = "ber-contacts-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ber-membership-db"
+database_id = "71e49709-ee8b-4f47-a92b-9b30cd605952"  # Using existing ber-membership-db
