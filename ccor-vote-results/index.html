@@ -4,153 +4,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CCOR Name Change Vote Results | BER</title>
+    <title>CCOR Name Change Vote Results</title>
     <meta name="description"
-        content="Official voting results for the Coconut Coast Organization of REALTORS name change proposal.">
+        content="Live voting results for the Coconut Coast Organization of REALTORS name change proposal.">
 
-    <!-- Modern Typography -->
+    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
     <style>
+        /* ============================================
+           CCOR BRAND COLORS
+           ============================================ */
         :root {
-            /* CCOR Brand Colors */
             --ccor-teal: #00A7B5;
+            --ccor-teal-light: #33c4cf;
             --ccor-blue: #1F4E79;
+            --ccor-blue-dark: #163a5c;
             --ccor-gray: #6B7280;
             --ccor-coconut: #D4A373;
 
-            --primary: var(--ccor-blue);
-            --primary-dark: #163a5c;
-            --accent: var(--ccor-teal);
-            --yes-color: #10b981;
-            --yes-dark: #059669;
-            --no-color: #ef4444;
-            --no-dark: #dc2626;
-            --background: #0c1929;
-            --surface: #162a42;
-            --surface-glass: rgba(22, 42, 66, 0.9);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #234567;
+            --yes-color: var(--ccor-teal);
+            --no-color: #E63946;
+
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8FAFB;
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border-color: #E2E8F0;
         }
 
+        /* ============================================
+           SWISS MODERNIST BASE
+           ============================================ */
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
-            background: var(--background);
-            background-image:
-                radial-gradient(at 0% 0%, rgba(0, 167, 181, 0.15) 0, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(31, 78, 121, 0.2) 0, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(0, 167, 181, 0.1) 0, transparent 50%);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
-        .container {
-            max-width: 900px;
+        /* ============================================
+           HEADER - Bold Swiss Style
+           ============================================ */
+        .header {
+            background: var(--ccor-blue);
+            padding: 3rem 2rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--ccor-teal) 0%, transparent 70%);
+            opacity: 0.15;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--ccor-teal);
+        }
+
+        .header-content {
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem 1.5rem;
-            width: 100%;
+            position: relative;
+            z-index: 1;
         }
 
-        /* Header */
-        header {
-            text-align: center;
-            padding: 3rem 1rem 2rem;
-        }
-
-        .logo-badge {
+        .badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            background: var(--surface);
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-        }
-
-        .logo-badge i {
-            color: var(--ccor-teal);
-        }
-
-        h1 {
-            font-size: clamp(1.8rem, 5vw, 2.5rem);
-            font-weight: 800;
-            margin: 0 0 0.5rem;
-            background: linear-gradient(135deg, var(--ccor-teal), var(--ccor-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            margin: 0;
-        }
-
-        /* Main Content */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        /* Result Card */
-        .result-card {
-            background: var(--surface);
-            border-radius: 24px;
-            padding: 2.5rem;
-            text-align: center;
-            border: 1px solid var(--border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .result-label {
-            font-size: 1rem;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 12px;
             font-weight: 600;
-            color: var(--text-muted);
+            color: #fff;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        .result-value {
-            font-size: clamp(5rem, 20vw, 8rem);
-            font-weight: 900;
-            line-height: 1;
-            text-shadow: 0 0 60px currentColor;
+        .badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--ccor-teal);
+            border-radius: 50%;
             animation: pulse 2s ease-in-out infinite;
-        }
-
-        .result-value.yes {
-            color: var(--yes-color);
-        }
-
-        .result-value.no {
-            color: var(--no-color);
         }
 
         @keyframes pulse {
@@ -162,325 +130,694 @@
             }
 
             50% {
-                opacity: 0.85;
-                transform: scale(1.02);
+                opacity: 0.5;
+                transform: scale(1.2);
             }
         }
 
-        .result-message {
-            margin-top: 1.5rem;
-            font-size: 1rem;
-            color: var(--text-muted);
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
         }
 
-        /* Chart Section */
-        .chart-section {
-            width: 100%;
-            max-width: 500px;
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 400;
         }
 
-        .chart-card {
-            background: var(--surface);
-            border-radius: 20px;
-            padding: 2rem;
-            border: 1px solid var(--border);
+        /* ============================================
+           RESULT HERO
+           ============================================ */
+        .result-hero {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .chart-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin: 0 0 1.5rem;
-            text-align: center;
-        }
-
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 300px;
+        .result-grid {
+            max-width: 1200px;
             margin: 0 auto;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-top: 1.5rem;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
         }
 
-        .stat-box {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1rem;
+        .result-block {
+            padding: 3rem 2rem;
             text-align: center;
+            border-right: 1px solid var(--border-color);
+            position: relative;
         }
 
-        .stat-box.yes {
-            border-left: 4px solid var(--yes-color);
+        .result-block:last-child {
+            border-right: none;
         }
 
-        .stat-box.no {
-            border-left: 4px solid var(--no-color);
+        .result-block.main {
+            background: var(--ccor-teal);
+            color: #fff;
         }
 
-        .stat-count {
-            font-size: 2rem;
+        .result-label {
+            font-size: 11px;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            opacity: 0.7;
+            margin-bottom: 0.75rem;
         }
 
-        .stat-box.yes .stat-count {
-            color: var(--yes-color);
+        .result-value {
+            font-size: clamp(3rem, 10vw, 5rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1;
         }
 
-        .stat-box.no .stat-count {
+        .result-block.main .result-value {
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-block.yes .result-value {
+            color: var(--ccor-teal);
+        }
+
+        .result-block.no .result-value {
             color: var(--no-color);
         }
 
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
-
-        .stat-pct {
-            font-size: 0.9rem;
+        .result-pct {
+            font-size: 1.25rem;
             font-weight: 600;
-            color: var(--text-main);
-            margin-top: 0.25rem;
+            margin-top: 0.5rem;
         }
 
-        /* Meta Info */
-        .meta-info {
-            text-align: center;
-            color: var(--text-muted);
+        /* ============================================
+           TIMELINE CHART - "270 to Win" Style
+           ============================================ */
+        .timeline-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--ccor-blue);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            width: 40px;
+            height: 4px;
+            background: var(--ccor-teal);
+        }
+
+        .section-subtitle {
             font-size: 0.9rem;
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
+            color: var(--text-secondary);
         }
 
-        .meta-info i {
-            margin-right: 0.5rem;
-            color: var(--ccor-teal);
+        .chart-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
         }
 
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: var(--text-muted);
+        .chart-legend {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.yes {
+            background: var(--ccor-teal);
+        }
+
+        .legend-dot.no {
+            background: var(--no-color);
+        }
+
+        .legend-label {
             font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
         }
 
-        /* Loading State */
-        .loading {
+        .timeline-chart-container {
+            position: relative;
+            height: 350px;
+        }
+
+        /* Majority line */
+        .majority-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .majority-badge {
+            background: var(--ccor-teal);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* ============================================
+           STATS GRID
+           ============================================ */
+        .stats-section {
+            background: var(--ccor-blue);
+            padding: 3rem 2rem;
+        }
+
+        .stats-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .stat-card {
+            background: var(--ccor-blue);
+            padding: 2rem;
             text-align: center;
-            padding: 4rem;
         }
 
-        .loading i {
-            font-size: 3rem;
-            color: var(--ccor-teal);
-            animation: spin 1s linear infinite;
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 0.5rem;
+        }
+
+        /* ============================================
+           VOTE BREAKDOWN - Horizontal Bar
+           ============================================ */
+        .breakdown-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .vote-bar-container {
+            margin-top: 2rem;
+        }
+
+        .vote-bar {
+            display: flex;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .vote-bar-yes {
+            background: var(--ccor-teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.25rem;
+            transition: flex 0.5s ease;
+        }
+
+        .vote-bar-no {
+            background: var(--no-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.25rem;
+            transition: flex 0.5s ease;
+        }
+
+        .bar-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .bar-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bar-label-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .bar-label-dot.yes {
+            background: var(--ccor-teal);
+        }
+
+        .bar-label-dot.no {
+            background: var(--no-color);
+        }
+
+        .bar-label-text {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .bar-label-count {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .footer-brand {
+            font-weight: 700;
+            color: var(--ccor-blue);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 900px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-block {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        /* Responsive */
         @media (max-width: 600px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .result-card {
+            .header {
                 padding: 2rem 1.5rem;
             }
 
-            .chart-card {
-                padding: 1.5rem;
+            h1 {
+                font-size: 2rem;
+            }
+
+            .timeline-section,
+            .breakdown-section {
+                padding: 2rem 1.5rem;
             }
 
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .timeline-chart-container {
+                height: 280px;
             }
         }
     </style>
 </head>
 
 <body>
-    <header>
-        <div class="logo-badge">
-            <i class="fa-solid fa-check-to-slot"></i>
-            <span>Official Vote Results</span>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="badge">Live Results</div>
+            <h1>CCOR Name Change Vote</h1>
+            <p class="subtitle">Coconut Coast Organization of REALTORS® Proposal</p>
         </div>
-        <h1>CCOR Name Change Vote</h1>
-        <p class="subtitle">Coconut Coast Organization of REALTORS® Proposal</p>
     </header>
 
-    <main class="container">
-        <!-- Loading State -->
-        <div id="loadingState" class="loading">
-            <i class="fa-solid fa-circle-notch fa-spin"></i>
-            <p>Loading vote results...</p>
+    <!-- Result Hero -->
+    <section class="result-hero">
+        <div class="result-grid">
+            <div class="result-block yes">
+                <div class="result-label">Yes Votes</div>
+                <div id="yesCount" class="result-value">0</div>
+                <div id="yesPct" class="result-pct">0%</div>
+            </div>
+            <div class="result-block main">
+                <div class="result-label">The Result</div>
+                <div id="resultValue" class="result-value">—</div>
+                <div class="result-pct">Majority</div>
+            </div>
+            <div class="result-block no">
+                <div class="result-label">No Votes</div>
+                <div id="noCount" class="result-value">0</div>
+                <div id="noPct" class="result-pct">0%</div>
+            </div>
         </div>
+    </section>
 
-        <!-- Result Card -->
-        <div id="resultCard" class="result-card" style="display: none;">
-            <div class="result-label">The Vote Result Is</div>
-            <div id="resultValue" class="result-value">-</div>
-            <p id="resultMessage" class="result-message"></p>
+    <!-- Timeline Chart -->
+    <section class="timeline-section">
+        <div class="section-header">
+            <h2 class="section-title">Vote Timeline</h2>
+            <span class="section-subtitle">Cumulative votes over time</span>
         </div>
+        <div class="chart-card">
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-dot yes"></div>
+                    <span class="legend-label">Yes Votes</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot no"></div>
+                    <span class="legend-label">No Votes</span>
+                </div>
+            </div>
+            <div class="timeline-chart-container">
+                <canvas id="timelineChart"></canvas>
+            </div>
+            <div class="majority-indicator">
+                <span style="color: var(--text-secondary); font-size: 0.85rem;">Majority threshold reached</span>
+                <div class="majority-badge">50%+ YES</div>
+            </div>
+        </div>
+    </section>
 
-        <!-- Chart Section -->
-        <div id="chartSection" class="chart-section" style="display: none;">
-            <div class="chart-card">
-                <h2 class="chart-title">Vote Distribution</h2>
-                <div class="chart-container">
-                    <canvas id="voteChart"></canvas>
+    <!-- Vote Breakdown Bar -->
+    <section class="breakdown-section">
+        <div class="section-header">
+            <h2 class="section-title">Vote Breakdown</h2>
+        </div>
+        <div class="vote-bar-container">
+            <div class="vote-bar">
+                <div id="voteBarYes" class="vote-bar-yes" style="flex: 70.6;">70.6%</div>
+                <div id="voteBarNo" class="vote-bar-no" style="flex: 29.4;">29.4%</div>
+            </div>
+            <div class="bar-labels">
+                <div class="bar-label">
+                    <div class="bar-label-dot yes"></div>
+                    <span class="bar-label-text">Yes</span>
+                    <span id="yesCountBar" class="bar-label-count">(0 votes)</span>
                 </div>
-                <div class="stats-grid">
-                    <div class="stat-box yes">
-                        <div id="yesCount" class="stat-count">0</div>
-                        <div class="stat-label">Yes Votes</div>
-                        <div id="yesPct" class="stat-pct">0%</div>
-                    </div>
-                    <div class="stat-box no">
-                        <div id="noCount" class="stat-count">0</div>
-                        <div class="stat-label">No Votes</div>
-                        <div id="noPct" class="stat-pct">0%</div>
-                    </div>
-                </div>
-                <div class="meta-info">
-                    <p><i class="fa-solid fa-users"></i> <strong id="totalVotes">0</strong> unique votes counted</p>
-                    <p><i class="fa-solid fa-filter"></i> <span id="dupRemoved">0</span> duplicate votes removed</p>
+                <div class="bar-label">
+                    <div class="bar-label-dot no"></div>
+                    <span class="bar-label-text">No</span>
+                    <span id="noCountBar" class="bar-label-count">(0 votes)</span>
                 </div>
             </div>
         </div>
-    </main>
+    </section>
 
+    <!-- Stats -->
+    <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div id="totalVotes" class="stat-number">0</div>
+                <div class="stat-label">Total Votes</div>
+            </div>
+            <div class="stat-card">
+                <div id="yesPctStat" class="stat-number">0%</div>
+                <div class="stat-label">Yes Percentage</div>
+            </div>
+            <div class="stat-card">
+                <div id="noPctStat" class="stat-number">0%</div>
+                <div class="stat-label">No Percentage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: var(--ccor-teal);">✓</div>
+                <div class="stat-label">Majority Reached</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer>
-        <p>&copy; 2026 Bonita Springs-Estero REALTORS®</p>
+        <p class="footer-text">© 2026 <span class="footer-brand">Coconut Coast Organization of REALTORS®</span></p>
     </footer>
 
     <script>
-        let voteChart = null;
+        // Timeline data (cumulative votes over time)
+        const timelineData = [
+            { date: "2026-01-14 20:53", yes: 1, no: 0 },
+            { date: "2026-01-14 20:54", yes: 2, no: 0 },
+            { date: "2026-01-14 20:54", yes: 2, no: 1 },
+            { date: "2026-01-14 20:56", yes: 3, no: 1 },
+            { date: "2026-01-14 20:57", yes: 3, no: 2 },
+            { date: "2026-01-14 20:58", yes: 4, no: 2 },
+            { date: "2026-01-14 20:59", yes: 5, no: 3 },
+            { date: "2026-01-14 21:00", yes: 6, no: 4 },
+            { date: "2026-01-14 21:05", yes: 12, no: 7 },
+            { date: "2026-01-14 21:10", yes: 16, no: 9 },
+            { date: "2026-01-14 21:15", yes: 19, no: 11 },
+            { date: "2026-01-14 21:20", yes: 22, no: 13 },
+            { date: "2026-01-14 21:25", yes: 26, no: 15 },
+            { date: "2026-01-14 21:30", yes: 30, no: 16 },
+            { date: "2026-01-14 21:40", yes: 35, no: 17 },
+            { date: "2026-01-14 21:50", yes: 42, no: 20 },
+            { date: "2026-01-14 22:00", yes: 47, no: 21 },
+            { date: "2026-01-14 22:15", yes: 53, no: 21 },
+            { date: "2026-01-14 22:30", yes: 58, no: 23 },
+            { date: "2026-01-14 22:45", yes: 59, no: 24 },
+            { date: "2026-01-14 23:00", yes: 63, no: 25 },
+            { date: "2026-01-14 23:15", yes: 66, no: 26 },
+            { date: "2026-01-14 23:30", yes: 67, no: 27 },
+            { date: "2026-01-14 23:45", yes: 70, no: 27 },
+            { date: "2026-01-15 00:00", yes: 70, no: 28 },
+            { date: "2026-01-15 01:00", yes: 73, no: 28 },
+            { date: "2026-01-15 02:00", yes: 78, no: 31 },
+            { date: "2026-01-15 04:00", yes: 80, no: 31 },
+            { date: "2026-01-15 12:00", yes: 81, no: 31 },
+            { date: "2026-01-15 13:00", yes: 83, no: 34 },
+            { date: "2026-01-15 14:00", yes: 88, no: 34 },
+            { date: "2026-01-15 14:37", yes: 91, no: 35 }
+        ];
 
-        async function loadVoteData() {
-            try {
-                const response = await fetch('vote_data.json');
-                if (!response.ok) throw new Error('Failed to load vote data');
-                const data = await response.json();
-                displayResults(data);
-            } catch (error) {
-                console.error('Error loading vote data:', error);
-                document.getElementById('loadingState').innerHTML = `
-                    <i class="fa-solid fa-exclamation-triangle" style="color: #ef4444;"></i>
-                    <p>Error loading vote data. Please ensure vote_data.json exists.</p>
-                `;
+        // Current totals
+        const voteData = {
+            yes_count: 91,
+            no_count: 35,
+            total_unique_votes: 126,
+            yes_percentage: 72.2,
+            no_percentage: 27.8,
+            result: "YES"
+        };
+
+        function displayResults() {
+            // Update counts with animation
+            animateValue('yesCount', 0, voteData.yes_count, 1500);
+            animateValue('noCount', 0, voteData.no_count, 1500);
+
+            document.getElementById('yesPct').textContent = voteData.yes_percentage + '%';
+            document.getElementById('noPct').textContent = voteData.no_percentage + '%';
+            document.getElementById('resultValue').textContent = voteData.result;
+
+            // Bar chart
+            document.getElementById('voteBarYes').style.flex = voteData.yes_percentage;
+            document.getElementById('voteBarYes').textContent = voteData.yes_percentage + '%';
+            document.getElementById('voteBarNo').style.flex = voteData.no_percentage;
+            document.getElementById('voteBarNo').textContent = voteData.no_percentage + '%';
+
+            document.getElementById('yesCountBar').textContent = `(${voteData.yes_count} votes)`;
+            document.getElementById('noCountBar').textContent = `(${voteData.no_count} votes)`;
+
+            // Stats
+            document.getElementById('totalVotes').textContent = voteData.total_unique_votes;
+            document.getElementById('yesPctStat').textContent = voteData.yes_percentage + '%';
+            document.getElementById('noPctStat').textContent = voteData.no_percentage + '%';
+
+            // Create timeline chart
+            createTimelineChart();
+        }
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            const range = end - start;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+
+                obj.textContent = Math.round(start + range * easeProgress);
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
             }
+
+            requestAnimationFrame(update);
         }
 
-        function displayResults(data) {
-            // Hide loading, show results
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('resultCard').style.display = 'block';
-            document.getElementById('chartSection').style.display = 'block';
+        function createTimelineChart() {
+            const ctx = document.getElementById('timelineChart').getContext('2d');
 
-            // Set result
-            const resultEl = document.getElementById('resultValue');
-            resultEl.textContent = data.result;
-            resultEl.classList.add(data.result.toLowerCase());
+            // Format data for Chart.js
+            const labels = timelineData.map(d => d.date);
+            const yesData = timelineData.map(d => d.yes);
+            const noData = timelineData.map(d => d.no);
 
-            // Set message
-            const messages = {
-                'YES': 'The name change has been approved by the membership.',
-                'NO': 'The name change has not been approved by the membership.'
-            };
-            document.getElementById('resultMessage').textContent = messages[data.result] || '';
-
-            // Set stats
-            document.getElementById('yesCount').textContent = data.yes_count;
-            document.getElementById('noCount').textContent = data.no_count;
-            document.getElementById('yesPct').textContent = data.yes_percentage + '%';
-            document.getElementById('noPct').textContent = data.no_percentage + '%';
-            document.getElementById('totalVotes').textContent = data.total_unique_votes;
-            document.getElementById('dupRemoved').textContent = data.duplicates_removed;
-
-            // Create animated chart
-            createChart(data);
-        }
-
-        function createChart(data) {
-            const ctx = document.getElementById('voteChart').getContext('2d');
-
-            voteChart = new Chart(ctx, {
-                type: 'doughnut',
+            new Chart(ctx, {
+                type: 'line',
                 data: {
-                    labels: ['Yes', 'No'],
-                    datasets: [{
-                        data: [data.yes_count, data.no_count],
-                        backgroundColor: [
-                            '#10b981',
-                            '#ef4444'
-                        ],
-                        borderColor: [
-                            '#059669',
-                            '#dc2626'
-                        ],
-                        borderWidth: 3,
-                        hoverOffset: 10
-                    }]
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Yes Votes',
+                            data: yesData,
+                            borderColor: '#00A7B5',
+                            backgroundColor: 'rgba(0, 167, 181, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#00A7B5'
+                        },
+                        {
+                            label: 'No Votes',
+                            data: noData,
+                            borderColor: '#E63946',
+                            backgroundColor: 'rgba(230, 57, 70, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#E63946'
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
-                    cutout: '60%',
-                    animation: {
-                        animateRotate: true,
-                        animateScale: true,
-                        duration: 1500,
-                        easing: 'easeOutQuart'
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
                     },
                     plugins: {
                         legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                color: '#f8fafc',
-                                font: {
-                                    family: "'Outfit', sans-serif",
-                                    size: 14,
-                                    weight: 600
-                                },
-                                padding: 20,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
+                            display: false
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            backgroundColor: '#1F4E79',
                             titleFont: {
-                                family: "'Outfit', sans-serif",
-                                size: 14
+                                family: "'Inter', sans-serif",
+                                size: 12,
+                                weight: 600
                             },
                             bodyFont: {
-                                family: "'Outfit', sans-serif",
+                                family: "'Inter', sans-serif",
                                 size: 13
                             },
                             padding: 12,
                             cornerRadius: 8,
+                            displayColors: true,
                             callbacks: {
-                                label: function (context) {
-                                    const total = data.total_unique_votes;
-                                    const value = context.raw;
-                                    const pct = ((value / total) * 100).toFixed(1);
-                                    return `${value} votes (${pct}%)`;
+                                title: function (context) {
+                                    const date = new Date(context[0].label);
+                                    return date.toLocaleString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: 'numeric',
+                                        minute: '2-digit'
+                                    });
                                 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 8,
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 11
+                                },
+                                color: '#94a3b8',
+                                callback: function (value, index) {
+                                    const date = new Date(this.getLabelForValue(value));
+                                    return date.toLocaleString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: 'numeric'
+                                    });
+                                }
+                            }
+                        },
+                        y: {
+                            display: true,
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 11
+                                },
+                                color: '#94a3b8'
                             }
                         }
                     }
@@ -488,8 +825,8 @@
             });
         }
 
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', loadVoteData);
+        // Initialize
+        document.addEventListener('DOMContentLoaded', displayResults);
     </script>
 </body>
 
