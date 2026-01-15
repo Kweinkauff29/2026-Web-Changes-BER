@@ -687,6 +687,68 @@
             color: #94a3b8;
             font-style: italic;
         }
+
+        /* Sync Status Indicator */
+        .sync-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: #64748b;
+            padding: 0.35rem 0.7rem;
+            border-radius: 20px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .sync-indicator.syncing {
+            color: #0ea5e9;
+            background: #e0f2fe;
+            border-color: #7dd3fc;
+        }
+
+        .sync-indicator.syncing .sync-icon {
+            animation: pulse 1s infinite;
+        }
+
+        .sync-indicator.synced {
+            color: #22c55e;
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+
+        .sync-indicator.error {
+            color: #ef4444;
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .contact-card.just-updated {
+            animation: highlight-update 2s ease-out;
+        }
+
+        @keyframes highlight-update {
+            0% {
+                box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.5);
+            }
+
+            100% {
+                box-shadow: none;
+            }
+        }
     </style>
 </head>
 
@@ -719,7 +781,11 @@
                 <span>Organizations:</span>
                 <span id="total-orgs" class="stat-value">0</span>
             </div>
-            <div style="margin-left: auto;">
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 1rem;">
+                <div id="syncStatus" class="sync-indicator">
+                    <i class="fa-solid fa-cloud sync-icon"></i>
+                    <span class="sync-text">Synced</span>
+                </div>
                 <button id="changeUserBtn"
                     style="border:none; background:none; color:var(--primary); font-weight:600; cursor:pointer;">
                     <i class="fa-solid fa-user-gear"></i> Change User
@@ -4900,6 +4966,9 @@
 
         // Checked state (will be loaded from API)
         let checkedState = {};
+        let lastSyncTime = 0;
+        let syncInterval = null;
+        const SYNC_INTERVAL_MS = 10000; // 10 seconds
 
         // Load signups from API, then render
         async function loadSignups() {
@@ -4922,6 +4991,211 @@
                 console.warn('Could not load signups from API, using localStorage fallback:', err);
                 // Fallback to localStorage
                 checkedState = JSON.parse(localStorage.getItem('ber_contacts_checked') || '{}');
+            }
+        }
+
+        // Update sync status indicator
+        function updateSyncStatus(status, message) {
+            const indicator = document.getElementById('syncStatus');
+            if (!indicator) return;
+            indicator.className = 'sync-indicator ' + status;
+            const icon = indicator.querySelector('.sync-icon');
+            const text = indicator.querySelector('.sync-text');
+            if (status === 'syncing') {
+                icon.className = 'fa-solid fa-cloud-arrow-down sync-icon';
+                text.textContent = message || 'Syncing...';
+            } else if (status === 'synced') {
+                icon.className = 'fa-solid fa-cloud-check sync-icon';
+                text.textContent = message || 'Synced';
+            } else if (status === 'error') {
+                icon.className = 'fa-solid fa-cloud-exclamation sync-icon';
+                text.textContent = message || 'Error';
+            } else {
+                icon.className = 'fa-solid fa-cloud sync-icon';
+                text.textContent = message || 'Idle';
+            }
+        }
+
+        // Sync from server and update DOM intelligently without full re-render
+        async function syncFromServer() {
+            try {
+                updateSyncStatus('syncing');
+                const response = await fetch(`${API_URL}/signups`);
+                if (!response.ok) throw new Error('Network error');
+                const data = await response.json();
+                const newState = data.signups || {};
+
+                let changesDetected = 0;
+
+                // Compare and update changed cards
+                const allKeys = new Set([...Object.keys(checkedState), ...Object.keys(newState)]);
+
+                for (const key of allKeys) {
+                    const oldData = checkedState[key] || {};
+                    const newData = newState[key] || {};
+
+                    // Check if this key has meaningful changes
+                    const hasChanges = JSON.stringify(oldData) !== JSON.stringify(newData);
+
+                    if (hasChanges) {
+                        changesDetected++;
+                        // Update local state
+                        if (Object.keys(newData).length === 0) {
+                            delete checkedState[key];
+                        } else {
+                            checkedState[key] = newData;
+                        }
+
+                        // Find and update the card in DOM
+                        updateCardInDOM(key, newData);
+                    }
+                }
+
+                lastSyncTime = Date.now();
+                localStorage.setItem('ber_contacts_checked', JSON.stringify(checkedState));
+
+                const timeStr = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                updateSyncStatus('synced', changesDetected > 0 ? `${changesDetected} updated` : timeStr);
+
+            } catch (err) {
+                console.error('Sync error:', err);
+                updateSyncStatus('error', 'Offline');
+            }
+        }
+
+        // Update a specific card in the DOM without full re-render
+        function updateCardInDOM(key, data) {
+            // Find the card by data-key attribute on checkbox
+            const checkbox = document.querySelector(`input[type="checkbox"][data-key="${key}"]`);
+            if (!checkbox) return;
+
+            const card = checkbox.closest('.contact-card');
+            if (!card) return;
+
+            // Add visual feedback
+            card.classList.add('just-updated');
+            setTimeout(() => card.classList.remove('just-updated'), 2000);
+
+            // Update checked state
+            const isChecked = data.checkedBy ? true : false;
+            if (checkbox.checked !== isChecked) {
+                checkbox.checked = isChecked;
+                if (isChecked) {
+                    card.classList.add('is-checked');
+                } else {
+                    card.classList.remove('is-checked');
+                }
+            }
+
+            // Update checked-by info
+            const nameArea = card.querySelector('.contact-name-area > div:last-child');
+            if (nameArea && data.checkedBy) {
+                let dateStr = '';
+                if (data.createdAt) {
+                    try { dateStr = new Date(data.createdAt + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { }
+                }
+                const checkedByHtml = `<span class="checked-by-info"><i class="fa-solid fa-check-double"></i> Verified by ${data.checkedBy} <span style="color:#94a3b8; font-size: 0.7em;">(${dateStr})</span></span>`;
+                const existing = nameArea.querySelector('.checked-by-info');
+                if (existing) {
+                    existing.outerHTML = checkedByHtml;
+                } else {
+                    nameArea.insertAdjacentHTML('beforeend', checkedByHtml);
+                }
+            } else if (nameArea) {
+                const existing = nameArea.querySelector('.checked-by-info');
+                if (existing) existing.remove();
+            }
+
+            // Update not attending state
+            if (data.notAttending) {
+                card.classList.add('is-not-attending');
+            } else {
+                card.classList.remove('is-not-attending');
+            }
+
+            // Update tier classes based on confirmed volume or sales volume
+            const effectiveVol = parseInt((data.confirmedVolume || data.salesVolume || '0').toString().replace(/[^0-9]/g, ''), 10);
+            card.classList.remove('tier-diamond', 'tier-platinum', 'tier-gold');
+            if (effectiveVol > 20000000) card.classList.add('tier-diamond');
+            else if (effectiveVol > 10000000) card.classList.add('tier-platinum');
+            else if (effectiveVol > 5000000) card.classList.add('tier-gold');
+
+            // Update tracking checkboxes
+            const numbersCheck = card.querySelector('.track-numbers');
+            if (numbersCheck) numbersCheck.checked = !!data.numbersConfirmed;
+
+            const regCheck = card.querySelector('.track-registered');
+            if (regCheck) regCheck.checked = !!data.eventRegistered;
+
+            const notAttendCheck = card.querySelector('.track-not-attending');
+            if (notAttendCheck) notAttendCheck.checked = !!data.notAttending;
+
+            // Update award preference select
+            const awardSelect = card.querySelector('.award-select');
+            if (awardSelect && awardSelect.value !== (data.awardPref || '')) {
+                awardSelect.value = data.awardPref || '';
+            }
+
+            // Update confirmed volume input
+            const confirmedInput = card.querySelector('.confirmed-volume-input');
+            if (confirmedInput && confirmedInput.value !== (data.confirmedVolume || '')) {
+                confirmedInput.value = data.confirmedVolume || '';
+            }
+
+            // Update headshot
+            const headshotInput = card.querySelector('.headshot-input');
+            if (headshotInput && headshotInput.value !== (data.headshotUrl || '')) {
+                headshotInput.value = data.headshotUrl || '';
+                // Update avatar display
+                const avatar = card.querySelector('.avatar-small');
+                if (avatar && data.headshotUrl) {
+                    const img = document.createElement('img');
+                    img.src = data.headshotUrl;
+                    img.className = 'avatar-small';
+                    img.style.objectFit = 'cover';
+                    img.style.background = 'transparent';
+                    img.alt = avatar.textContent || '??';
+                    avatar.replaceWith(img);
+                }
+            }
+
+            // Update actual award level select
+            const actualAwardSelect = card.querySelector('.actual-award-select');
+            if (actualAwardSelect && actualAwardSelect.value !== (data.actualAwardLevel || '')) {
+                actualAwardSelect.value = data.actualAwardLevel || '';
+            }
+
+            // Update tracking labels styling
+            updateTrackingLabelStyle(card, '.track-numbers', data.numbersConfirmed, 'is-set');
+            updateTrackingLabelStyle(card, '.track-registered', data.eventRegistered, 'is-set');
+            updateTrackingLabelStyle(card, '.track-not-attending', data.notAttending, 'is-not-attending');
+        }
+
+        // Helper to update tracking label styles
+        function updateTrackingLabelStyle(card, selector, isSet, className) {
+            const input = card.querySelector(selector);
+            if (!input) return;
+            const label = input.closest('.tracking-label');
+            if (!label) return;
+            if (isSet) {
+                label.classList.add(className);
+            } else {
+                label.classList.remove(className);
+            }
+        }
+
+        // Start auto-sync polling
+        function startAutoSync() {
+            if (syncInterval) clearInterval(syncInterval);
+            syncInterval = setInterval(syncFromServer, SYNC_INTERVAL_MS);
+            console.log('Auto-sync started (every ' + SYNC_INTERVAL_MS / 1000 + 's)');
+        }
+
+        // Stop auto-sync (call when leaving page)
+        function stopAutoSync() {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
             }
         }
 
@@ -5622,6 +5896,20 @@
 
                 // Render immediately with updated local state
                 renderData(allContacts);
+
+                // Start auto-sync for live updates from other users
+                startAutoSync();
+
+                // Pause sync when tab is hidden, resume when visible
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        stopAutoSync();
+                        updateSyncStatus('', 'Paused');
+                    } else {
+                        syncFromServer(); // Sync immediately when returning
+                        startAutoSync();
+                    }
+                });
 
                 // Wait for syncs (optional, just for logging)
                 if (promises.length > 0) {
