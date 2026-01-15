@@ -590,7 +590,7 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div id="totalVotes" class="stat-number">0</div>
-                <div class="stat-label">Total Votes</div>
+                <div class="stat-label">Unique Votes</div>
             </div>
             <div class="stat-card">
                 <div id="yesPctStat" class="stat-number">0%</div>
@@ -601,8 +601,8 @@
                 <div class="stat-label">No Percentage</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" style="color: var(--ccor-teal);">✓</div>
-                <div class="stat-label">Majority Reached</div>
+                <div id="dupsRemoved" class="stat-number">0</div>
+                <div class="stat-label">Duplicates Removed</div>
             </div>
         </div>
     </section>
@@ -613,49 +613,58 @@
     </footer>
 
     <script>
-        // Timeline data (cumulative votes over time)
+        // Timeline data (cumulative votes over time) - EST timezone, duplicates removed
         const timelineData = [
-            { date: "2026-01-14 20:53", yes: 1, no: 0 },
-            { date: "2026-01-14 20:54", yes: 2, no: 0 },
-            { date: "2026-01-14 20:54", yes: 2, no: 1 },
-            { date: "2026-01-14 20:56", yes: 3, no: 1 },
-            { date: "2026-01-14 20:57", yes: 3, no: 2 },
-            { date: "2026-01-14 20:58", yes: 4, no: 2 },
-            { date: "2026-01-14 20:59", yes: 5, no: 3 },
-            { date: "2026-01-14 21:00", yes: 6, no: 4 },
-            { date: "2026-01-14 21:05", yes: 12, no: 7 },
-            { date: "2026-01-14 21:10", yes: 16, no: 9 },
-            { date: "2026-01-14 21:15", yes: 19, no: 11 },
-            { date: "2026-01-14 21:20", yes: 22, no: 13 },
-            { date: "2026-01-14 21:25", yes: 26, no: 15 },
-            { date: "2026-01-14 21:30", yes: 30, no: 16 },
-            { date: "2026-01-14 21:40", yes: 35, no: 17 },
-            { date: "2026-01-14 21:50", yes: 42, no: 20 },
-            { date: "2026-01-14 22:00", yes: 47, no: 21 },
-            { date: "2026-01-14 22:15", yes: 53, no: 21 },
-            { date: "2026-01-14 22:30", yes: 58, no: 23 },
-            { date: "2026-01-14 22:45", yes: 59, no: 24 },
-            { date: "2026-01-14 23:00", yes: 63, no: 25 },
-            { date: "2026-01-14 23:15", yes: 66, no: 26 },
-            { date: "2026-01-14 23:30", yes: 67, no: 27 },
-            { date: "2026-01-14 23:45", yes: 70, no: 27 },
-            { date: "2026-01-15 00:00", yes: 70, no: 28 },
-            { date: "2026-01-15 01:00", yes: 73, no: 28 },
-            { date: "2026-01-15 02:00", yes: 78, no: 31 },
-            { date: "2026-01-15 04:00", yes: 80, no: 31 },
-            { date: "2026-01-15 12:00", yes: 81, no: 31 },
-            { date: "2026-01-15 13:00", yes: 83, no: 34 },
-            { date: "2026-01-15 14:00", yes: 88, no: 34 },
-            { date: "2026-01-15 14:37", yes: 91, no: 35 }
+            { date: "2026-01-14 14:27", yes: 1, no: 0 },
+            { date: "2026-01-14 15:57", yes: 2, no: 2 },
+            { date: "2026-01-14 15:59", yes: 5, no: 2 },
+            { date: "2026-01-14 16:00", yes: 6, no: 4 },
+            { date: "2026-01-14 16:01", yes: 8, no: 5 },
+            { date: "2026-01-14 16:03", yes: 10, no: 6 },
+            { date: "2026-01-14 16:05", yes: 12, no: 7 },
+            { date: "2026-01-14 16:06", yes: 14, no: 8 },
+            { date: "2026-01-14 16:09", yes: 16, no: 9 },
+            { date: "2026-01-14 16:12", yes: 18, no: 10 },
+            { date: "2026-01-14 16:18", yes: 21, no: 13 },
+            { date: "2026-01-14 16:21", yes: 24, no: 13 },
+            { date: "2026-01-14 16:26", yes: 26, no: 14 },
+            { date: "2026-01-14 16:28", yes: 28, no: 15 },
+            { date: "2026-01-14 16:32", yes: 30, no: 16 },
+            { date: "2026-01-14 16:38", yes: 32, no: 17 },
+            { date: "2026-01-14 16:43", yes: 34, no: 18 },
+            { date: "2026-01-14 16:46", yes: 36, no: 19 },
+            { date: "2026-01-14 16:52", yes: 39, no: 19 },
+            { date: "2026-01-14 16:55", yes: 42, no: 19 },
+            { date: "2026-01-14 17:00", yes: 44, no: 20 },
+            { date: "2026-01-14 17:02", yes: 47, no: 20 },
+            { date: "2026-01-14 17:05", yes: 50, no: 20 },
+            { date: "2026-01-14 17:19", yes: 52, no: 21 },
+            { date: "2026-01-14 17:24", yes: 55, no: 21 },
+            { date: "2026-01-14 17:41", yes: 56, no: 23 },
+            { date: "2026-01-14 17:56", yes: 59, no: 23 },
+            { date: "2026-01-14 18:01", yes: 61, no: 24 },
+            { date: "2026-01-14 18:08", yes: 64, no: 24 },
+            { date: "2026-01-14 18:29", yes: 65, no: 26 },
+            { date: "2026-01-14 19:17", yes: 67, no: 27 },
+            { date: "2026-01-14 20:26", yes: 70, no: 27 },
+            { date: "2026-01-14 20:31", yes: 72, no: 28 },
+            { date: "2026-01-14 21:02", yes: 74, no: 29 },
+            { date: "2026-01-14 23:00", yes: 76, no: 30 },
+            { date: "2026-01-15 07:16", yes: 78, no: 31 },
+            { date: "2026-01-15 08:16", yes: 79, no: 33 },
+            { date: "2026-01-15 08:45", yes: 82, no: 33 },
+            { date: "2026-01-15 09:12", yes: 85, no: 33 },
+            { date: "2026-01-15 09:37", yes: 87, no: 34 }
         ];
 
-        // Current totals
+        // Current totals (5 duplicates removed)
         const voteData = {
-            yes_count: 91,
-            no_count: 35,
-            total_unique_votes: 126,
-            yes_percentage: 72.2,
-            no_percentage: 27.8,
+            yes_count: 87,
+            no_count: 34,
+            total_unique_votes: 121,
+            duplicates_removed: 5,
+            yes_percentage: 71.9,
+            no_percentage: 28.1,
             result: "YES"
         };
 
@@ -681,6 +690,7 @@
             document.getElementById('totalVotes').textContent = voteData.total_unique_votes;
             document.getElementById('yesPctStat').textContent = voteData.yes_percentage + '%';
             document.getElementById('noPctStat').textContent = voteData.no_percentage + '%';
+            document.getElementById('dupsRemoved').textContent = voteData.duplicates_removed;
 
             // Create timeline chart
             createTimelineChart();
