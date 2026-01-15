@@ -5054,14 +5054,15 @@
 
             const volumeValue = salesVolume ? `$${salesVolume}` : 'Add Volume';
             const volumeHtml = `
-                            <div class="detail-item volume-icon volume-editable" 
-                                    style="color: #0d9488; font-weight: 500; cursor: pointer;" 
-                                    title="Click to edit Sales Volume"
-                                    data-key="${uniqueKey}">
-                                <i class="fa-solid fa-sack-dollar"></i> <span>${volumeValue}</span>
-                            </div>
-                            ${salesVolume ? `<div class="detail-item" style="color: #64748b; font-size: 0.85em; margin-top: 4px;">MLS Valued at: <span style="font-weight: 600; color: #1e293b;">${tierName}</span></div>` : ''}
-                            `;
+                            <div style="display:flex; flex-direction:column; justify-content:center; gap: 2px;">
+                                <div class="detail-item volume-icon volume-editable" 
+                                        style="color: #0d9488; font-weight: 500; cursor: pointer;" 
+                                        title="Click to edit Sales Volume"
+                                        data-key="${uniqueKey}">
+                                    <i class="fa-solid fa-sack-dollar"></i> <span>${volumeValue}</span>
+                                </div>
+                                ${salesVolume ? `<div style="color: #64748b; font-size: 0.75rem; white-space: normal; line-height: 1.2;">MLS Valued at: <strong style="color: #334155;">${tierName}</strong></div>` : ''}
+                            </div>`;
 
             // Get tracking data from checkedState
             const trackingData = checkedState[uniqueKey] || {};
@@ -5127,10 +5128,10 @@
                         </label>
                         <span class="tracking-attr award-attr">${formatAttr(awardPrefBy, awardPrefAt)}</span>
                     </div>
-                    <div class="tracking-item" style="border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 4px;">
-                        <label class="tracking-label ${actualAwardLevel ? 'is-set' : ''}" style="color: #6366f1;">
+                    <div class="tracking-item" style="flex-basis: 100%; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 4px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 1rem;">
+                        <label class="tracking-label ${actualAwardLevel ? 'is-set' : ''}" style="color: #6366f1; font-weight: 600;">
                             <i class="fa-solid fa-medal"></i> ACTUAL AWARD LEVEL:
-                            <select class="actual-award-select" data-key="${uniqueKey}">
+                            <select class="actual-award-select" data-key="${uniqueKey}" style="margin-left: 0.5rem; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; color: #1e293b;">
                                 <option value="" ${!actualAwardLevel ? 'selected' : ''}>Select...</option>
                                 <option value="Diamond" ${actualAwardLevel === 'Diamond' ? 'selected' : ''}>Diamond</option>
                                 <option value="Platinum" ${actualAwardLevel === 'Platinum' ? 'selected' : ''}>Platinum</option>
