@@ -508,9 +508,10 @@
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <div class="badge">Live Results</div>
+            <div class="badge" style="background: rgba(16, 185, 129, 0.25);">✓ Vote Closed - Passed</div>
             <h1>CCOR Name Change Vote</h1>
-            <p class="subtitle">Coconut Coast Organization of REALTORS® Proposal</p>
+            <p class="subtitle">The membership has approved the name change to Coconut Coast Organization of REALTORS®
+            </p>
         </div>
     </header>
 
@@ -522,10 +523,10 @@
                 <div id="yesCount" class="result-value">0</div>
                 <div id="yesPct" class="result-pct">0%</div>
             </div>
-            <div class="result-block main">
-                <div class="result-label">The Result</div>
+            <div class="result-block main" style="background: #10b981;">
+                <div class="result-label">Final Result</div>
                 <div id="resultValue" class="result-value">—</div>
-                <div class="result-pct">Majority</div>
+                <div class="result-pct">Vote Closed</div>
             </div>
             <div class="result-block no">
                 <div class="result-label">No Votes</div>
@@ -616,7 +617,7 @@
 
     <script>
         // Timeline data (cumulative votes over time) - EST timezone, duplicates removed
-        // FINAL ONLINE VOTE DATA (as of 10:30 AM EST, Jan 15, 2026)
+        // FINAL VOTE DATA - Online + In-Person Voting (Vote Closed)
         const timelineData = [
             { date: "2026-01-14 14:27", yes: 1, no: 0 },
             { date: "2026-01-14 15:57", yes: 2, no: 2 },
@@ -664,21 +665,26 @@
             { date: "2026-01-15 10:15", yes: 94, no: 36 },
             { date: "2026-01-15 10:18", yes: 97, no: 36 },
             { date: "2026-01-15 10:19", yes: 97, no: 37 },
-            { date: "2026-01-15 10:30", yes: 97, no: 37, marker: "ONLINE_CLOSE" }  // Online Vote Closes
+            { date: "2026-01-15 10:30", yes: 97, no: 37, marker: "ONLINE_CLOSE" },  // Online Vote Closes
+            { date: "2026-01-15 12:00", yes: 110, no: 37, marker: "IN_PERSON" }  // In-Person Vote (13 Yes, 0 No)
         ];
 
         // Index of the "Online Vote Closes" marker
         const onlineCloseIndex = timelineData.findIndex(d => d.marker === "ONLINE_CLOSE");
+        const inPersonIndex = timelineData.findIndex(d => d.marker === "IN_PERSON");
 
-        // FINAL ONLINE VOTE TOTALS (5 duplicates removed)
+        // FINAL VOTE TOTALS (Online + In-Person) - VOTE CLOSED & PASSED
         const voteData = {
-            yes_count: 97,
+            yes_count: 110,
             no_count: 37,
-            total_unique_votes: 134,
+            total_unique_votes: 147,
+            online_votes: 134,
+            in_person_votes: 13,
             duplicates_removed: 5,
-            yes_percentage: 72.4,
-            no_percentage: 27.6,
-            result: "YES"
+            yes_percentage: 74.8,
+            no_percentage: 25.2,
+            result: "PASSED",
+            vote_closed: true
         };
 
         function displayResults() {
@@ -835,6 +841,28 @@
                                         padding: { x: 8, y: 6 },
                                         borderRadius: 6,
                                         yAdjust: -10
+                                    }
+                                },
+                                inPersonLine: {
+                                    type: 'line',
+                                    xMin: inPersonIndex,
+                                    xMax: inPersonIndex,
+                                    borderColor: '#10b981',
+                                    borderWidth: 3,
+                                    label: {
+                                        display: true,
+                                        content: 'In-Person Vote (+13 Yes)',
+                                        position: 'start',
+                                        backgroundColor: '#10b981',
+                                        color: '#fff',
+                                        font: {
+                                            family: "'Inter', sans-serif",
+                                            size: 11,
+                                            weight: 700
+                                        },
+                                        padding: { x: 8, y: 6 },
+                                        borderRadius: 6,
+                                        yAdjust: -35
                                     }
                                 }
                             }
