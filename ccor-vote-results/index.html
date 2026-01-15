@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCOR Name Change Vote Results | BER</title>
+    <meta name="description"
+        content="Official voting results for the Coconut Coast Organization of REALTORS name change proposal.">
+
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --yes-color: #10b981;
+            --yes-dark: #059669;
+            --no-color: #ef4444;
+            --no-dark: #dc2626;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-glass: rgba(30, 41, 59, 0.9);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--background);
+            background-image:
+                radial-gradient(at 0% 0%, hsla(217, 91%, 60%, 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(142, 76%, 36%, 0.1) 0, transparent 50%),
+                radial-gradient(at 50% 100%, hsla(0, 84%, 60%, 0.1) 0, transparent 50%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            width: 100%;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+        }
+
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--surface);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .logo-badge i {
+            color: var(--primary);
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-weight: 800;
+            margin: 0 0 0.5rem;
+            background: linear-gradient(135deg, var(--text-main), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Result Card */
+        .result-card {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 2.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .result-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .result-value {
+            font-size: clamp(5rem, 20vw, 8rem);
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 0 60px currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .result-value.yes {
+            color: var(--yes-color);
+        }
+
+        .result-value.no {
+            color: var(--no-color);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.85;
+                transform: scale(1.02);
+            }
+        }
+
+        .result-message {
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        /* Chart Section */
+        .chart-section {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 1.5rem;
+            text-align: center;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-box.yes {
+            border-left: 4px solid var(--yes-color);
+        }
+
+        .stat-box.no {
+            border-left: 4px solid var(--no-color);
+        }
+
+        .stat-count {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-box.yes .stat-count {
+            color: var(--yes-color);
+        }
+
+        .stat-box.no .stat-count {
+            color: var(--no-color);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .stat-pct {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-top: 0.25rem;
+        }
+
+        /* Meta Info */
+        .meta-info {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+
+        .meta-info i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+        }
+
+        .loading i {
+            font-size: 3rem;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .result-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .chart-card {
+                padding: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo-badge">
+            <i class="fa-solid fa-check-to-slot"></i>
+            <span>Official Vote Results</span>
+        </div>
+        <h1>CCOR Name Change Vote</h1>
+        <p class="subtitle">Coconut Coast Organization of REALTORS® Proposal</p>
+    </header>
+
+    <main class="container">
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <p>Loading vote results...</p>
+        </div>
+
+        <!-- Result Card -->
+        <div id="resultCard" class="result-card" style="display: none;">
+            <div class="result-label">The Vote Result Is</div>
+            <div id="resultValue" class="result-value">-</div>
+            <p id="resultMessage" class="result-message"></p>
+        </div>
+
+        <!-- Chart Section -->
+        <div id="chartSection" class="chart-section" style="display: none;">
+            <div class="chart-card">
+                <h2 class="chart-title">Vote Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="voteChart"></canvas>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box yes">
+                        <div id="yesCount" class="stat-count">0</div>
+                        <div class="stat-label">Yes Votes</div>
+                        <div id="yesPct" class="stat-pct">0%</div>
+                    </div>
+                    <div class="stat-box no">
+                        <div id="noCount" class="stat-count">0</div>
+                        <div class="stat-label">No Votes</div>
+                        <div id="noPct" class="stat-pct">0%</div>
+                    </div>
+                </div>
+                <div class="meta-info">
+                    <p><i class="fa-solid fa-users"></i> <strong id="totalVotes">0</strong> unique votes counted</p>
+                    <p><i class="fa-solid fa-filter"></i> <span id="dupRemoved">0</span> duplicate votes removed</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Bonita Springs-Estero REALTORS®</p>
+    </footer>
+
+    <script>
+        let voteChart = null;
+
+        async function loadVoteData() {
+            try {
+                const response = await fetch('vote_data.json');
+                if (!response.ok) throw new Error('Failed to load vote data');
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('Error loading vote data:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <i class="fa-solid fa-exclamation-triangle" style="color: #ef4444;"></i>
+                    <p>Error loading vote data. Please ensure vote_data.json exists.</p>
+                `;
+            }
+        }
+
+        function displayResults(data) {
+            // Hide loading, show results
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('chartSection').style.display = 'block';
+
+            // Set result
+            const resultEl = document.getElementById('resultValue');
+            resultEl.textContent = data.result;
+            resultEl.classList.add(data.result.toLowerCase());
+
+            // Set message
+            const messages = {
+                'YES': 'The name change has been approved by the membership.',
+                'NO': 'The name change has not been approved by the membership.'
+            };
+            document.getElementById('resultMessage').textContent = messages[data.result] || '';
+
+            // Set stats
+            document.getElementById('yesCount').textContent = data.yes_count;
+            document.getElementById('noCount').textContent = data.no_count;
+            document.getElementById('yesPct').textContent = data.yes_percentage + '%';
+            document.getElementById('noPct').textContent = data.no_percentage + '%';
+            document.getElementById('totalVotes').textContent = data.total_unique_votes;
+            document.getElementById('dupRemoved').textContent = data.duplicates_removed;
+
+            // Create animated chart
+            createChart(data);
+        }
+
+        function createChart(data) {
+            const ctx = document.getElementById('voteChart').getContext('2d');
+
+            voteChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Yes', 'No'],
+                    datasets: [{
+                        data: [data.yes_count, data.no_count],
+                        backgroundColor: [
+                            '#10b981',
+                            '#ef4444'
+                        ],
+                        borderColor: [
+                            '#059669',
+                            '#dc2626'
+                        ],
+                        borderWidth: 3,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '60%',
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: '#f8fafc',
+                                font: {
+                                    family: "'Outfit', sans-serif",
+                                    size: 14,
+                                    weight: 600
+                                },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            titleFont: {
+                                family: "'Outfit', sans-serif",
+                                size: 14
+                            },
+                            bodyFont: {
+                                family: "'Outfit', sans-serif",
+                                size: 13
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function (context) {
+                                    const total = data.total_unique_votes;
+                                    const value = context.raw;
+                                    const pct = ((value / total) * 100).toFixed(1);
+                                    return `${value} votes (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadVoteData);
+    </script>
+</body>
+
+</html>
