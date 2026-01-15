@@ -1,10 +1,10 @@
 {
-  "yes_count": 68,
-  "no_count": 27,
-  "total_unique_votes": 95,
-  "total_raw_responses": 100,
-  "duplicates_removed": 5,
-  "yes_percentage": 71.6,
-  "no_percentage": 28.4,
+  "yes_count": 89,
+  "no_count": 37,
+  "total_unique_votes": 126,
+  "total_raw_responses": 126,
+  "duplicates_removed": 0,
+  "yes_percentage": 70.6,
+  "no_percentage": 29.4,
   "result": "YES"
 }
