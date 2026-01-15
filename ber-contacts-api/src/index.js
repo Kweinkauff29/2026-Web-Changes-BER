@@ -305,7 +305,11 @@ export default {
                     `SELECT contact_key, checked_by, created_at, sales_volume,
                             numbers_confirmed, numbers_confirmed_by, numbers_confirmed_at,
                             event_registered, event_registered_by, event_registered_at,
-                            award_pref, award_pref_by, award_pref_at
+                            award_pref, award_pref_by, award_pref_at,
+                            headshot_url, headshot_by, headshot_at,
+                            confirmed_volume, confirmed_volume_by, confirmed_volume_at,
+                            actual_award_level, actual_award_level_by, actual_award_level_at,
+                            not_attending, not_attending_by, not_attending_at
                      FROM signups`
                 ).all();
 
@@ -324,7 +328,19 @@ export default {
                         eventRegisteredAt: row.event_registered_at || '',
                         awardPref: row.award_pref || '',
                         awardPrefBy: row.award_pref_by || '',
-                        awardPrefAt: row.award_pref_at || ''
+                        awardPrefAt: row.award_pref_at || '',
+                        headshotUrl: row.headshot_url || '',
+                        headshotBy: row.headshot_by || '',
+                        headshotAt: row.headshot_at || '',
+                        confirmedVolume: row.confirmed_volume || '',
+                        confirmedVolumeBy: row.confirmed_volume_by || '',
+                        confirmedVolumeAt: row.confirmed_volume_at || '',
+                        actualAwardLevel: row.actual_award_level || '',
+                        actualAwardLevelBy: row.actual_award_level_by || '',
+                        actualAwardLevelAt: row.actual_award_level_at || '',
+                        notAttending: row.not_attending === 1,
+                        notAttendingBy: row.not_attending_by || '',
+                        notAttendingAt: row.not_attending_at || ''
                     };
                 });
 
@@ -335,7 +351,13 @@ export default {
 
             // POST /signups - Add/Update a signup, Sales Volume, or tracking fields
             if (request.method === 'POST' && url.pathname === '/signups') {
-                const { key, checkedBy, salesVolume, numbersConfirmed, eventRegistered, awardPref, updatedBy } = await request.json();
+                const {
+                    key, checkedBy, salesVolume, numbersConfirmed, eventRegistered, awardPref,
+                    headshotUrl, confirmedVolume, actualAwardLevel, notAttending,
+                    headshotBy, confirmedVolumeBy, actualAwardLevelBy, notAttendingBy,
+                    checkedState, // Legacy
+                    updatedBy // Generic fallback
+                } = await request.json();
 
                 if (!key) return new Response('Missing key', { status: 400, headers: corsHeaders });
 
@@ -391,6 +413,54 @@ export default {
                             award_pref_by=excluded.award_pref_by,
                             award_pref_at=excluded.award_pref_at
                     `).bind(key, awardPref, updatedBy || '', now, now).run();
+                }
+
+                // Handle headshot URL update
+                if (headshotUrl !== undefined) {
+                    await env.DB.prepare(`
+                        INSERT INTO signups (contact_key, headshot_url, headshot_by, headshot_at, created_at) 
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(contact_key) DO UPDATE SET 
+                            headshot_url=excluded.headshot_url,
+                            headshot_by=excluded.headshot_by,
+                            headshot_at=excluded.headshot_at
+                    `).bind(key, headshotUrl, headshotBy || updatedBy || '', now, now).run();
+                }
+
+                // Handle confirmed volume update
+                if (confirmedVolume !== undefined) {
+                    await env.DB.prepare(`
+                        INSERT INTO signups (contact_key, confirmed_volume, confirmed_volume_by, confirmed_volume_at, created_at) 
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(contact_key) DO UPDATE SET 
+                            confirmed_volume=excluded.confirmed_volume,
+                            confirmed_volume_by=excluded.confirmed_volume_by,
+                            confirmed_volume_at=excluded.confirmed_volume_at
+                    `).bind(key, confirmedVolume, confirmedVolumeBy || updatedBy || '', now, now).run();
+                }
+
+                // Handle actual award level update
+                if (actualAwardLevel !== undefined) {
+                    await env.DB.prepare(`
+                        INSERT INTO signups (contact_key, actual_award_level, actual_award_level_by, actual_award_level_at, created_at) 
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(contact_key) DO UPDATE SET 
+                            actual_award_level=excluded.actual_award_level,
+                            actual_award_level_by=excluded.actual_award_level_by,
+                            actual_award_level_at=excluded.actual_award_level_at
+                    `).bind(key, actualAwardLevel, actualAwardLevelBy || updatedBy || '', now, now).run();
+                }
+
+                // Handle not attending update
+                if (notAttending !== undefined) {
+                    await env.DB.prepare(`
+                        INSERT INTO signups (contact_key, not_attending, not_attending_by, not_attending_at, created_at) 
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(contact_key) DO UPDATE SET 
+                            not_attending=excluded.not_attending,
+                            not_attending_by=excluded.not_attending_by,
+                            not_attending_at=excluded.not_attending_at
+                    `).bind(key, notAttending ? 1 : 0, notAttendingBy || updatedBy || '', now, now).run();
                 }
 
                 return new Response(JSON.stringify({ success: true }), {

@@ -5024,6 +5024,9 @@
             const confirmedVolume = trackingData.confirmedVolume || '';
             const confirmedVolumeBy = trackingData.confirmedVolumeBy || '';
             const confirmedVolumeAt = trackingData.confirmedVolumeAt || '';
+            const headshotUrl = trackingData.headshotUrl || '';
+            const headshotBy = trackingData.headshotBy || '';
+            const headshotAt = trackingData.headshotAt || '';
 
             // Format attribution text
             const formatAttr = (by, at) => {
@@ -5154,6 +5157,16 @@
                         <span class="tracking-attr confirmed-attr">${formatAttr(confirmedVolumeBy, confirmedVolumeAt)}</span>
                     </div>
 
+                    <!-- Headshot URL Input -->
+                    <div class="tracking-item" style="padding-top: 4px;">
+                         <label class="tracking-label ${headshotUrl ? 'is-set' : ''}">
+                            <i class="fa-solid fa-image"></i> Headshot URL:
+                            <input type="text" class="headshot-input" data-key="${uniqueKey}" value="${headshotUrl}" placeholder="Paste image link..."
+                                style="margin-left: 0.5rem; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; color: #1e293b; width: 200px;">
+                        </label>
+                        <span class="tracking-attr headshot-attr">${formatAttr(headshotBy, headshotAt)}</span>
+                    </div>
+
                     <div class="tracking-item" style="flex-basis: 100%; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 4px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 1rem;">
                         <label class="tracking-label ${actualAwardLevel ? 'is-set' : ''}" style="color: #6366f1; font-weight: 600;">
                             <i class="fa-solid fa-medal"></i> ACTUAL AWARD LEVEL:
@@ -5170,6 +5183,11 @@
                 </div>
             `;
 
+            // Avatar Logic
+            const avatarHtml = headshotUrl
+                ? `<img src="${headshotUrl}" class="avatar-small" style="object-fit: cover; background: transparent;" alt="${initials}">`
+                : `<div class="avatar-small">${initials}</div>`;
+
             div.innerHTML = `
                             <div class="card-checkbox-area">
                                     <label class="custom-checkbox">
@@ -5179,7 +5197,7 @@
                             </div>
                             
                             <div class="contact-name-area">
-                                <div class="avatar-small">${initials}</div>
+                                ${avatarHtml}
                                 <div style="display:flex; flex-direction:column;">
                                     <span class="name-text">${name}</span>
                                     ${checkedByHtml}
@@ -5452,6 +5470,60 @@
                                 </div>
                         `;
                     }
+                });
+            }
+
+            // Event listener: Headshot URL Input
+            const headshotInput = div.querySelector('.headshot-input');
+            if (headshotInput) {
+                headshotInput.addEventListener('change', async (e) => {
+                    const userSelect = document.getElementById('userSelect');
+                    const currentUser = userSelect ? (userSelect.value || 'Unknown') : 'Unknown';
+                    const newVal = e.target.value;
+                    const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+                    // Update local state
+                    if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
+                    checkedState[uniqueKey].headshotUrl = newVal;
+                    checkedState[uniqueKey].headshotBy = currentUser;
+                    checkedState[uniqueKey].headshotAt = new Date().toISOString();
+
+                    // Update UI attribute
+                    const attrSpan = e.target.closest('.tracking-item').querySelector('.headshot-attr');
+                    if (attrSpan) attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+
+                    const label = e.target.closest('.tracking-label');
+                    if (newVal) label.classList.add('is-set');
+                    else label.classList.remove('is-set');
+
+                    // Update Avatar Image immediately
+                    const nameArea = div.querySelector('.contact-name-area');
+                    const oldAvatar = nameArea.querySelector('.avatar-small');
+                    if (oldAvatar) {
+                        if (newVal) {
+                            // Replace with img
+                            const img = document.createElement('img');
+                            img.src = newVal;
+                            img.className = 'avatar-small';
+                            img.style.objectFit = 'cover';
+                            img.style.background = 'transparent';
+                            img.alt = initials;
+                            oldAvatar.replaceWith(img);
+                        } else {
+                            // Revert to initials
+                            const divAvatar = document.createElement('div');
+                            divAvatar.className = 'avatar-small';
+                            divAvatar.textContent = initials; // We need 'initials' here, it's in scope!
+                            oldAvatar.replaceWith(divAvatar);
+                        }
+                    }
+
+                    // Save to API
+                    await updateTracking(uniqueKey, {
+                        headshotUrl: newVal,
+                        headshotBy: currentUser,
+                        headshotAt: new Date().toISOString()
+                    });
                 });
             }
 
