@@ -5004,15 +5004,47 @@
                 salesVolume = checkedState[uniqueKey].salesVolume;
             }
 
-            // Determine Tier Class
+            // Get tracking data from checkedState
+            const trackingData = checkedState[uniqueKey] || {};
+            const numbersConfirmed = trackingData.numbersConfirmed || false;
+            const numbersConfirmedBy = trackingData.numbersConfirmedBy || '';
+            const numbersConfirmedAt = trackingData.numbersConfirmedAt || '';
+            const eventRegistered = trackingData.eventRegistered || false;
+            const eventRegisteredBy = trackingData.eventRegisteredBy || '';
+            const eventRegisteredAt = trackingData.eventRegisteredAt || '';
+            const notAttending = trackingData.notAttending || false;
+            const notAttendingBy = trackingData.notAttendingBy || '';
+            const notAttendingAt = trackingData.notAttendingAt || '';
+            const awardPref = trackingData.awardPref || '';
+            const awardPrefBy = trackingData.awardPrefBy || '';
+            const awardPrefAt = trackingData.awardPrefAt || '';
+            const actualAwardLevel = trackingData.actualAwardLevel || '';
+            const actualAwardLevelBy = trackingData.actualAwardLevelBy || '';
+            const actualAwardLevelAt = trackingData.actualAwardLevelAt || '';
+            const confirmedVolume = trackingData.confirmedVolume || '';
+            const confirmedVolumeBy = trackingData.confirmedVolumeBy || '';
+            const confirmedVolumeAt = trackingData.confirmedVolumeAt || '';
+
+            // Format attribution text
+            const formatAttr = (by, at) => {
+                if (!by) return '';
+                let dateStr = '';
+                if (at) {
+                    try { dateStr = new Date(at + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric' }); } catch (e) { }
+                }
+                return `Set by ${by}${dateStr ? ' (' + dateStr + ')' : ''}`;
+            };
+
+            // Determine Tier Class (Prioritize Confirmed Volume)
+            const effectiveVolumeStr = confirmedVolume ? String(confirmedVolume) : (salesVolume ? String(salesVolume) : '0');
+            const effectiveVol = parseInt(effectiveVolumeStr.replace(/[^0-9]/g, ''), 10);
+
             let tierClass = '';
             let tierName = 'None';
-            if (salesVolume) {
-                const vol = parseInt(String(salesVolume).replace(/,/g, ''), 10);
-                if (vol > 20000000) { tierClass = 'tier-diamond'; tierName = 'Diamond'; }
-                else if (vol > 10000000) { tierClass = 'tier-platinum'; tierName = 'Platinum'; }
-                else if (vol > 5000000) { tierClass = 'tier-gold'; tierName = 'Gold'; }
-            }
+
+            if (effectiveVol > 20000000) { tierClass = 'tier-diamond'; tierName = 'Diamond'; }
+            else if (effectiveVol > 10000000) { tierClass = 'tier-platinum'; tierName = 'Platinum'; }
+            else if (effectiveVol > 5000000) { tierClass = 'tier-gold'; tierName = 'Gold'; }
 
             // Checkbox ID
             const isChecked = (checkedState[uniqueKey] && checkedState[uniqueKey].checkedBy) ? 'checked' : '';
@@ -5053,44 +5085,27 @@
                 : `<div class="detail-item"></div>`;
 
             const volumeValue = salesVolume ? `$${salesVolume}` : 'Add Volume';
+            const confirmedValueDisplay = confirmedVolume ? `$${parseInt(confirmedVolume).toLocaleString()}` : '';
+
+            // Volume HTML with fallback support
             const volumeHtml = `
-                            <div style="display:flex; flex-direction:column; justify-content:center; gap: 2px;">
+                            <div style="grid-column: 6; display: flex; flex-direction: column; justify-content: center; gap: 2px;">
                                 <div class="detail-item volume-icon volume-editable" 
-                                        style="color: #0d9488; font-weight: 500; cursor: pointer;" 
-                                        title="Click to edit Sales Volume"
+                                        style="color: #0d9488; font-weight: 500; cursor: pointer; text-decoration: ${confirmedVolume ? 'line-through; opacity: 0.6;' : 'none'}" 
+                                        title="MLS Volume"
                                         data-key="${uniqueKey}">
                                     <i class="fa-solid fa-sack-dollar"></i> <span>${volumeValue}</span>
                                 </div>
-                                ${salesVolume ? `<div style="color: #64748b; font-size: 0.75rem; white-space: normal; line-height: 1.2;">MLS Valued at: <strong style="color: #334155;">${tierName}</strong></div>` : ''}
+                                ${confirmedVolume ? `
+                                <div class="detail-item" style="color: #2563eb; font-weight: 600; font-size: 0.95rem;">
+                                    <i class="fa-solid fa-calculator"></i> <span>${confirmedValueDisplay}</span>
+                                </div>
+                                ` : ''}
+                                
+                                <div style="color: #64748b; font-size: 0.75rem; white-space: normal; line-height: 1.2; margin-top: 2px;">
+                                    ${confirmedVolume ? 'Broker Valued at:' : 'MLS Valued at:'} <strong style="color: #334155;">${tierName}</strong>
+                                </div>
                             </div>`;
-
-            // Get tracking data from checkedState
-            const trackingData = checkedState[uniqueKey] || {};
-            const numbersConfirmed = trackingData.numbersConfirmed || false;
-            const numbersConfirmedBy = trackingData.numbersConfirmedBy || '';
-            const numbersConfirmedAt = trackingData.numbersConfirmedAt || '';
-            const eventRegistered = trackingData.eventRegistered || false;
-            const eventRegisteredBy = trackingData.eventRegisteredBy || '';
-            const eventRegisteredAt = trackingData.eventRegisteredAt || '';
-            const notAttending = trackingData.notAttending || false;
-            const notAttendingBy = trackingData.notAttendingBy || '';
-            const notAttendingAt = trackingData.notAttendingAt || '';
-            const awardPref = trackingData.awardPref || '';
-            const awardPrefBy = trackingData.awardPrefBy || '';
-            const awardPrefAt = trackingData.awardPrefAt || '';
-            const actualAwardLevel = trackingData.actualAwardLevel || '';
-            const actualAwardLevelBy = trackingData.actualAwardLevelBy || '';
-            const actualAwardLevelAt = trackingData.actualAwardLevelAt || '';
-
-            // Format attribution text
-            const formatAttr = (by, at) => {
-                if (!by) return '';
-                let dateStr = '';
-                if (at) {
-                    try { dateStr = new Date(at + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric' }); } catch (e) { }
-                }
-                return `Set by ${by}${dateStr ? ' (' + dateStr + ')' : ''}`;
-            };
 
             // Tracking Controls HTML
             const trackingHtml = `
@@ -5118,7 +5133,7 @@
                     </div>
                     <div class="tracking-item">
                         <label class="tracking-label ${awardPref ? 'is-set' : ''}">
-                            <i class="fa-solid fa-trophy"></i> Award:
+                            <i class="fa-solid fa-trophy"></i> Award Preference:
                             <select class="award-select" data-key="${uniqueKey}">
                                 <option value="" ${!awardPref ? 'selected' : ''}>Select...</option>
                                 <option value="trophy" ${awardPref === 'trophy' ? 'selected' : ''}>Trophy</option>
@@ -5128,6 +5143,17 @@
                         </label>
                         <span class="tracking-attr award-attr">${formatAttr(awardPrefBy, awardPrefAt)}</span>
                     </div>
+
+                    <!-- Broker Confirmed Number Input -->
+                    <div class="tracking-item" style="border-top: 1px dashed #e2e8f0; margin-top: 4px; padding-top: 8px;">
+                         <label class="tracking-label ${confirmedVolume ? 'is-set' : ''}" style="color: #2563eb;">
+                            <i class="fa-solid fa-pen-to-square"></i> Broker Confirmed $:
+                            <input type="number" class="confirmed-volume-input" data-key="${uniqueKey}" value="${confirmedVolume}" placeholder="Enter amount..."
+                                style="margin-left: 0.5rem; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; color: #1e293b; width: 120px;">
+                        </label>
+                        <span class="tracking-attr confirmed-attr">${formatAttr(confirmedVolumeBy, confirmedVolumeAt)}</span>
+                    </div>
+
                     <div class="tracking-item" style="flex-basis: 100%; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 4px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 1rem;">
                         <label class="tracking-label ${actualAwardLevel ? 'is-set' : ''}" style="color: #6366f1; font-weight: 600;">
                             <i class="fa-solid fa-medal"></i> ACTUAL AWARD LEVEL:
@@ -5218,35 +5244,41 @@
                     checkedState[uniqueKey].numbersConfirmedBy = currentUser;
                     checkedState[uniqueKey].numbersConfirmedAt = new Date().toISOString();
 
-                    // Update UI
+                    // Update UI attribute
+                    const attrSpan = e.target.closest('.tracking-item').querySelector('.numbers-attr');
+                    if (attrSpan) attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+
                     const label = e.target.closest('.tracking-label');
-                    const attrSpan = div.querySelector('.numbers-attr');
-                    if (isChecked) {
-                        label.classList.add('is-set');
-                        attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
-                    } else {
-                        // Confirmation before unchecking
-                        if (!confirm('Are you sure you want to uncheck "Numbers Confirmed"?')) {
-                            e.target.checked = true;
-                            return;
-                        }
-                        label.classList.remove('is-set');
-                        attrSpan.textContent = `Cleared by ${currentUser} (${dateStr})`;
-                    }
+                    if (isChecked) label.classList.add('is-set');
+                    else label.classList.remove('is-set');
 
                     // Save to API
-                    await updateTracking(uniqueKey, { numbersConfirmed: isChecked, updatedBy: currentUser });
+                    await updateTracking(uniqueKey, {
+                        numbersConfirmed: isChecked,
+                        numbersConfirmedBy: currentUser,
+                        numbersConfirmedAt: new Date().toISOString()
+                    });
                 });
             }
 
-            // Event listener: Event Registered checkbox
-            const registeredCheckbox = div.querySelector('.track-registered');
-            if (registeredCheckbox) {
-                registeredCheckbox.addEventListener('change', async (e) => {
+            // Event listener: Event Registered
+            const regCheckbox = div.querySelector('.track-registered');
+            const notAttendingCheckbox = div.querySelector('.track-not-attending');
+
+            if (regCheckbox) {
+                regCheckbox.addEventListener('change', async (e) => {
                     const userSelect = document.getElementById('userSelect');
                     const currentUser = userSelect ? (userSelect.value || 'Unknown') : 'Unknown';
                     const isChecked = e.target.checked;
                     const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+                    // Logic: If registered, cannot be "not attending"
+                    if (isChecked && notAttendingCheckbox) {
+                        notAttendingCheckbox.disabled = true;
+                        if (notAttendingCheckbox.checked) notAttendingCheckbox.checked = false; // logic implementation detail
+                    } else if (notAttendingCheckbox) {
+                        notAttendingCheckbox.disabled = false;
+                    }
 
                     // Update local state
                     if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
@@ -5255,34 +5287,21 @@
                     checkedState[uniqueKey].eventRegisteredAt = new Date().toISOString();
 
                     // Update UI
+                    const attrSpan = e.target.closest('.tracking-item').querySelector('.registered-attr');
+                    if (attrSpan) attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+
                     const label = e.target.closest('.tracking-label');
-                    const attrSpan = div.querySelector('.registered-attr');
-                    const notAttendingCheckbox = div.querySelector('.track-not-attending');
+                    if (isChecked) label.classList.add('is-set');
+                    else label.classList.remove('is-set');
 
-                    if (isChecked) {
-                        label.classList.add('is-set');
-                        attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
-                        // Disable Not Attending when Event Registered is checked
-                        if (notAttendingCheckbox) notAttendingCheckbox.disabled = true;
-                    } else {
-                        // Confirmation before unchecking
-                        if (!confirm('Are you sure you want to uncheck "Event Registered"?')) {
-                            e.target.checked = true;
-                            return;
-                        }
-                        label.classList.remove('is-set');
-                        attrSpan.textContent = `Cleared by ${currentUser} (${dateStr})`;
-                        // Enable Not Attending when Event Registered is unchecked
-                        if (notAttendingCheckbox) notAttendingCheckbox.disabled = false;
-                    }
-
-                    // Save to API
-                    await updateTracking(uniqueKey, { eventRegistered: isChecked, updatedBy: currentUser });
+                    await updateTracking(uniqueKey, {
+                        eventRegistered: isChecked,
+                        eventRegisteredBy: currentUser,
+                        eventRegisteredAt: new Date().toISOString()
+                    });
                 });
             }
 
-            // Event listener: Not Attending checkbox
-            const notAttendingCheckbox = div.querySelector('.track-not-attending');
             if (notAttendingCheckbox) {
                 notAttendingCheckbox.addEventListener('change', async (e) => {
                     const userSelect = document.getElementById('userSelect');
@@ -5290,42 +5309,33 @@
                     const isChecked = e.target.checked;
                     const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
 
-                    // Update local state
+                    if (isChecked && regCheckbox) {
+                        regCheckbox.disabled = true;
+                    } else if (regCheckbox) {
+                        regCheckbox.disabled = false;
+                    }
+
                     if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
                     checkedState[uniqueKey].notAttending = isChecked;
                     checkedState[uniqueKey].notAttendingBy = currentUser;
                     checkedState[uniqueKey].notAttendingAt = new Date().toISOString();
 
-                    // Update UI
+                    const attrSpan = e.target.closest('.tracking-item').querySelector('.not-attending-attr');
+                    if (attrSpan) attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+
                     const label = e.target.closest('.tracking-label');
-                    const attrSpan = div.querySelector('.not-attending-attr');
-                    const registeredCb = div.querySelector('.track-registered');
+                    if (isChecked) label.classList.add('is-not-attending');
+                    else label.classList.remove('is-not-attending');
 
-                    if (isChecked) {
-                        label.classList.add('is-not-attending');
-                        attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
-                        div.classList.add('is-not-attending');
-                        // Disable Event Registered when Not Attending is checked
-                        if (registeredCb) registeredCb.disabled = true;
-                    } else {
-                        // Confirmation before unchecking
-                        if (!confirm('Are you sure you want to uncheck "Not Attending"?')) {
-                            e.target.checked = true;
-                            return;
-                        }
-                        label.classList.remove('is-not-attending');
-                        attrSpan.textContent = `Cleared by ${currentUser} (${dateStr})`;
-                        div.classList.remove('is-not-attending');
-                        // Enable Event Registered when Not Attending is unchecked
-                        if (registeredCb) registeredCb.disabled = false;
-                    }
-
-                    // Save to API
-                    await updateTracking(uniqueKey, { notAttending: isChecked, updatedBy: currentUser });
+                    await updateTracking(uniqueKey, {
+                        notAttending: isChecked,
+                        notAttendingBy: currentUser,
+                        notAttendingAt: new Date().toISOString()
+                    });
                 });
             }
 
-            // Event listener: Award Preference dropdown
+            // Event listener: Award Preference
             const awardSelect = div.querySelector('.award-select');
             if (awardSelect) {
                 awardSelect.addEventListener('change', async (e) => {
@@ -5342,7 +5352,7 @@
 
                     // Update UI - always show who last changed it
                     const label = e.target.closest('.tracking-label');
-                    const attrSpan = div.querySelector('.award-attr');
+                    const attrSpan = e.target.closest('.tracking-item').querySelector('.award-attr');
                     if (value) {
                         label.classList.add('is-set');
                         attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
@@ -5352,7 +5362,96 @@
                     }
 
                     // Save to API
-                    await updateTracking(uniqueKey, { awardPref: value, updatedBy: currentUser });
+                    await updateTracking(uniqueKey, {
+                        awardPref: value,
+                        awardPrefBy: currentUser,
+                        awardPrefAt: new Date().toISOString()
+                    });
+                });
+            }
+
+            // Event listener: Broker Confirmed Volume Input
+            const confirmedVolumeInput = div.querySelector('.confirmed-volume-input');
+            if (confirmedVolumeInput) {
+                confirmedVolumeInput.addEventListener('change', async (e) => {
+                    const userSelect = document.getElementById('userSelect');
+                    const currentUser = userSelect ? (userSelect.value || 'Unknown') : 'Unknown';
+                    const newVal = e.target.value; // Store as string ("20500000")
+                    const dateStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+                    // Update local state
+                    if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
+                    checkedState[uniqueKey].confirmedVolume = newVal;
+                    checkedState[uniqueKey].confirmedVolumeBy = currentUser;
+                    checkedState[uniqueKey].confirmedVolumeAt = new Date().toISOString();
+
+                    // Update UI attribute
+                    const attrSpan = e.target.closest('.tracking-item').querySelector('.confirmed-attr');
+                    if (attrSpan) attrSpan.textContent = `Set by ${currentUser} (${dateStr})`;
+
+                    const label = e.target.closest('.tracking-label');
+                    if (newVal) label.classList.add('is-set');
+                    else label.classList.remove('is-set');
+
+                    // Save to API
+                    await updateTracking(uniqueKey, {
+                        confirmedVolume: newVal,
+                        confirmedVolumeBy: currentUser,
+                        confirmedVolumeAt: new Date().toISOString()
+                    });
+
+                    // Since this affects the CARD DISPLAY (awards tier, css class), we should optimally RE-RENDER the card
+                    // But re-rendering destroys the element focus.
+                    // Let's just reload the whole list or alert user?
+                    // Better: manually update the specific DOM elements to reflect the new Tier.
+
+                    // 1. Calculate new tier
+                    const vol = parseInt(newVal || (salesVolume ? String(salesVolume).replace(/,/g, '') : '0'), 10);
+                    let newTierClass = '';
+                    let newTierName = 'None';
+                    if (vol > 20000000) { newTierClass = 'tier-diamond'; newTierName = 'Diamond'; }
+                    else if (vol > 10000000) { newTierClass = 'tier-platinum'; newTierName = 'Platinum'; }
+                    else if (vol > 5000000) { newTierClass = 'tier-gold'; newTierName = 'Gold'; }
+
+                    // 2. Remove old tier classes
+                    div.classList.remove('tier-diamond', 'tier-platinum', 'tier-gold');
+                    // 3. Add new class
+                    if (newTierClass) div.classList.add(newTierClass);
+
+                    // 4. Update text "Broker Valued at..."
+                    // We need to re-generate the volumeHtml essentially.
+                    // Let's brute force finding the volume column and updating innerHTML.
+                    // It's the 6th child of the grid... but 'volumeHtml' is a div.
+                    // Let's mark it with a class for easy finding?
+                    // I didn't add a specific class to the wrapper, but I can find it via styling or content?
+                    // Or simpler: reload the page? No.
+
+                    // Let's just alert "Saved! Refresh to see tier update" or try to update text.
+                    // The volume section is the DIV that matches style="grid-column: 6..."
+                    const volumeWrapper = Array.from(div.children).find(el => el.style.gridColumn === '6');
+                    if (volumeWrapper) {
+                        // Re-render just this part
+                        const newEffectiveVolDisplay = newVal ? `$${parseInt(newVal).toLocaleString()}` : '';
+                        const originalVolDisplay = salesVolume ? `$${salesVolume}` : 'Add Volume';
+
+                        volumeWrapper.innerHTML = `
+                                <div class="detail-item volume-icon volume-editable" 
+                                        style="color: #0d9488; font-weight: 500; cursor: pointer; text-decoration: ${newVal ? 'line-through; opacity: 0.6;' : 'none'}" 
+                                        title="MLS Volume"
+                                        data-key="${uniqueKey}">
+                                    <i class="fa-solid fa-sack-dollar"></i> <span>${originalVolDisplay}</span>
+                                </div>
+                                ${newVal ? `
+                                <div class="detail-item" style="color: #2563eb; font-weight: 600; font-size: 0.95rem;">
+                                    <i class="fa-solid fa-calculator"></i> <span>${newEffectiveVolDisplay}</span>
+                                </div>
+                                ` : ''}
+                                
+                                <div style="color: #64748b; font-size: 0.75rem; white-space: normal; line-height: 1.2; margin-top: 2px;">
+                                    ${newVal ? 'Broker Valued at:' : 'MLS Valued at:'} <strong style="color: #334155;">${newTierName}</strong>
+                                </div>
+                        `;
+                    }
                 });
             }
 

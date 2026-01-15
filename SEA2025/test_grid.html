@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .contact-card {
+            display: grid;
+            grid-template-columns: 40px minmax(180px, 2fr) 2fr 1.2fr 0.8fr 1.2fr;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid black;
+            padding: 10px;
+        }
+
+        .detail-item {
+            border: 1px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contact-card">
+        <div>Box</div>
+        <div>Name</div>
+        <div>Email</div>
+        <div>Phone</div>
+        <div>Location</div>
+
+        <!-- Volume HTML Block from logic -->
+        <div style="display:flex; flex-direction:column; justify-content:center; gap: 2px; border: 1px solid blue;">
+            <div class="detail-item">Icon + $1,000,000</div>
+            <div>MLS Valued at: <strong>Gold</strong></div>
+        </div>
+
+        <!-- Tracking Block -->
+        <div style="grid-column: 1 / -1; border: 1px dashed green;">Tracking...</div>
+    </div>
+</body>
+
+</html>
