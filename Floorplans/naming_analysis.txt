@@ -1,0 +1,65 @@
+﻿============================================================
+PDF Filename Analysis
+============================================================
+
+Total PDFs: 1790
+  - Generic numbered files (1.pdf, 2.pdf, etc.): 693 (38%)
+  - Descriptive named files: 1097 (61%)
+
+Neighborhoods with descriptive names (67):
+  - THE BROOKS: 77 plans
+  - US HOMES: 59 plans
+  - US HOMES: 59 plans
+  - SPANISH WELLS: 58 plans
+  - PASEO: 29 plans
+  - QUAIL WEST: 29 plans
+  - INDIGO LAKES: 25 plans
+  - LAUREL LAKES COLONIAL HOMES: 24 plans
+  - STERLING OAKS: 24 plans
+  - PELICAN SOUND: 22 plans
+  - VERANDAH: 22 plans
+  - RAPALLO AT COCONUT POINT: 20 plans
+  - ROOKERY POINTE: 20 plans
+  - LONGSHORE LAKE: 19 plans
+  - STONEBRIDGE: 19 plans
+
+Neighborhoods with numbered files (57):
+  - BONITA BAY: 117 plans
+  - PELICAN LANDING: 116 plans
+  - PELICAN MARSH: 43 plans
+  - REALTOR: 43 plans
+  - CONTEX HOMES: 31 plans
+  - PELICAN BAY: 31 plans
+  - HUNTERS RIDGE: 22 plans
+  - HIGHLAND WOODS: 21 plans
+  - COVE TOWERS: 19 plans
+  - HAWTHORNE: 19 plans
+  - CEDAR CREEK: 18 plans
+  - COPPERLEAF: 18 plans
+  - THE COLONY: 18 plans
+  - WALLACE HOMES: 18 plans
+  - FREY AND SON: 17 plans
+
+============================================================
+Sample descriptive filenames:
+============================================================
+  BERMUDA ISLES: Anguilla
+  BERMUDA ISLES: Auba
+  BERMUDA ISLES: Bermuda
+  BERMUDA ISLES: Bimini
+  BONITA FAIRWAYS: Carriage Home
+  BONITA FAIRWAYS: Carriage Home 3 Bed Room
+  Floor Plans: 2020 Primary Realtor
+  HAWTHORNE: Milton
+  IMPERIAL HOMES: Imperial Homes At Colliers Reserves Pics
+  IMPERIAL HOMES: Imperial Homes At Lely Barefood Beach Pics
+  IMPERIAL HOMES: Imperial Homes At Little Harbour Pics
+  INDIGO LAKES: Monticello Iii With Den 2
+  INDIGO LAKES: Monticello Iii With Den 3 Car Grg Colonial Homes
+  INDIGO LAKES: Mount Vernon Iii Colonial Homes
+  INDIGO LAKES: Mount Vernon Iii With Den Colonial Homes
+  INDIGO LAKES: Regency Iii Colonial Homes
+  INDIGO LAKES: Regency Iii With Den Colonial Homes
+  INDIGO LAKES: The Ashford Ii Colonial Homes
+  INDIGO LAKES: The Carlyle Ii Colonial Homes
+  INDIGO LAKES: The Cedarbrook Gulfstream Homes

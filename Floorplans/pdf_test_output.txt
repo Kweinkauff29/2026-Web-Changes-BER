@@ -1,0 +1,58 @@
+﻿Testing PDF text extraction...
+
+================================================================================
+
+File: extracted_pdfs\us-homes\Aruba.pdf
+Current name: Aruba
+Suggested name: None
+Text preview (first 300 chars):
+----------------------------------------
+(no text)
+----------------------------------------
+
+File: extracted_pdfs\us-homes\The-Aberdeen-V.pdf
+Current name: The-Aberdeen-V
+Suggested name: None
+Text preview (first 300 chars):
+----------------------------------------
+(no text)
+----------------------------------------
+
+File: extracted_pdfs\us-homes\The-Acacia.pdf
+Current name: The-Acacia
+Suggested name: None
+Text preview (first 300 chars):
+----------------------------------------
+(no text)
+----------------------------------------
+
+File: extracted_pdfs\bermuda-isles\Anguilla.pdf
+Current name: Anguilla
+Suggested name: None
+Text preview (first 300 chars):
+----------------------------------------
+(no text)
+----------------------------------------
+
+File: extracted_pdfs\bonita-bay\1.pdf
+Current name: 1
+Suggested name: None
+Text preview (first 300 chars):
+----------------------------------------
+(no text)
+----------------------------------------
+
+File: extracted_pdfs\bonita-bay\10.pdf
+Current name: 10
+Suggested name: None
+Text preview (first 300 chars):
+----------------------------------------
+(no text)
+----------------------------------------
+
+File not found: extracted_pdfs\pelican-landing\1.pdf
+
+File not found: extracted_pdfs\the-brooks\1.pdf
+
+================================================================================
+Done testing.
