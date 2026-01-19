@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floor Plans Library | Bonita Springs-Estero REALTORS®</title>
+    <meta name="description"
+        content="Browse and download floor plans for neighborhoods in Bonita Springs and Estero, Florida.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --brand-primary: #03AAE1;
+            --brand-secondary: #0CA7A4;
+            --brand-accent: #7EF0F0;
+            --brand-dark: #006b86;
+            --ink: #0f172a;
+            --muted: #64748b;
+            --surface: #f8fafc;
+            --line: #e2e8f0;
+            --radius: 16px;
+            --shadow-sm: 0 2px 8px rgba(2, 8, 20, 0.06);
+            --shadow-md: 0 8px 24px rgba(2, 8, 20, 0.08);
+            --shadow-lg: 0 18px 48px rgba(2, 8, 20, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdfa 100%);
+            min-height: 100vh;
+            color: var(--ink);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(120deg, #7EF0F0 0%, #03AAE1 18%, #0CA7A4 48%, #006b86 78%, #7EF0F0 100%);
+            background-size: 400% 100%;
+            animation: ribbonFlow 10s ease-in-out infinite alternate;
+            padding: 48px 24px 56px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes ribbonFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 999px;
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        /* Search & Filter */
+        .controls {
+            max-width: 1200px;
+            margin: -28px auto 0;
+            padding: 0 24px;
+            position: relative;
+            z-index: 200;
+        }
+
+        .search-box {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            padding: 20px 24px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 18px 14px 48px;
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 4px rgba(3, 170, 225, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        .neighborhood-select {
+            padding: 14px 40px 14px 18px;
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: #fff;
+            cursor: pointer;
+            min-width: 240px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .neighborhood-select:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+        }
+
+        .clear-btn {
+            padding: 14px 20px;
+            background: var(--surface);
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .clear-btn:hover {
+            background: #fff;
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .results-count {
+            font-size: 1rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .results-count strong {
+            color: var(--ink);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .view-btn {
+            padding: 10px 14px;
+            background: #fff;
+            border: 2px solid var(--line);
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all 0.2s ease;
+        }
+
+        .view-btn.active {
+            background: var(--brand-primary);
+            border-color: var(--brand-primary);
+            color: #fff;
+        }
+
+        /* Neighborhood Groups */
+        .neighborhood-group {
+            margin-bottom: 40px;
+        }
+
+        .neighborhood-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--line);
+        }
+
+        .neighborhood-title .count {
+            background: var(--brand-primary);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Floor Plans Grid */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .plan-card {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .plan-preview {
+            height: 160px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .plan-icon {
+            width: 80px;
+            height: 80px;
+            background: #fff;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            font-size: 36px;
+            color: var(--brand-primary);
+        }
+
+        .plan-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plan-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .plan-neighborhood {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .plan-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            color: #fff;
+            border: none;
+        }
+
+        .btn-view:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(3, 170, 225, 0.3);
+        }
+
+        .btn-download {
+            background: var(--surface);
+            color: var(--ink);
+            border: 2px solid var(--line);
+        }
+
+        .btn-download:hover {
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 80px 24px;
+            color: var(--muted);
+            display: none;
+        }
+
+        .no-results.visible {
+            display: block;
+        }
+
+        .no-results i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--line);
+        }
+
+        .no-results h3 {
+            font-size: 1.25rem;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 80px 24px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--line);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 32px 16px 40px;
+            }
+
+            .controls {
+                margin-top: -24px;
+                padding: 0 16px;
+            }
+
+            .search-box {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .neighborhood-select,
+            .clear-btn {
+                width: 100%;
+            }
+
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                gap: 12px;
+            }
+        }
+
+        /* Compact List View */
+        .plans-list {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .plans-list.active {
+            display: flex;
+        }
+
+        .plans-grid.hidden {
+            display: none;
+        }
+
+        .plan-row {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .plan-row:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .plan-row .plan-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 20px;
+            border-radius: 10px;
+        }
+
+        .plan-row .plan-info {
+            flex: 1;
+        }
+
+        .plan-row .plan-name {
+            margin-bottom: 4px;
+        }
+
+        .plan-row .plan-neighborhood {
+            margin-bottom: 0;
+        }
+
+        .plan-row .plan-actions {
+            margin-top: 0;
+            flex: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1>🏠 Floor Plans Library</h1>
+        <p>Browse and download floor plans for Bonita Springs & Estero neighborhoods</p>
+        <div class="stats-row">
+            <div class="stat-badge">
+                <i class="fas fa-map-marker-alt"></i>
+                <span id="neighborhoodCount">Loading...</span>
+            </div>
+            <div class="stat-badge">
+                <i class="fas fa-file-pdf"></i>
+                <span id="floorplanCount">Loading...</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="search-box">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search floor plans...">
+            </div>
+            <select class="neighborhood-select" id="neighborhoodSelect">
+                <option value="">All Neighborhoods</option>
+            </select>
+            <button class="clear-btn" id="clearBtn">
+                <i class="fas fa-times"></i>
+                Clear Filters
+            </button>
+        </div>
+    </div>
+
+    <main class="main">
+        <div class="results-header">
+            <div class="results-count" id="resultsCount">
+                Showing <strong>0</strong> floor plans
+            </div>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="grid" title="Grid View">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-btn" data-view="list" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading floor plans...</p>
+        </div>
+
+        <div id="content"></div>
+
+        <div class="no-results" id="noResults">
+            <i class="fas fa-search"></i>
+            <h3>No Floor Plans Found</h3>
+            <p>Try adjusting your search or filter criteria.</p>
+        </div>
+    </main>
+
+    <script>
+        // Configuration - Update this URL after deploying to Cloudflare
+        const PDF_BASE_URL = './extracted_pdfs/';
+        const MANIFEST_URL = './floorplan_manifest.json';
+
+        let manifestData = null;
+        let currentView = 'grid';
+
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const neighborhoodSelect = document.getElementById('neighborhoodSelect');
+        const clearBtn = document.getElementById('clearBtn');
+        const content = document.getElementById('content');
+        const loading = document.getElementById('loading');
+        const noResults = document.getElementById('noResults');
+        const resultsCount = document.getElementById('resultsCount');
+        const neighborhoodCountEl = document.getElementById('neighborhoodCount');
+        const floorplanCountEl = document.getElementById('floorplanCount');
+        const viewBtns = document.querySelectorAll('.view-btn');
+
+        // Load manifest
+        async function loadManifest() {
+            try {
+                const response = await fetch(MANIFEST_URL);
+                manifestData = await response.json();
+
+                // Update stats
+                neighborhoodCountEl.textContent = `${manifestData.totalNeighborhoods} Neighborhoods`;
+                floorplanCountEl.textContent = `${manifestData.totalFloorplans.toLocaleString()} Floor Plans`;
+
+                // Populate neighborhood dropdown
+                manifestData.neighborhoods.forEach(n => {
+                    const option = document.createElement('option');
+                    option.value = n.slug;
+                    option.textContent = `${n.name} (${n.count})`;
+                    neighborhoodSelect.appendChild(option);
+                });
+
+                loading.style.display = 'none';
+                renderFloorplans();
+            } catch (error) {
+                console.error('Failed to load manifest:', error);
+                loading.innerHTML = '<p style="color: #ef4444;">Failed to load floor plans. Please try again.</p>';
+            }
+        }
+
+        // Render floor plans
+        function renderFloorplans() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedNeighborhood = neighborhoodSelect.value;
+
+            let filteredNeighborhoods = manifestData.neighborhoods;
+
+            // Filter by neighborhood
+            if (selectedNeighborhood) {
+                filteredNeighborhoods = filteredNeighborhoods.filter(n => n.slug === selectedNeighborhood);
+            }
+
+            // Filter by search term
+            if (searchTerm) {
+                filteredNeighborhoods = filteredNeighborhoods.map(n => ({
+                    ...n,
+                    floorplans: n.floorplans.filter(fp =>
+                        fp.name.toLowerCase().includes(searchTerm) ||
+                        n.name.toLowerCase().includes(searchTerm)
+                    )
+                })).filter(n => n.floorplans.length > 0);
+            }
+
+            // Count total results
+            const totalResults = filteredNeighborhoods.reduce((sum, n) => sum + n.floorplans.length, 0);
+            resultsCount.innerHTML = `Showing <strong>${totalResults.toLocaleString()}</strong> floor plans`;
+
+            // Show/hide no results
+            if (totalResults === 0) {
+                noResults.classList.add('visible');
+                content.innerHTML = '';
+                return;
+            }
+            noResults.classList.remove('visible');
+
+            // Build HTML
+            let html = '';
+
+            filteredNeighborhoods.forEach(neighborhood => {
+                html += `<div class="neighborhood-group">`;
+                html += `<h2 class="neighborhood-title">
+                    <i class="fas fa-map-marker-alt" style="color: var(--brand-primary);"></i>
+                    ${neighborhood.name}
+                    <span class="count">${neighborhood.floorplans.length}</span>
+                </h2>`;
+
+                if (currentView === 'grid') {
+                    html += `<div class="plans-grid">`;
+                    neighborhood.floorplans.forEach(fp => {
+                        html += createCardHTML(fp, neighborhood);
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<div class="plans-list active">`;
+                    neighborhood.floorplans.forEach(fp => {
+                        html += createRowHTML(fp, neighborhood);
+                    });
+                    html += `</div>`;
+                }
+
+                html += `</div>`;
+            });
+
+            content.innerHTML = html;
+        }
+
+        function createCardHTML(fp, neighborhood) {
+            const pdfUrl = PDF_BASE_URL + fp.path;
+            return `
+                <div class="plan-card">
+                    <div class="plan-preview">
+                        <div class="plan-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                    </div>
+                    <div class="plan-content">
+                        <h3 class="plan-name">${fp.name}</h3>
+                        <div class="plan-neighborhood">
+                            <i class="fas fa-home"></i>
+                            ${neighborhood.name}
+                        </div>
+                        <div class="plan-actions">
+                            <a href="${pdfUrl}" target="_blank" class="btn btn-view">
+                                <i class="fas fa-eye"></i>
+                                View
+                            </a>
+                            <a href="${pdfUrl}" download="${fp.filename}" class="btn btn-download">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createRowHTML(fp, neighborhood) {
+            const pdfUrl = PDF_BASE_URL + fp.path;
+            return `
+                <div class="plan-row">
+                    <div class="plan-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="plan-info">
+                        <h3 class="plan-name">${fp.name}</h3>
+                        <div class="plan-neighborhood">
+                            <i class="fas fa-home"></i>
+                            ${neighborhood.name}
+                        </div>
+                    </div>
+                    <div class="plan-actions">
+                        <a href="${pdfUrl}" target="_blank" class="btn btn-view">
+                            <i class="fas fa-eye"></i>
+                            View
+                        </a>
+                        <a href="${pdfUrl}" download="${fp.filename}" class="btn btn-download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', renderFloorplans);
+        neighborhoodSelect.addEventListener('change', renderFloorplans);
+
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            neighborhoodSelect.value = '';
+            renderFloorplans();
+        });
+
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentView = btn.dataset.view;
+                renderFloorplans();
+            });
+        });
+
+        // Initialize
+        loadManifest();
+    </script>
+</body>
+
+</html>
