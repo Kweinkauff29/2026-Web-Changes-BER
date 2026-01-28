@@ -1041,6 +1041,9 @@
             <h1>2025 Sales Excellence Eligible</h1>
 
             <div style="display: flex; align-items: center; gap: 1rem;">
+                <button id="copyUnverifiedBtn" class="copy-btn" title="Copy all unverified emails">
+                    <i class="fa-regular fa-copy"></i> Copy Unverified Emails
+                </button>
                 <div class="search-container">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
                     <input type="text" id="search-input" class="search-input"
@@ -6368,6 +6371,53 @@
                 });
             } else {
                 if (userModal) userModal.classList.add('hidden');
+            }
+
+            // Copy Unverified Emails Logic
+            const copyUnverifiedBtn = document.getElementById('copyUnverifiedBtn');
+            if (copyUnverifiedBtn) {
+                copyUnverifiedBtn.addEventListener('click', () => {
+                    const unverifiedEmails = [];
+
+                    allContacts.forEach(contact => {
+                        const name = `${contact.FirstName || ''} ${contact.LastName || ''}`.trim();
+                        const email = contact.Email || '';
+
+                        // Unique Key generation must match the rest of the app
+                        const uniqueKey = `${contact.Organization || 'Other'}_${email || name}`;
+
+                        // Check if unverified (no checkedBy property) AND has a valid email
+                        const isVerified = (checkedState[uniqueKey] && checkedState[uniqueKey].checkedBy);
+                        const hasDoNotEmail = (email.toLowerCase() === 'do not email');
+
+                        if (!isVerified && email && email.includes('@') && !hasDoNotEmail) {
+                            unverifiedEmails.push(email);
+                        }
+                    });
+
+                    // Remove duplicates
+                    const uniqueEmails = [...new Set(unverifiedEmails)];
+
+                    if (uniqueEmails.length === 0) {
+                        alert('No unverified emails found.');
+                        return;
+                    }
+
+                    const textToCopy = uniqueEmails.join(', ');
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalHtml = copyUnverifiedBtn.innerHTML;
+                        copyUnverifiedBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                        copyUnverifiedBtn.classList.add('copied');
+                        setTimeout(() => {
+                            copyUnverifiedBtn.innerHTML = originalHtml;
+                            copyUnverifiedBtn.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy to clipboard.');
+                    });
+                });
             }
 
             // Initialize: Load signups then render
