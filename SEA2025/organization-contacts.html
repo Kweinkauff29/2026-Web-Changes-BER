@@ -6756,7 +6756,7 @@
                 });
             }
 
-            function renderData(contacts) {
+            function renderData(contacts = allContacts) {
                 contentArea.innerHTML = '';
                 totalContactsEl.textContent = contacts.length;
 
