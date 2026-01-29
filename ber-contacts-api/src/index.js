@@ -309,7 +309,9 @@ export default {
                             headshot_url, headshot_by, headshot_at,
                             confirmed_volume, confirmed_volume_by, confirmed_volume_at,
                             actual_award_level, actual_award_level_by, actual_award_level_at,
-                            not_attending, not_attending_by, not_attending_at
+                            not_attending, not_attending_by, not_attending_at,
+                            first_name, last_name, organization, email, role, pri_phone, city, state,
+                            is_deleted, deleted_by, deleted_at
                      FROM signups`
                 ).all();
 
@@ -340,7 +342,17 @@ export default {
                         actualAwardLevelAt: row.actual_award_level_at || '',
                         notAttending: row.not_attending === 1,
                         notAttendingBy: row.not_attending_by || '',
-                        notAttendingAt: row.not_attending_at || ''
+                        notAttendingAt: row.not_attending_at || '',
+                        // New Fields
+                        firstName: row.first_name || '',
+                        lastName: row.last_name || '',
+                        organization: row.organization || '',
+                        email: row.email || '',
+                        role: row.role || '',
+                        priPhone: row.pri_phone || '',
+                        city: row.city || '',
+                        state: row.state || '',
+                        isDeleted: row.is_deleted === 1
                     };
                 });
 
@@ -355,6 +367,7 @@ export default {
                     key, checkedBy, salesVolume, numbersConfirmed, eventRegistered, awardPref,
                     headshotUrl, confirmedVolume, actualAwardLevel, notAttending,
                     headshotBy, confirmedVolumeBy, actualAwardLevelBy, notAttendingBy,
+                    firstName, lastName, organization, email, role, priPhone, city, state,
                     checkedState, // Legacy
                     updatedBy // Generic fallback
                 } = await request.json();
@@ -363,8 +376,32 @@ export default {
 
                 const now = new Date().toISOString().replace('T', ' ').split('.')[0];
 
-                // Handle sales volume update
-                if (salesVolume !== undefined) {
+                // Handle New Contact Full Creation / Update
+                if (firstName !== undefined || lastName !== undefined) {
+                    await env.DB.prepare(`
+                        INSERT INTO signups (
+                            contact_key, first_name, last_name, organization, email, 
+                            sales_volume, role, pri_phone, city, state, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(contact_key) DO UPDATE SET 
+                            first_name=excluded.first_name,
+                            last_name=excluded.last_name,
+                            organization=excluded.organization,
+                            email=excluded.email,
+                            sales_volume=excluded.sales_volume,
+                            role=excluded.role,
+                            pri_phone=excluded.pri_phone,
+                            city=excluded.city,
+                            state=excluded.state,
+                            is_deleted=0 -- un-delete if updating
+                    `).bind(
+                        key, firstName || '', lastName || '', organization || '', email || '',
+                        salesVolume || '', role || '', priPhone || '', city || '', state || '', now
+                    ).run();
+                }
+
+                // Handle sales volume update independent of full contact
+                if (salesVolume !== undefined && firstName === undefined) {
                     await env.DB.prepare(`
                         INSERT INTO signups (contact_key, sales_volume, created_at) VALUES (?, ?, ?)
                         ON CONFLICT(contact_key) DO UPDATE SET sales_volume=excluded.sales_volume
@@ -468,7 +505,7 @@ export default {
                 });
             }
 
-            // DELETE /signups/:key - Remove a key
+            // DELETE /signups/:key - SOFT Delete
             if (request.method === 'DELETE' && path.startsWith('/signups/')) {
                 const key = decodeURIComponent(path.replace('/signups/', ''));
 
@@ -479,9 +516,15 @@ export default {
                     });
                 }
 
-                await env.DB.prepare(
-                    'DELETE FROM signups WHERE contact_key = ?'
-                ).bind(key).run();
+                // Get user from header or query if we want to track deleted_by? 
+                // For now, simple soft delete.
+                const now = new Date().toISOString();
+
+                // Check if row exists, if so soft delete, if not insert as deleted
+                await env.DB.prepare(`
+                    INSERT INTO signups (contact_key, is_deleted, deleted_at) VALUES (?, 1, ?)
+                    ON CONFLICT(contact_key) DO UPDATE SET is_deleted=1, deleted_at=excluded.deleted_at
+                `).bind(key, now).run();
 
                 return new Response(JSON.stringify({ success: true, key }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
