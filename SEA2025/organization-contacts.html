@@ -5941,6 +5941,47 @@
                 `;
             }
 
+            // Notes Button
+            const notesBtnHtml = `
+                <button class="notes-toggle-btn" title="View/Add Notes" 
+                        style="margin-left: 8px; background: none; border: none; color: #64748b; cursor: pointer; padding: 4px;">
+                    <i class="fa-regular fa-comment-dots"></i>
+                </button>
+            `;
+
+            // Notes Section HTML
+            const savedNotesStr = checkedState[uniqueKey]?.notes || '[]';
+            let savedNotes = [];
+            try { savedNotes = JSON.parse(savedNotesStr); } catch (e) { savedNotes = []; }
+
+            const notesListHtml = savedNotes.map(n => `
+                <div style="background: #f8fafc; padding: 6px; border-radius: 4px; margin-bottom: 6px; font-size: 0.85rem; border: 1px solid #e2e8f0;">
+                    <div style="font-weight: 600; color: #475569; display:flex; justify-content:space-between;">
+                        <span>${n.by}</span>
+                        <span style="font-weight:400; font-size:0.75rem; color:#94a3b8;">${new Date(n.at).toLocaleString()}</span>
+                    </div>
+                    <div style="color: #334155; margin-top: 2px; white-space: pre-wrap;">${n.text}</div>
+                </div>
+            `).join('');
+
+            const notesSectionHtml = `
+                <div class="notes-section" style="display: none; border-top: 1px solid #e2e8f0; margin-top: 8px; padding-top: 8px;">
+                    <h5 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #475569;">Notes</h5>
+                    <div class="notes-list" style="margin-bottom: 8px; max-height: 150px; overflow-y: auto;">
+                        ${notesListHtml}
+                        ${savedNotes.length === 0 ? '<div style="color:#cbd5e1; font-style:italic;">No notes yet.</div>' : ''}
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <textarea class="new-note-text" placeholder="Add a note..." rows="2" 
+                            style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem;"></textarea>
+                        <button class="save-note-btn" 
+                            style="background: #3b82f6; color: white; border: none; border-radius: 4px; padding: 0 12px; cursor: pointer; font-weight: 500;">
+                            Save
+                        </button>
+                    </div>
+                </div>
+            `;
+
             div.innerHTML = `
                             <div class="card-checkbox-area">
                                     <label class="custom-checkbox">
@@ -5954,7 +5995,10 @@
                                 <div style="display:flex; flex-direction:column; width: 100%;">
                                     <div style="display: flex; align-items: center; justify-content: space-between;">
                                         <span class="name-text">${name}</span>
-                                        ${deleteBtnHtml}
+                                        <div style="display: flex; align-items: center; margin-left: auto;">
+                                            ${notesBtnHtml}
+                                            ${deleteBtnHtml}
+                                        </div>
                                     </div>
                                     ${checkedByHtml}
                                 </div>
@@ -5965,7 +6009,78 @@
                             ${locationHtml}
                             ${volumeHtml}
                             ${trackingHtml}
+                            ${notesSectionHtml}
                         `;
+
+
+            // Event Listener: Notes Toggle
+            const notesToggleBtn = div.querySelector('.notes-toggle-btn');
+            const notesSection = div.querySelector('.notes-section');
+            if (notesToggleBtn && notesSection) {
+                notesToggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent card click
+                    notesSection.style.display = notesSection.style.display === 'none' ? 'block' : 'none';
+                });
+            }
+
+            // Event Listener: Save Note
+            const saveNoteBtn = div.querySelector('.save-note-btn');
+            const newNoteText = div.querySelector('.new-note-text');
+            const notesListDiv = div.querySelector('.notes-list');
+
+            if (saveNoteBtn && newNoteText) {
+                saveNoteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const text = newNoteText.value.trim();
+                    if (!text) return;
+
+                    const userSelect = document.getElementById('userSelect');
+                    const currentUser = userSelect ? (userSelect.value || 'Unknown') : 'Unknown';
+                    const now = new Date();
+
+                    const newNote = {
+                        text: text,
+                        by: currentUser,
+                        at: now.toISOString()
+                    };
+
+                    // Update local state
+                    let currentNotes = [];
+                    try {
+                        currentNotes = JSON.parse(checkedState[uniqueKey]?.notes || '[]');
+                    } catch (e) { currentNotes = []; }
+
+                    currentNotes.push(newNote);
+
+                    if (!checkedState[uniqueKey]) checkedState[uniqueKey] = {};
+                    checkedState[uniqueKey].notes = JSON.stringify(currentNotes);
+
+                    // Optimistic UI Update
+                    const noteHtml = `
+                        <div style="background: #f8fafc; padding: 6px; border-radius: 4px; margin-bottom: 6px; font-size: 0.85rem; border: 1px solid #e2e8f0;">
+                            <div style="font-weight: 600; color: #475569; display:flex; justify-content:space-between;">
+                                <span>${newNote.by}</span>
+                                <span style="font-weight:400; font-size:0.75rem; color:#94a3b8;">${now.toLocaleString()}</span>
+                            </div>
+                            <div style="color: #334155; margin-top: 2px; white-space: pre-wrap;">${newNote.text}</div>
+                        </div>
+                     `;
+
+                    // If list was empty ("No notes yet"), clear it
+                    if (notesListDiv.innerHTML.includes('No notes yet')) notesListDiv.innerHTML = '';
+
+                    notesListDiv.insertAdjacentHTML('beforeend', noteHtml);
+                    newNoteText.value = '';
+
+                    // Scroll to bottom
+                    notesListDiv.scrollTop = notesListDiv.scrollHeight;
+
+                    // Save to API
+                    await updateTracking(uniqueKey, {
+                        notes: JSON.stringify(currentNotes)
+                    });
+                });
+            }
 
             // Event listener (Checkbox)
             const checkbox = div.querySelector('input[type="checkbox"]');

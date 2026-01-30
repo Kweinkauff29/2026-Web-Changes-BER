@@ -303,207 +303,178 @@ export default {
             if (request.method === 'GET' && path === '/signups') {
                 const { results } = await env.DB.prepare(
                     `SELECT contact_key, checked_by, created_at, sales_volume,
-                            numbers_confirmed, numbers_confirmed_by, numbers_confirmed_at,
-                            event_registered, event_registered_by, event_registered_at,
-                            award_pref, award_pref_by, award_pref_at,
-                            headshot_url, headshot_by, headshot_at,
-                            confirmed_volume, confirmed_volume_by, confirmed_volume_at,
-                            actual_award_level, actual_award_level_by, actual_award_level_at,
-                            not_attending, not_attending_by, not_attending_at,
-                            first_name, last_name, organization, email, role, pri_phone, city, state,
-                            is_deleted, deleted_by, deleted_at
-                     FROM signups`
+                    numbers_confirmed, numbers_confirmed_by, numbers_confirmed_at,
+                    event_registered, event_registered_by, event_registered_at,
+                    award_pref, award_pref_by, award_pref_at,
+                    headshot_url, headshot_by, headshot_at,
+                    confirmed_volume, confirmed_volume_by, confirmed_volume_at,
+                    actual_award_level, actual_award_level_by, actual_award_level_at,
+                    not_attending, not_attending_by, not_attending_at,
+                    first_name, last_name, organization, email, role, pri_phone, city, state,
+                    is_deleted, deleted_by, deleted_at,
+                    notes
+			 FROM signups`
                 ).all();
 
-                // Return as object with key -> { checkedBy, createdAt, ... }
                 const signups = {};
                 results.forEach(row => {
                     signups[row.contact_key] = {
-                        checkedBy: row.checked_by || '',
-                        createdAt: row.created_at || '',
-                        salesVolume: row.sales_volume || '',
-                        numbersConfirmed: row.numbers_confirmed === 1,
-                        numbersConfirmedBy: row.numbers_confirmed_by || '',
-                        numbersConfirmedAt: row.numbers_confirmed_at || '',
-                        eventRegistered: row.event_registered === 1,
-                        eventRegisteredBy: row.event_registered_by || '',
-                        eventRegisteredAt: row.event_registered_at || '',
-                        awardPref: row.award_pref || '',
-                        awardPrefBy: row.award_pref_by || '',
-                        awardPrefAt: row.award_pref_at || '',
-                        headshotUrl: row.headshot_url || '',
-                        headshotBy: row.headshot_by || '',
-                        headshotAt: row.headshot_at || '',
-                        confirmedVolume: row.confirmed_volume || '',
-                        confirmedVolumeBy: row.confirmed_volume_by || '',
-                        confirmedVolumeAt: row.confirmed_volume_at || '',
-                        actualAwardLevel: row.actual_award_level || '',
-                        actualAwardLevelBy: row.actual_award_level_by || '',
-                        actualAwardLevelAt: row.actual_award_level_at || '',
-                        notAttending: row.not_attending === 1,
-                        notAttendingBy: row.not_attending_by || '',
-                        notAttendingAt: row.not_attending_at || '',
-                        // New Fields
-                        firstName: row.first_name || '',
-                        lastName: row.last_name || '',
-                        organization: row.organization || '',
-                        email: row.email || '',
-                        role: row.role || '',
-                        priPhone: row.pri_phone || '',
-                        city: row.city || '',
-                        state: row.state || '',
-                        isDeleted: row.is_deleted === 1
+                        checkedBy: row.checked_by,
+                        createdAt: row.created_at,
+                        salesVolume: row.sales_volume,
+                        numbersConfirmed: row.numbers_confirmed, // 0 or 1
+                        numbersConfirmedBy: row.numbers_confirmed_by,
+                        numbersConfirmedAt: row.numbers_confirmed_at,
+                        eventRegistered: row.event_registered,
+                        eventRegisteredBy: row.event_registered_by,
+                        eventRegisteredAt: row.event_registered_at,
+                        awardPref: row.award_pref,
+                        awardPrefBy: row.award_pref_by,
+                        awardPrefAt: row.award_pref_at,
+                        headshotUrl: row.headshot_url,
+                        headshotBy: row.headshot_by,
+                        headshotAt: row.headshot_at,
+                        confirmedVolume: row.confirmed_volume,
+                        confirmedVolumeBy: row.confirmed_volume_by,
+                        confirmedVolumeAt: row.confirmed_volume_at,
+                        actualAwardLevel: row.actual_award_level,
+                        actualAwardLevelBy: row.actual_award_level_by,
+                        actualAwardLevelAt: row.actual_award_level_at,
+                        notAttending: row.not_attending,
+                        notAttendingBy: row.not_attending_by,
+                        notAttendingAt: row.not_attending_at,
+
+                        // Full Contact Details
+                        firstName: row.first_name,
+                        lastName: row.last_name,
+                        organization: row.organization,
+                        email: row.email,
+                        role: row.role,
+                        priPhone: row.pri_phone,
+                        city: row.city,
+                        state: row.state,
+
+                        // Soft Delete
+                        isDeleted: row.is_deleted === 1,
+
+                        // Notes
+                        notes: row.notes
                     };
                 });
 
-                return new Response(JSON.stringify({ signups }), {
-                    headers: { 'Content-Type': 'application/json', ...corsHeaders }
-                });
+                return new Response(JSON.stringify({ signups }), { headers: corsHeaders });
             }
 
-            // POST /signups - Add/Update a signup, Sales Volume, or tracking fields
             if (request.method === 'POST' && url.pathname === '/signups') {
                 const {
                     key, checkedBy, salesVolume, numbersConfirmed, eventRegistered, awardPref,
                     headshotUrl, confirmedVolume, actualAwardLevel, notAttending,
                     headshotBy, confirmedVolumeBy, actualAwardLevelBy, notAttendingBy,
-                    firstName, lastName, organization, email, role, priPhone, city, state,
                     checkedState, // Legacy
-                    updatedBy // Generic fallback
+                    updatedBy, // Generic fallback
+
+                    // New Contact Fields
+                    firstName, lastName, organization, email, role, priPhone, city, state,
+
+                    // Notes
+                    notes
                 } = await request.json();
 
                 if (!key) return new Response('Missing key', { status: 400, headers: corsHeaders });
 
-                const now = new Date().toISOString().replace('T', ' ').split('.')[0];
+                // Check existence
+                const exists = await env.DB.prepare('SELECT contact_key, is_deleted FROM signups WHERE contact_key = ?').bind(key).first();
 
-                // Handle New Contact Full Creation / Update
-                if (firstName !== undefined || lastName !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (
-                            contact_key, first_name, last_name, organization, email, 
-                            sales_volume, role, pri_phone, city, state, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET 
-                            first_name=excluded.first_name,
-                            last_name=excluded.last_name,
-                            organization=excluded.organization,
-                            email=excluded.email,
-                            sales_volume=excluded.sales_volume,
-                            role=excluded.role,
-                            pri_phone=excluded.pri_phone,
-                            city=excluded.city,
-                            state=excluded.state,
-                            is_deleted=0 -- un-delete if updating
-                    `).bind(
-                        key, firstName || '', lastName || '', organization || '', email || '',
-                        salesVolume || '', role || '', priPhone || '', city || '', state || '', now
+                if (!exists) {
+                    // INSERT
+                    await env.DB.prepare(
+                        `INSERT INTO signups(
+                        contact_key, checked_by, created_at, sales_volume,
+                        numbers_confirmed, event_registered, award_pref,
+                        headshot_url, confirmed_volume, actual_award_level, not_attending,
+                        first_name, last_name, organization, email, role, pri_phone, city, state, notes
+                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                    ).bind(
+                        key, checkedBy, new Date().toISOString(), salesVolume,
+                        numbersConfirmed ? 1 : 0, eventRegistered ? 1 : 0, awardPref,
+                        headshotUrl, confirmedVolume, actualAwardLevel, notAttending ? 1 : 0,
+                        firstName, lastName, organization, email, role, priPhone, city, state, notes
                     ).run();
+                } else {
+                    // UPDATE - Build Query Dynamically
+                    let updateFields = [];
+                    let bindings = [];
+
+                    if (checkedBy !== undefined) { updateFields.push('checked_by = ?'); bindings.push(checkedBy); }
+                    if (salesVolume !== undefined) { updateFields.push('sales_volume = ?'); bindings.push(salesVolume); }
+
+                    // Tracking + attribution
+                    if (numbersConfirmed !== undefined) {
+                        updateFields.push('numbers_confirmed = ?'); bindings.push(numbersConfirmed ? 1 : 0);
+                        updateFields.push('numbers_confirmed_by = ?'); bindings.push(updatedBy);
+                        updateFields.push('numbers_confirmed_at = ?'); bindings.push(new Date().toISOString());
+                    }
+                    if (eventRegistered !== undefined) {
+                        updateFields.push('event_registered = ?'); bindings.push(eventRegistered ? 1 : 0);
+                        updateFields.push('event_registered_by = ?'); bindings.push(updatedBy);
+                        updateFields.push('event_registered_at = ?'); bindings.push(new Date().toISOString());
+                    }
+                    if (awardPref !== undefined) {
+                        updateFields.push('award_pref = ?'); bindings.push(awardPref);
+                        updateFields.push('award_pref_by = ?'); bindings.push(updatedBy);
+                        updateFields.push('award_pref_at = ?'); bindings.push(new Date().toISOString());
+                    }
+                    if (headshotUrl !== undefined) {
+                        updateFields.push('headshot_url = ?'); bindings.push(headshotUrl);
+                        updateFields.push('headshot_by = ?'); bindings.push(headshotBy || updatedBy);
+                        updateFields.push('headshot_at = ?'); bindings.push(new Date().toISOString());
+                    }
+                    if (confirmedVolume !== undefined) {
+                        updateFields.push('confirmed_volume = ?'); bindings.push(confirmedVolume);
+                        updateFields.push('confirmed_volume_by = ?'); bindings.push(confirmedVolumeBy || updatedBy);
+                        updateFields.push('confirmed_volume_at = ?'); bindings.push(new Date().toISOString());
+                    }
+                    if (actualAwardLevel !== undefined) {
+                        updateFields.push('actual_award_level = ?'); bindings.push(actualAwardLevel);
+                        updateFields.push('actual_award_level_by = ?'); bindings.push(actualAwardLevelBy || updatedBy);
+                        updateFields.push('actual_award_level_at = ?'); bindings.push(new Date().toISOString());
+                    }
+                    if (notAttending !== undefined) {
+                        updateFields.push('not_attending = ?'); bindings.push(notAttending ? 1 : 0);
+                        updateFields.push('not_attending_by = ?'); bindings.push(notAttendingBy || updatedBy);
+                        updateFields.push('not_attending_at = ?'); bindings.push(new Date().toISOString());
+                    }
+
+                    // Contact Details
+                    if (firstName !== undefined) { updateFields.push('first_name = ?'); bindings.push(firstName); }
+                    if (lastName !== undefined) { updateFields.push('last_name = ?'); bindings.push(lastName); }
+                    if (organization !== undefined) { updateFields.push('organization = ?'); bindings.push(organization); }
+                    if (email !== undefined) { updateFields.push('email = ?'); bindings.push(email); }
+                    if (role !== undefined) { updateFields.push('role = ?'); bindings.push(role); }
+                    if (priPhone !== undefined) { updateFields.push('pri_phone = ?'); bindings.push(priPhone); }
+                    if (city !== undefined) { updateFields.push('city = ?'); bindings.push(city); }
+                    if (state !== undefined) { updateFields.push('state = ?'); bindings.push(state); }
+
+                    // Notes
+                    if (notes !== undefined) { updateFields.push('notes = ?'); bindings.push(notes); }
+
+                    // Un-delete if updating
+                    if (exists.is_deleted === 1) {
+                        updateFields.push('is_deleted = 0');
+                        updateFields.push('deleted_by = NULL');
+                        updateFields.push('deleted_at = NULL');
+                    }
+
+                    if (updateFields.length > 0) {
+                        bindings.push(key);
+                        await env.DB.prepare(`UPDATE signups SET ${updateFields.join(', ')} WHERE contact_key = ? `)
+                            .bind(...bindings).run();
+                    }
                 }
 
-                // Handle sales volume update independent of full contact
-                if (salesVolume !== undefined && firstName === undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, sales_volume, created_at) VALUES (?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET sales_volume=excluded.sales_volume
-                    `).bind(key, salesVolume, now).run();
-                }
-
-                // Handle checkedBy update
-                if (checkedBy !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, checked_by, created_at) VALUES (?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET checked_by=excluded.checked_by, created_at=excluded.created_at
-                    `).bind(key, checkedBy, now).run();
-                }
-
-                // Handle numbers confirmed update
-                if (numbersConfirmed !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, numbers_confirmed, numbers_confirmed_by, numbers_confirmed_at, created_at) 
-                        VALUES (?, ?, ?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET 
-                            numbers_confirmed=excluded.numbers_confirmed,
-                            numbers_confirmed_by=excluded.numbers_confirmed_by,
-                            numbers_confirmed_at=excluded.numbers_confirmed_at
-                    `).bind(key, numbersConfirmed ? 1 : 0, updatedBy || '', now, now).run();
-                }
-
-                // Handle event registered update
-                if (eventRegistered !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, event_registered, event_registered_by, event_registered_at, created_at) 
-                        VALUES (?, ?, ?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET 
-                            event_registered=excluded.event_registered,
-                            event_registered_by=excluded.event_registered_by,
-                            event_registered_at=excluded.event_registered_at
-                    `).bind(key, eventRegistered ? 1 : 0, updatedBy || '', now, now).run();
-                }
-
-                // Handle award preference update
-                if (awardPref !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, award_pref, award_pref_by, award_pref_at, created_at) 
-                        VALUES (?, ?, ?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET 
-                            award_pref=excluded.award_pref,
-                            award_pref_by=excluded.award_pref_by,
-                            award_pref_at=excluded.award_pref_at
-                    `).bind(key, awardPref, updatedBy || '', now, now).run();
-                }
-
-                // Handle headshot URL update
-                if (headshotUrl !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, headshot_url, headshot_by, headshot_at, created_at) 
-                        VALUES (?, ?, ?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET 
-                            headshot_url=excluded.headshot_url,
-                            headshot_by=excluded.headshot_by,
-                            headshot_at=excluded.headshot_at
-                    `).bind(key, headshotUrl, headshotBy || updatedBy || '', now, now).run();
-                }
-
-                // Handle confirmed volume update
-                if (confirmedVolume !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, confirmed_volume, confirmed_volume_by, confirmed_volume_at, created_at) 
-                        VALUES (?, ?, ?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET 
-                            confirmed_volume=excluded.confirmed_volume,
-                            confirmed_volume_by=excluded.confirmed_volume_by,
-                            confirmed_volume_at=excluded.confirmed_volume_at
-                    `).bind(key, confirmedVolume, confirmedVolumeBy || updatedBy || '', now, now).run();
-                }
-
-                // Handle actual award level update
-                if (actualAwardLevel !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, actual_award_level, actual_award_level_by, actual_award_level_at, created_at) 
-                        VALUES (?, ?, ?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET 
-                            actual_award_level=excluded.actual_award_level,
-                            actual_award_level_by=excluded.actual_award_level_by,
-                            actual_award_level_at=excluded.actual_award_level_at
-                    `).bind(key, actualAwardLevel, actualAwardLevelBy || updatedBy || '', now, now).run();
-                }
-
-                // Handle not attending update
-                if (notAttending !== undefined) {
-                    await env.DB.prepare(`
-                        INSERT INTO signups (contact_key, not_attending, not_attending_by, not_attending_at, created_at) 
-                        VALUES (?, ?, ?, ?, ?)
-                        ON CONFLICT(contact_key) DO UPDATE SET 
-                            not_attending=excluded.not_attending,
-                            not_attending_by=excluded.not_attending_by,
-                            not_attending_at=excluded.not_attending_at
-                    `).bind(key, notAttending ? 1 : 0, notAttendingBy || updatedBy || '', now, now).run();
-                }
-
-                return new Response(JSON.stringify({ success: true }), {
-                    headers: { 'Content-Type': 'application/json', ...corsHeaders }
-                });
+                return new Response('Saved', { headers: corsHeaders });
             }
+
 
             // DELETE /signups/:key - SOFT Delete
             if (request.method === 'DELETE' && path.startsWith('/signups/')) {
@@ -522,9 +493,9 @@ export default {
 
                 // Check if row exists, if so soft delete, if not insert as deleted
                 await env.DB.prepare(`
-                    INSERT INTO signups (contact_key, is_deleted, deleted_at) VALUES (?, 1, ?)
-                    ON CONFLICT(contact_key) DO UPDATE SET is_deleted=1, deleted_at=excluded.deleted_at
-                `).bind(key, now).run();
+                    INSERT INTO signups(contact_key, is_deleted, deleted_at) VALUES(?, 1, ?)
+                    ON CONFLICT(contact_key) DO UPDATE SET is_deleted = 1, deleted_at = excluded.deleted_at
+                    `).bind(key, now).run();
 
                 return new Response(JSON.stringify({ success: true, key }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
