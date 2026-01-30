@@ -5942,17 +5942,23 @@
             }
 
             // Notes Button
-            const notesBtnHtml = `
-                <button class="notes-toggle-btn" title="View/Add Notes" 
-                        style="margin-left: 8px; background: none; border: none; color: #64748b; cursor: pointer; padding: 4px;">
-                    <i class="fa-regular fa-comment-dots"></i>
-                </button>
-            `;
-
-            // Notes Section HTML
+            // Highlight if notes exist
             const savedNotesStr = checkedState[uniqueKey]?.notes || '[]';
             let savedNotes = [];
             try { savedNotes = JSON.parse(savedNotesStr); } catch (e) { savedNotes = []; }
+            const hasNotes = savedNotes.length > 0;
+
+            // "Allan Hase" style for everyone, but color-coded for utility
+            const btnBg = hasNotes ? '#e0f2fe' : '#f8fafc';
+            const btnBorder = hasNotes ? '#bae6fd' : '#cbd5e1';
+            const btnColor = hasNotes ? '#0284c7' : '#64748b';
+
+            const notesBtnHtml = `
+                <button class="notes-toggle-btn" title="View/Add Notes" 
+                        style="margin-left: 8px; background: ${btnBg}; border: 1px solid ${btnBorder}; color: ${btnColor}; cursor: pointer; padding: 4px 10px; border-radius: 99px; transition: all 0.2s; display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600;">
+                    <i class="fa-regular fa-comment-dots"></i> <span>Notes</span>
+                </button>
+            `;
 
             const notesListHtml = savedNotes.map(n => `
                 <div style="background: #f8fafc; padding: 6px; border-radius: 4px; margin-bottom: 6px; font-size: 0.85rem; border: 1px solid #e2e8f0;">
@@ -5964,8 +5970,10 @@
                 </div>
             `).join('');
 
+            const displayStyle = hasNotes ? 'block' : 'none';
+
             const notesSectionHtml = `
-                <div class="notes-section" style="grid-column: 1 / -1; display: none; border-top: 1px solid #e2e8f0; margin-top: 0.5rem; padding: 1rem; background: #f8fafc; border-radius: 6px;">
+                <div class="notes-section" style="grid-column: 1 / -1; display: ${displayStyle}; border-top: 1px solid #e2e8f0; margin-top: 0.5rem; padding: 1rem; background: #f8fafc; border-radius: 6px;">
                     <h5 style="margin: 0 0 0.5rem 0; font-size: 0.85rem; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Notes</h5>
                     <div class="notes-list" style="margin-bottom: 1rem; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
                         ${notesListHtml}
