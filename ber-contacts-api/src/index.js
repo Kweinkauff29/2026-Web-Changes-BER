@@ -395,10 +395,10 @@ export default {
                         first_name, last_name, organization, email, role, pri_phone, city, state, notes
                     ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
                     ).bind(
-                        key, checkedBy, new Date().toISOString(), salesVolume,
-                        numbersConfirmed ? 1 : 0, eventRegistered ? 1 : 0, awardPref,
-                        headshotUrl, confirmedVolume, actualAwardLevel, notAttending ? 1 : 0,
-                        firstName, lastName, organization, email, role, priPhone, city, state, notes
+                        key, checkedBy || null, new Date().toISOString(), salesVolume || null,
+                        numbersConfirmed ? 1 : 0, eventRegistered ? 1 : 0, awardPref || null,
+                        headshotUrl || null, confirmedVolume || null, actualAwardLevel || null, notAttending ? 1 : 0,
+                        firstName || null, lastName || null, organization || null, email || null, role || null, priPhone || null, city || null, state || null, notes || null
                     ).run();
                 } else {
                     // UPDATE - Build Query Dynamically

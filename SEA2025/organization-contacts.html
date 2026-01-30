@@ -6084,8 +6084,19 @@
                     notesListDiv.scrollTop = notesListDiv.scrollHeight;
 
                     // Save to API
+                    // We MUST send full contact details in case this is the first interaction
+                    // and the backend needs to INSERT a new row.
                     await updateTracking(uniqueKey, {
-                        notes: JSON.stringify(currentNotes)
+                        notes: JSON.stringify(currentNotes),
+                        // Basic Details to ensure valid INSERT
+                        firstName: contact.FirstName,
+                        lastName: contact.LastName,
+                        organization: contact.Organization,
+                        email: contact.Email,
+                        salesVolume: contact.SalesVolume,
+                        priPhone: contact.PriPhone,
+                        city: contact.City,
+                        state: contact.State
                     });
                 });
             }
