@@ -411,37 +411,37 @@ export default {
                     // Tracking + attribution
                     if (numbersConfirmed !== undefined) {
                         updateFields.push('numbers_confirmed = ?'); bindings.push(numbersConfirmed ? 1 : 0);
-                        updateFields.push('numbers_confirmed_by = ?'); bindings.push(updatedBy);
+                        updateFields.push('numbers_confirmed_by = ?'); bindings.push(updatedBy || null);
                         updateFields.push('numbers_confirmed_at = ?'); bindings.push(new Date().toISOString());
                     }
                     if (eventRegistered !== undefined) {
                         updateFields.push('event_registered = ?'); bindings.push(eventRegistered ? 1 : 0);
-                        updateFields.push('event_registered_by = ?'); bindings.push(updatedBy);
+                        updateFields.push('event_registered_by = ?'); bindings.push(updatedBy || null);
                         updateFields.push('event_registered_at = ?'); bindings.push(new Date().toISOString());
                     }
                     if (awardPref !== undefined) {
                         updateFields.push('award_pref = ?'); bindings.push(awardPref);
-                        updateFields.push('award_pref_by = ?'); bindings.push(updatedBy);
+                        updateFields.push('award_pref_by = ?'); bindings.push(updatedBy || null);
                         updateFields.push('award_pref_at = ?'); bindings.push(new Date().toISOString());
                     }
                     if (headshotUrl !== undefined) {
                         updateFields.push('headshot_url = ?'); bindings.push(headshotUrl);
-                        updateFields.push('headshot_by = ?'); bindings.push(headshotBy || updatedBy);
+                        updateFields.push('headshot_by = ?'); bindings.push(headshotBy || updatedBy || null);
                         updateFields.push('headshot_at = ?'); bindings.push(new Date().toISOString());
                     }
                     if (confirmedVolume !== undefined) {
                         updateFields.push('confirmed_volume = ?'); bindings.push(confirmedVolume);
-                        updateFields.push('confirmed_volume_by = ?'); bindings.push(confirmedVolumeBy || updatedBy);
+                        updateFields.push('confirmed_volume_by = ?'); bindings.push(confirmedVolumeBy || updatedBy || null);
                         updateFields.push('confirmed_volume_at = ?'); bindings.push(new Date().toISOString());
                     }
                     if (actualAwardLevel !== undefined) {
                         updateFields.push('actual_award_level = ?'); bindings.push(actualAwardLevel);
-                        updateFields.push('actual_award_level_by = ?'); bindings.push(actualAwardLevelBy || updatedBy);
+                        updateFields.push('actual_award_level_by = ?'); bindings.push(actualAwardLevelBy || updatedBy || null);
                         updateFields.push('actual_award_level_at = ?'); bindings.push(new Date().toISOString());
                     }
                     if (notAttending !== undefined) {
                         updateFields.push('not_attending = ?'); bindings.push(notAttending ? 1 : 0);
-                        updateFields.push('not_attending_by = ?'); bindings.push(notAttendingBy || updatedBy);
+                        updateFields.push('not_attending_by = ?'); bindings.push(notAttendingBy || updatedBy || null);
                         updateFields.push('not_attending_at = ?'); bindings.push(new Date().toISOString());
                     }
 

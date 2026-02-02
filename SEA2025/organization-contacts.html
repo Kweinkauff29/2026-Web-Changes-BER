@@ -5497,22 +5497,107 @@
 
                 for (const key of allKeys) {
                     const oldData = checkedState[key] || {};
-                    const newData = newState[key] || {};
+                    const newData = newState[key]; // undefined if missing on server
 
-                    // Check if this key has meaningful changes
-                    const hasChanges = JSON.stringify(oldData) !== JSON.stringify(newData);
+                    // SPECIAL HANDLING: Preserving local custom contacts (as before)
+                    if (!newData && oldData.firstName && !oldData.isDeleted) {
+                        // console.log('Preserving local custom contact pending sync:', key);
+                        continue;
+                    }
+
+                    // Start with server data as base
+                    const mergedData = { ...(newData || {}) };
+                    const serverData = newData || {};
+                    let mergedChanges = false;
+
+                    // List of timestamped fields to protect
+                    const protectFields = [
+                        { val: 'numbersConfirmed', time: 'numbersConfirmedAt' },
+                        { val: 'eventRegistered', time: 'eventRegisteredAt' },
+                        { val: 'notAttending', time: 'notAttendingAt' },
+                        { val: 'awardPref', time: 'awardPrefAt' },
+                        { val: 'confirmedVolume', time: 'confirmedVolumeAt' },
+                        { val: 'headshotUrl', time: 'headshotAt' },
+                        { val: 'actualAwardLevel', time: 'actualAwardLevelAt' },
+                        // Main verify
+                        { val: 'checkedBy', time: 'createdAt' } // 'createdAt' is used for verified timestamp
+                    ];
+
+                    protectFields.forEach(field => {
+                        const localTime = oldData[field.time];
+                        const serverTime = serverData[field.time];
+
+                        // If we have a local change...
+                        if (localTime) {
+                            // And server has NO time, OR local time is NEWER than server time
+                            if (!serverTime || new Date(localTime) > new Date(serverTime)) {
+                                mergedData[field.val] = oldData[field.val];
+                                mergedData[field.time] = oldData[field.time];
+                                // Also copy the 'By' field if it exists
+                                const byField = field.time.replace('At', 'By').replace('createdAt', 'checkedBy');
+                                // ^ Special case for verified: checkedBy is the value, createdAt is time.
+                                // Actually for verify: val='checkedBy'. 
+                                // For others: val='numbersConfirmed', by='numbersConfirmedBy'.
+
+                                if (field.val === 'checkedBy') {
+                                    // 'checkedBy' IS the value field in the list, so it's copied.
+                                    // Nothing else needed?
+                                } else {
+                                    const byKey = field.time.replace('At', 'By');
+                                    if (oldData[byKey]) mergedData[byKey] = oldData[byKey];
+                                }
+                                mergedChanges = true;
+                            }
+                        }
+                    });
+
+                    // Special handling for NOTES (Append/Merge)
+                    // If local has more notes than server, keep local?
+                    // Safer: Parse both, merge unique by timestamp?
+                    if (oldData.notes && serverData.notes !== oldData.notes) {
+                        // If local notes are different, check if simpler "length" heuristic works or just keep local if newer last edit?
+                        // Let's assume notes are append-only.
+                        // But if server has new notes from OTHERS?
+                        // Let's try to parse and merge lists.
+                        try {
+                            const localNotes = JSON.parse(oldData.notes || '[]');
+                            const serverNotes = JSON.parse(serverData.notes || '[]');
+
+                            // Combine
+                            const combined = [...serverNotes];
+                            localNotes.forEach(n => {
+                                if (!combined.some(sn => sn.at === n.at && sn.by === n.by)) {
+                                    combined.push(n);
+                                }
+                            });
+                            // Sort
+                            combined.sort((a, b) => new Date(a.at) - new Date(b.at));
+
+                            mergedData.notes = JSON.stringify(combined);
+                            if (mergedData.notes !== serverData.notes) mergedChanges = true;
+
+                        } catch (e) {
+                            // Fallback: If local is newer, keep local
+                            // How to know if local notes are newer? We don't have 'notesAt'.
+                            // We'll trust the merge above or default to server if parse fails.
+                        }
+                    }
+
+                    // Check if the FINAL merged data is different from what we had locally
+                    const hasChanges = JSON.stringify(oldData) !== JSON.stringify(mergedData);
 
                     if (hasChanges) {
                         changesDetected++;
                         // Update local state
-                        if (Object.keys(newData).length === 0) {
-                            delete checkedState[key];
+                        if (!mergedData || Object.keys(mergedData).length === 0) {
+                            // Only delete if truly empty AND not a custom contact
+                            if (!oldData.firstName) delete checkedState[key];
                         } else {
-                            checkedState[key] = newData;
+                            checkedState[key] = mergedData;
                         }
 
                         // Find and update the card in DOM
-                        updateCardInDOM(key, newData);
+                        updateCardInDOM(key, mergedData);
                     }
                 }
 
@@ -5557,7 +5642,11 @@
             if (nameArea && data.checkedBy) {
                 let dateStr = '';
                 if (data.createdAt) {
-                    try { dateStr = new Date(data.createdAt + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { }
+                    try {
+                        // Handle both ISO ending in Z and SQLite (no Z)
+                        const dateVal = data.createdAt.endsWith('Z') ? data.createdAt : data.createdAt + 'Z';
+                        dateStr = new Date(dateVal).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+                    } catch (e) { }
                 }
                 const checkedByHtml = `<span class="checked-by-info"><i class="fa-solid fa-check-double"></i> Verified by ${data.checkedBy} <span style="color:#94a3b8; font-size: 0.7em;">(${dateStr})</span></span>`;
                 const existing = nameArea.querySelector('.checked-by-info');
@@ -5809,7 +5898,8 @@
                 let dateStr = '';
                 if (info.createdAt) {
                     try {
-                        dateStr = new Date(info.createdAt + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+                        const dateVal = info.createdAt.endsWith('Z') ? info.createdAt : info.createdAt + 'Z';
+                        dateStr = new Date(dateVal).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     } catch (e) { dateStr = ''; }
                 }
                 checkedByHtml = `<span class="checked-by-info"><i class="fa-solid fa-check-double"></i> Verified by ${info.checkedBy} <span style="color:#94a3b8; font-size: 0.7em;">(${dateStr})</span></span>`;
