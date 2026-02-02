@@ -5665,9 +5665,9 @@
         }
 
         // API helper to add a signup or update volume
-        async function addSignup(key, checkedBy = undefined, salesVolume = undefined) {
+        async function addSignup(key, checkedBy = undefined, salesVolume = undefined, extraData = {}) {
             try {
-                const payload = { key };
+                const payload = { key, ...extraData };
                 if (checkedBy !== undefined) payload.checkedBy = checkedBy;
                 if (salesVolume !== undefined) payload.salesVolume = salesVolume;
 
@@ -5736,6 +5736,17 @@
             const cityState = [contact.City, contact.State].filter(Boolean).join(', ');
 
             // Volume Logic
+            const contactPayload = {
+                firstName: contact.FirstName,
+                lastName: contact.LastName,
+                organization: contact.Organization,
+                email: contact.Email,
+                salesVolume: contact.SalesVolume,
+                priPhone: contact.PriPhone,
+                city: contact.City,
+                state: contact.State
+            };
+
             let salesVolume = contact.SalesVolume;
             // Use global keys
             const uniqueKey = `${contact.Organization || 'Other'}_${email || name}`;
@@ -6122,7 +6133,7 @@
                     if (existing) existing.outerHTML = newHtml;
                     else nameArea.insertAdjacentHTML('beforeend', newHtml);
 
-                    await addSignup(uniqueKey, currentUser);
+                    await addSignup(uniqueKey, currentUser, undefined, contactPayload);
                 } else {
                     // Confirmation before unchecking
                     if (!confirm('Are you sure you want to uncheck this contact? This will remove the verification.')) {
@@ -6164,7 +6175,8 @@
                     await updateTracking(uniqueKey, {
                         numbersConfirmed: isChecked,
                         numbersConfirmedBy: currentUser,
-                        numbersConfirmedAt: new Date().toISOString()
+                        numbersConfirmedAt: new Date().toISOString(),
+                        ...contactPayload
                     });
                 });
             }
@@ -6205,7 +6217,8 @@
                     await updateTracking(uniqueKey, {
                         eventRegistered: isChecked,
                         eventRegisteredBy: currentUser,
-                        eventRegisteredAt: new Date().toISOString()
+                        eventRegisteredAt: new Date().toISOString(),
+                        ...contactPayload
                     });
                 });
             }
@@ -6238,7 +6251,8 @@
                     await updateTracking(uniqueKey, {
                         notAttending: isChecked,
                         notAttendingBy: currentUser,
-                        notAttendingAt: new Date().toISOString()
+                        notAttendingAt: new Date().toISOString(),
+                        ...contactPayload
                     });
                 });
             }
@@ -6273,7 +6287,8 @@
                     await updateTracking(uniqueKey, {
                         awardPref: value,
                         awardPrefBy: currentUser,
-                        awardPrefAt: new Date().toISOString()
+                        awardPrefAt: new Date().toISOString(),
+                        ...contactPayload
                     });
                 });
             }
@@ -6305,7 +6320,8 @@
                     await updateTracking(uniqueKey, {
                         confirmedVolume: newVal,
                         confirmedVolumeBy: currentUser,
-                        confirmedVolumeAt: new Date().toISOString()
+                        confirmedVolumeAt: new Date().toISOString(),
+                        ...contactPayload
                     });
 
                     // Since this affects the CARD DISPLAY (awards tier, css class), we should optimally RE-RENDER the card
@@ -6412,7 +6428,8 @@
                     await updateTracking(uniqueKey, {
                         headshotUrl: newVal,
                         headshotBy: currentUser,
-                        headshotAt: new Date().toISOString()
+                        headshotAt: new Date().toISOString(),
+                        ...contactPayload
                     });
                 });
             }
@@ -6444,7 +6461,8 @@
                     await updateTracking(uniqueKey, {
                         actualAwardLevel: newVal,
                         actualAwardLevelBy: currentUser,
-                        actualAwardLevelAt: new Date().toISOString()
+                        actualAwardLevelAt: new Date().toISOString(),
+                        ...contactPayload
                     });
                 });
             }
