@@ -965,8 +965,91 @@
                 </tr>`;
             }
 
+            html += `</tbody>`;
+
+            // --- END OF YEAR STATS (FOOTER) ---
+            const volumeMetrics = ['closed_sales', 'new_listings', 'sold_dollar_volume', 'price_increases', 'price_decreases'];
+            const isVolume = volumeMetrics.includes(metricType);
+
+            // Check if we have complete years (12 months of data)
+            const stats = {};
+            let hasCompleteYear = false;
+
+            years.forEach(year => {
+                const values = [];
+                for (let m = 1; m <= 12; m++) {
+                    const val = metricData.years[year]?.[m];
+                    if (val !== undefined && val !== null) values.push(val);
+                }
+
+                // Strict 12-month requirement
+                if (values.length === 12) {
+                    hasCompleteYear = true;
+                    const total = values.reduce((a, b) => a + b, 0);
+                    const avg = total / 12;
+
+                    // Median calculation
+                    const sorted = [...values].sort((a, b) => a - b);
+                    const mid1 = sorted[5]; // 6th item (0-indexed)
+                    const mid2 = sorted[6]; // 7th item
+                    const median = (mid1 + mid2) / 2;
+
+                    stats[year] = { total, avg, median };
+                }
+            });
+
+            if (hasCompleteYear) {
+                html += '<tfoot>';
+
+                // 1. YEARLY TOTAL (Only for Volume Metrics)
+                if (isVolume) {
+                    html += '<tr style="border-top: 2px solid var(--border); font-weight: 700; background: rgba(30, 41, 59, 0.6);">';
+                    html += '<td style="color: var(--accent); border-right: 1px solid var(--border);">Yearly Total</td>';
+                    years.forEach(year => {
+                        if (stats[year]) {
+                            // Use formatValue directly
+                            html += `<td style="color: var(--text-primary);">${formatValue(stats[year].total)}</td>`;
+                        } else {
+                            html += '<td style="color: var(--text-secondary); text-align: center;">-</td>';
+                        }
+                    });
+                    html += '<td colspan="3" style="background: transparent;"></td></tr>';
+                }
+
+                // 2. MONTHLY AVERAGE
+                // Add top border if we didn't show Total
+                const avgBorderDetails = !isVolume ? 'border-top: 2px solid var(--border);' : '';
+                html += `<tr style="${avgBorderDetails} font-weight: 600; background: rgba(30, 41, 59, 0.3);">`;
+                html += '<td style="color: var(--primary-light); border-right: 1px solid var(--border);">Monthly Avg</td>';
+                years.forEach(year => {
+                    if (stats[year]) {
+                        // For display, maybe integer if metric is integer? 
+                        // formatValue handles locals properly but preserves decimals for avg.
+                        // Let's force 0 decimals for large numbers if needed or trust toLocaleString.
+                        // Actually, for Dollar Volume Average, we want precision.
+                        html += `<td>${formatValue(stats[year].avg)}</td>`;
+                    } else {
+                        html += '<td style="color: var(--text-secondary); text-align: center;">-</td>';
+                    }
+                });
+                html += '<td colspan="3" style="background: transparent;"></td></tr>';
+
+                // 3. MONTHLY MEDIAN
+                html += '<tr style="font-weight: 600; background: rgba(30, 41, 59, 0.3);">';
+                html += '<td style="color: var(--success); border-right: 1px solid var(--border);">Monthly Median</td>';
+                years.forEach(year => {
+                    if (stats[year]) {
+                        html += `<td>${formatValue(stats[year].median)}</td>`;
+                    } else {
+                        html += '<td style="color: var(--text-secondary); text-align: center;">-</td>';
+                    }
+                });
+                html += '<td colspan="3" style="background: transparent;"></td></tr>';
+
+                html += '</tfoot>';
+            }
+
             html += `
-                            </tbody>
                         </table>
                     </div>
                 </div>
