@@ -1041,6 +1041,10 @@
             <h1>2025 Sales Excellence Eligible</h1>
 
             <div style="display: flex; align-items: center; gap: 1rem;">
+                <button id="exportExcelBtn" class="copy-btn" style="background: #16a34a;"
+                    title="Export all signups to Excel">
+                    <i class="fa-solid fa-file-excel"></i> Export to Excel
+                </button>
                 <button id="addContactBtn" class="copy-btn" style="background: var(--text-main);"
                     title="Add a new contact manually">
                     <i class="fa-solid fa-user-plus"></i> Add Contact
@@ -7150,6 +7154,110 @@
 
             await addSignup(key, undefined, formattedVol);
         });
+
+        // --- Export to Excel (CSV) ---
+        document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+
+        function exportToExcel() {
+            // Headers for the CSV
+            const headers = [
+                'First Name',
+                'Last Name',
+                'Organization',
+                'Email',
+                'Phone',
+                'City',
+                'State',
+                'Sales Volume',
+                'Verified',
+                'Verified By',
+                'Verified At',
+                'Numbers Confirmed',
+                'Numbers Confirmed By',
+                'Event Registered',
+                'Event Registered By',
+                'Not Attending',
+                'Award Preference',
+                'Confirmed Volume',
+                'Actual Award Level',
+                'Headshot URL',
+                'Notes'
+            ];
+
+            const rows = [];
+
+            // Iterate through all contacts
+            allContacts.forEach(contact => {
+                const name = `${contact.FirstName || ''} ${contact.LastName || ''}`.trim();
+                const email = contact.Email || '';
+                const uniqueKey = `${contact.Organization || 'Other'}_${email || name}`;
+                const info = checkedState[uniqueKey] || {};
+
+                // Format notes
+                let notesText = '';
+                if (info.notes) {
+                    try {
+                        const notesArr = JSON.parse(info.notes);
+                        notesText = notesArr.map(n => `[${n.by} - ${n.at}]: ${n.text}`).join(' | ');
+                    } catch (e) {
+                        notesText = info.notes;
+                    }
+                }
+
+                const row = [
+                    contact.FirstName || '',
+                    contact.LastName || '',
+                    contact.Organization || '',
+                    contact.Email || '',
+                    contact.PriPhone || '',
+                    contact.City || '',
+                    contact.State || '',
+                    contact.SalesVolume || '',
+                    info.checkedBy ? 'Yes' : 'No',
+                    info.checkedBy || '',
+                    info.createdAt || '',
+                    info.numbersConfirmed ? 'Yes' : 'No',
+                    info.numbersConfirmedBy || '',
+                    info.eventRegistered ? 'Yes' : 'No',
+                    info.eventRegisteredBy || '',
+                    info.notAttending ? 'Yes' : 'No',
+                    info.awardPref || '',
+                    info.confirmedVolume || '',
+                    info.actualAwardLevel || '',
+                    info.headshotUrl || '',
+                    notesText
+                ];
+
+                rows.push(row);
+            });
+
+            // Create CSV content
+            const escapeCSV = (val) => {
+                if (val === null || val === undefined) return '';
+                const str = String(val);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            };
+
+            const csvContent = [
+                headers.map(escapeCSV).join(','),
+                ...rows.map(row => row.map(escapeCSV).join(','))
+            ].join('\n');
+
+            // Create download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `SEA_2025_Signups_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
 
 
     </script>
