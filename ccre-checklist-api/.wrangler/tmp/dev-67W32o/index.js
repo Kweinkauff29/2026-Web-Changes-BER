@@ -221,7 +221,7 @@ function memberPageHTML(token) {
                 + '<div class="progress-section"><div class="progress-label">Onboarding Progress</div><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div><div class="progress-text">' + completed + ' of ' + tasks.length + ' steps complete (' + pct + '%)</div></div>'
                 + '<div class="tasks-title">Your Checklist</div>' + taskHTML
                 + '<div class="calendar-section"><div class="tasks-title">Scheduled Timeline</div>' + renderCalendar(tasks) + '</div>'
-                + '<div class="contact-card"><div class="contact-title">Need Help?</div><div class="contact-info">Contact us at <a href="mailto:info@ccreschool.com">info@ccreschool.com</a> or call <a href="tel:+12395551234">(239) 555-1234</a></div></div>'
+                + '<div class="contact-card"><div class="contact-title">Need Help?</div><div class="contact-info">Contact us at <a href="mailto:Support@berealtors.org">Support@berealtors.org</a> or call <a href="tel:+12399926771">(239) 992-6771</a></div></div>'
                 + '<div class="footer">CCRE School \xB7 Member Experience Dashboard</div>';
         }
 
