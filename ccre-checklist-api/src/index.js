@@ -180,7 +180,8 @@ export default {
 
             // ── ADMIN API: Reschedule Task ──
             if (request.method === 'POST' && path.match(/^\/api\/admin\/tasks\/\d+\/reschedule$/)) {
-                const id = parseInt(path.split('/').pop());
+                const parts = path.split('/');
+                const id = parseInt(parts[parts.length - 2]);
                 const { due_date } = await request.json();
                 await env.DB.prepare('UPDATE member_tasks SET due_date = ?, updated_at = datetime(\'now\') WHERE id = ?')
                     .bind(due_date, id).run();
@@ -335,8 +336,8 @@ async function performGZSync(env) {
     const SYNC_START_DATE = '2026-03-16';
 
     try {
-        // Fetch active memberships from GrowthZone. 
-        const syncUrl = `${env.GROWTHZONE_BASE_URL}/api/memberships/all?$top=500&$orderby=MembershipId desc`;
+        // Fetch active memberships from GrowthZone with expanded Contact info
+        const syncUrl = `${env.GROWTHZONE_BASE_URL}/api/memberships/all?$top=500&$expand=Contact&$orderby=MembershipId desc`;
         
         const response = await fetch(syncUrl, {
             headers: {
@@ -346,11 +347,14 @@ async function performGZSync(env) {
         });
 
         if (!response.ok) {
-            return jsonResponse({ error: `GZ API Error: ${response.status} ${response.statusText}`, details: await response.text() }, 500);
+            console.error(`GZ API Error: ${response.status} ${response.statusText}`, await response.text());
+            return jsonResponse({ error: `GZ API Error: ${response.status} ${response.statusText}` }, 500);
         }
 
         const data = await response.json();
         const results = data.Results || data.results || [];
+
+        // (Cleaned up for production)
 
         let imported = 0;
         let skipped = 0;
@@ -382,26 +386,61 @@ async function performGZSync(env) {
             }
 
             // 2. Check if already in DB
-            const existing = await env.DB.prepare('SELECT id FROM members WHERE growthzone_contact_id = ?').bind(contactId).first();
+            const existing = await env.DB.prepare('SELECT id, email, phone FROM members WHERE growthzone_contact_id = ?').bind(contactId).first();
+            
+            // 3. ENRICH DATA (from expanded Contact property or fetch if needed)
+            let email = existing ? existing.email : null;
+            let phone = existing ? existing.phone : null;
+
+            const contact = membership.Contact;
+            if (contact) {
+                email = email || contact.Email || contact.EmailAddress || contact.PrimaryEmail || null;
+                phone = phone || contact.Phone || contact.PhoneNumber || contact.PrimaryPhone || null;
+            }
+
+            // Fallback enrichment if expand failed to provide data or for existing members missing it
+            if (!email || !phone) {
+                try {
+                    // Try direct ID fetch first
+                    const contactUrl = `${env.GROWTHZONE_BASE_URL}/api/contacts/${contactId}`;
+                    let contactRes = await fetch(contactUrl, {
+                        headers: { 'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`, 'Accept': 'application/json' }
+                    });
+                    
+                    let cData = null;
+                    if (contactRes.ok) {
+                        cData = await contactRes.json();
+                    } else if (contactRes.status === 404) {
+                        // TRY FILTER FALLBACK if direct ID fetch 404s
+                        const filterUrl = `${env.GROWTHZONE_BASE_URL}/api/contacts?$filter=ContactId eq ${contactId}`;
+                        const filterRes = await fetch(filterUrl, {
+                            headers: { 'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`, 'Accept': 'application/json' }
+                        });
+                        if (filterRes.ok) {
+                            const fData = await filterRes.json();
+                            const results = fData.Results || fData.results || [];
+                            if (results.length > 0) cData = results[0];
+                        }
+                    }
+
+                    if (cData) {
+                        email = email || cData.Email || cData.EmailAddress || cData.PrimaryEmail || null;
+                        phone = phone || cData.Phone || cData.PhoneNumber || cData.PrimaryPhone || null;
+                    }
+                } catch (ce) {
+                    // Fail silently
+                }
+            }
+
+            // Sync update if existing and we have new data
+            if (existing && (email !== existing.email || phone !== existing.phone)) {
+                await env.DB.prepare('UPDATE members SET email = ?, phone = ?, updated_at = datetime(\'now\') WHERE id = ?')
+                    .bind(email, phone, existing.id).run();
+            }
+
             if (existing) {
                 skipped++;
                 continue;
-            }
-
-            // 3. ENRICH DATA: Fetch contact specific Email/Phone
-            let email = null;
-            let phone = null;
-            try {
-                const contactRes = await fetch(`${env.GROWTHZONE_BASE_URL}/api/contacts/${contactId}`, {
-                    headers: { 'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`, 'Accept': 'application/json' }
-                });
-                if (contactRes.ok) {
-                    const cData = await contactRes.json();
-                    email = cData.Email || cData.EmailAddress || null;
-                    phone = cData.Phone || cData.PhoneNumber || null;
-                }
-            } catch (ce) {
-                console.error(`Failed to enrich contact ${contactId}: ${ce.message}`);
             }
 
             // 4. Name Parsing
