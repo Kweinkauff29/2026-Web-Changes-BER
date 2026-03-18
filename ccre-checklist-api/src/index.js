@@ -128,7 +128,7 @@ export default {
                 if (!member) return jsonResponse({ error: 'Not found' }, 404);
 
                 const { results: tasks } = await env.DB.prepare(
-                    'SELECT * FROM member_tasks WHERE member_id = ? ORDER BY due_date, sort_order, id'
+                    'SELECT * FROM member_tasks WHERE member_id = ? ORDER BY due_date, id'
                 ).bind(id).all();
                 const { results: touchpoints } = await env.DB.prepare(
                     'SELECT * FROM touchpoints WHERE member_id = ? ORDER BY occurred_at DESC'
@@ -138,6 +138,62 @@ export default {
                 ).bind(id).all();
 
                 return jsonResponse({ member, tasks, touchpoints, notes });
+            }
+
+            // ── ADMIN API: Global Calendar ──
+            if (request.method === 'GET' && path === '/api/admin/calendar') {
+                const { results: events } = await env.DB.prepare(`
+                    SELECT t.*, m.first_name, m.last_name, m.member_type 
+                    FROM member_tasks t
+                    JOIN members m ON t.member_id = m.id
+                    WHERE t.state != 'skipped'
+                    ORDER BY t.due_date ASC
+                `).all();
+                return jsonResponse({ events });
+            }
+
+            // ── ADMIN API: Today's Tasks ──
+            if (request.method === 'GET' && path === '/api/admin/today') {
+                const today = new Date().toISOString().split('T')[0];
+                const { results: tasks } = await env.DB.prepare(`
+                    SELECT t.*, m.first_name, m.last_name 
+                    FROM member_tasks t
+                    JOIN members m ON t.member_id = m.id
+                    WHERE t.due_date = ? AND t.state = 'pending'
+                `).bind(today).all();
+                return jsonResponse({ tasks });
+            }
+
+            // ── ADMIN API: Template Management ──
+            if (request.method === 'GET' && path === '/api/admin/templates') {
+                const { results: templates } = await env.DB.prepare('SELECT * FROM workflow_templates ORDER BY member_type, sort_order').all();
+                return jsonResponse({ templates });
+            }
+
+            if (request.method === 'POST' && path.match(/^\/api\/admin\/templates\/\d+$/)) {
+                const id = parseInt(path.split('/').pop());
+                const { title, description, day_offset } = await request.json();
+                await env.DB.prepare('UPDATE workflow_templates SET title = ?, description = ?, day_offset = ?, updated_at = datetime(\'now\') WHERE id = ?')
+                    .bind(title, description, day_offset, id).run();
+                return jsonResponse({ success: true });
+            }
+
+            // ── ADMIN API: Reschedule Task ──
+            if (request.method === 'POST' && path.match(/^\/api\/admin\/tasks\/\d+\/reschedule$/)) {
+                const id = parseInt(path.split('/').pop());
+                const { due_date } = await request.json();
+                await env.DB.prepare('UPDATE member_tasks SET due_date = ?, updated_at = datetime(\'now\') WHERE id = ?')
+                    .bind(due_date, id).run();
+                return jsonResponse({ success: true });
+            }
+
+            // ── ADMIN API: Add Note ──
+            if (request.method === 'POST' && path.match(/^\/api\/admin\/members\/\d+\/notes$/)) {
+                const member_id = parseInt(path.split('/').pop());
+                const { body, author } = await request.json();
+                await env.DB.prepare('INSERT INTO member_notes (member_id, body, author) VALUES (?, ?, ?)')
+                    .bind(member_id, body, author || 'Admin').run();
+                return jsonResponse({ success: true });
             }
 
             // ── ADMIN API: Create member ──
@@ -254,84 +310,7 @@ export default {
 
             // ── GZ SYNC ──
             if (request.method === 'POST' && path === '/api/internal/sync') {
-                if (!env.GROWTHZONE_API_KEY || !env.GROWTHZONE_BASE_URL) {
-                    return jsonResponse({ error: 'GrowthZone credentials not configured in environment.' }, 500);
-                }
-
-                try {
-                    // Fetch contacts from GrowthZone. Current tenant API has limited fields.
-                    const response = await fetch(`${env.GROWTHZONE_BASE_URL}/api/contacts?$top=100`, {
-                        headers: {
-                            'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`,
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) {
-                        return jsonResponse({ error: `GZ API Error: ${response.status} ${response.statusText}`, details: await response.text() }, 500);
-                    }
-
-                    const data = await response.json();
-                    let imported = 0;
-                    let skipped = 0;
-
-                    // Process results
-                    for (const contact of data.Results || []) {
-                        // In this API version, we only see limited fields.
-                        // SystemContactTypeId: 1 = Individual, 2 = Business
-                        // MembershipStatusTypeId: 2 = Active
-                        
-                        // We only want active individuals for the Realtor checklist (as a fallback)
-                        if (contact.MembershipStatusTypeId !== 2 || contact.SystemContactTypeId !== 1) {
-                            continue; // Skip non-members or businesses for now
-                        }
-
-                        // Defaulting to realtor due to lack of detailed Membership expand in this GZ API endpoint
-                        let memberType = 'realtor'; 
-                        
-                        // We use the current date as the sync date because CreatedDate is not exposed in this schema
-                        const startDate = new Date().toISOString().split('T')[0];
-                        
-                        // Check if already in DB
-                        const existing = await env.DB.prepare('SELECT id FROM members WHERE growthzone_contact_id = ?').bind(contact.ContactId).first();
-                        
-                        // Parse names (ContactName usually has full name for individuals)
-                        let firstName = '';
-                        let lastName = '';
-                        if (contact.ContactName) {
-                            const parts = contact.ContactName.split(' ');
-                            firstName = parts[0] || '';
-                            lastName = parts.slice(1).join(' ') || '';
-                        }
-                        
-                        if (!existing && firstName) {
-                            // Insert new member
-                            const token = generateToken();
-                            const now = new Date().toISOString();
-                            const result = await env.DB.prepare(`
-                                INSERT INTO members (growthzone_contact_id, public_token, first_name, last_name, email, phone, organization, member_type, status, start_date, created_at, updated_at)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
-                            `).bind(
-                                contact.ContactId, token,
-                                firstName, lastName,
-                                contact.EmailAddress || null, 
-                                contact.Phone || null, 
-                                null, // Organization not reliably in this payload for individuals
-                                memberType, startDate, now, now
-                            ).run();
-                            
-                            const memberId = result.meta.last_row_id;
-                            await expandWorkflow(env.DB, memberId, memberType, startDate);
-                            imported++;
-                        } else {
-                            skipped++;
-                        }
-                    }
-
-                    return jsonResponse({ success: true, message: `GrowthZone sync complete. Imported ${imported}, skipped ${skipped} existing active contacts.` });
-                } catch (e) {
-                    return jsonResponse({ error: e.message }, 500);
-                }
+                return await performGZSync(env);
             }
 
             return jsonResponse({ error: 'Not Found' }, 404);
@@ -343,7 +322,116 @@ export default {
     },
 
     async scheduled(event, env, ctx) {
-        // GrowthZone sync stub — will implement when credentials are available
-        console.log('Cron triggered: GrowthZone sync stub');
+        console.log('Cron triggered: GrowthZone sync');
+        ctx.waitUntil(performGZSync(env));
     }
 };
+
+async function performGZSync(env) {
+    if (!env.GROWTHZONE_API_KEY || !env.GROWTHZONE_BASE_URL) {
+        return jsonResponse({ error: 'GrowthZone credentials not configured.' }, 500);
+    }
+
+    const SYNC_START_DATE = '2026-03-16';
+
+    try {
+        // Fetch active memberships from GrowthZone. 
+        const syncUrl = `${env.GROWTHZONE_BASE_URL}/api/memberships/all?$top=500&$orderby=MembershipId desc`;
+        
+        const response = await fetch(syncUrl, {
+            headers: {
+                'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`,
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            return jsonResponse({ error: `GZ API Error: ${response.status} ${response.statusText}`, details: await response.text() }, 500);
+        }
+
+        const data = await response.json();
+        const results = data.Results || data.results || [];
+
+        let imported = 0;
+        let skipped = 0;
+
+        for (const membership of results) {
+            // Filter by active status in code since OData filter might be ignored
+            if (membership.MembershipStatusTypeId !== 2) continue;
+
+            const typeStr = (membership.Type || "").toUpperCase();
+            const nameStr = (membership.Name || "");
+            const contactId = membership.ContactId;
+            const startDate = membership.StartDate ? membership.StartDate.split('T')[0] : new Date().toISOString().split('T')[0];
+
+            // 0. Filter by configured sync start date
+            if (startDate < SYNC_START_DATE) {
+                continue;
+            }
+
+            // 1. Determine Member Type
+            let memberType = null;
+            if (typeStr.includes('REALTOR') || typeStr.includes('MLS')) {
+                memberType = 'realtor';
+            } else if (typeStr.includes('AFFILIATE')) {
+                memberType = 'affiliate';
+            }
+
+            if (!memberType) {
+                continue;
+            }
+
+            // 2. Check if already in DB
+            const existing = await env.DB.prepare('SELECT id FROM members WHERE growthzone_contact_id = ?').bind(contactId).first();
+            if (existing) {
+                skipped++;
+                continue;
+            }
+
+            // 3. ENRICH DATA: Fetch contact specific Email/Phone
+            let email = null;
+            let phone = null;
+            try {
+                const contactRes = await fetch(`${env.GROWTHZONE_BASE_URL}/api/contacts/${contactId}`, {
+                    headers: { 'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`, 'Accept': 'application/json' }
+                });
+                if (contactRes.ok) {
+                    const cData = await contactRes.json();
+                    email = cData.Email || cData.EmailAddress || null;
+                    phone = cData.Phone || cData.PhoneNumber || null;
+                }
+            } catch (ce) {
+                console.error(`Failed to enrich contact ${contactId}: ${ce.message}`);
+            }
+
+            // 4. Name Parsing
+            let firstName = '';
+            let lastName = '';
+            const parts = nameStr.trim().split(/\s+/);
+            if (parts.length > 1) {
+                firstName = parts[0];
+                lastName = parts.slice(1).join(' ');
+            } else {
+                firstName = nameStr;
+            }
+
+            // 5. Insert & Expand Workflow
+            const token = generateToken();
+            const now = new Date().toISOString();
+            
+            const result = await env.DB.prepare(`
+                INSERT INTO members (growthzone_contact_id, public_token, first_name, last_name, email, phone, member_type, status, start_date, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
+            `).bind(contactId, token, firstName, lastName, email, phone, memberType, startDate, now, now).run();
+
+            const memberId = result.meta.last_row_id;
+            await expandWorkflow(env.DB, memberId, memberType, startDate);
+            imported++;
+        }
+
+        return jsonResponse({ success: true, message: `GZ Sync complete. Imported ${imported}, skipped ${skipped}.` });
+    } catch (e) {
+        console.error('Sync Error:', e);
+        return jsonResponse({ error: e.message }, 500);
+    }
+}

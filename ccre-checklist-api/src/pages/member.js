@@ -83,6 +83,25 @@ export function memberPageHTML(token) {
 
         /* Footer */
         .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-family: var(--mono); font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Calendar */
+        .calendar-section { margin-top: 40px; }
+        .calendar-container { border: 1px solid var(--ink); background: var(--canvas); width: 100%; margin-top: 12px; }
+        .calendar-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--ink); background: var(--panel); }
+        .calendar-title { font-family: var(--mono); font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+        .calendar-day-head { font-family: var(--mono); font-size: 9px; text-align: center; padding: 8px; border-bottom: 1px solid var(--ink); border-right: 1px solid var(--ink); background: #f9fafb; font-weight: 700; text-transform: uppercase; }
+        .calendar-day-head:last-child { border-right: none; }
+        .calendar-day { min-height: 80px; padding: 6px; border-bottom: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; position: relative; }
+        .calendar-day:nth-child(7n) { border-right: none; }
+        .calendar-day.other-month { background: #f9f9f9; color: #d1d5db; }
+        .calendar-day.today { background: rgba(2,132,199,0.03); }
+        .calendar-day.today .calendar-day-num { font-weight: 700; color: var(--blue); border-bottom: 1.5px solid var(--blue); display: inline-block; }
+        .calendar-day-num { font-family: var(--mono); font-size: 10px; margin-bottom: 4px; display: block; }
+        .calendar-event { font-size: 8.5px; padding: 2px 4px; border: 1px solid; border-radius: 1px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); line-height: 1.2; }
+        .calendar-event.status-pending { border-color: var(--blue); color: var(--blue); background: rgba(2,132,199,0.04); }
+        .calendar-event.status-complete { border-color: var(--green); color: var(--green); background: rgba(22,163,74,0.04); }
+        .calendar-event.status-overdue { border-color: var(--red); color: var(--red); background: rgba(220,38,38,0.04); }
     </style>
 </head>
 <body>
@@ -142,8 +161,47 @@ export function memberPageHTML(token) {
                 + '</div></div>'
                 + '<div class="progress-section"><div class="progress-label">Onboarding Progress</div><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div><div class="progress-text">' + completed + ' of ' + tasks.length + ' steps complete (' + pct + '%)</div></div>'
                 + '<div class="tasks-title">Your Checklist</div>' + taskHTML
+                + '<div class="calendar-section"><div class="tasks-title">Scheduled Timeline</div>' + renderCalendar(tasks) + '</div>'
                 + '<div class="contact-card"><div class="contact-title">Need Help?</div><div class="contact-info">Contact us at <a href="mailto:info@ccreschool.com">info@ccreschool.com</a> or call <a href="tel:+12395551234">(239) 555-1234</a></div></div>'
                 + '<div class="footer">CCRE School · Member Experience Dashboard</div>';
+        }
+
+        function renderCalendar(tasks) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            
+            const firstDay = new Date(year, month, 1).getDay(); // 0 is Sunday
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+            const fillDays = firstDay === 0 ? 6 : firstDay - 1; // Monday start
+            
+            let html = '<div class="calendar-container">';
+            html += '<div class="calendar-header"><div class="calendar-title">' + monthNames[month] + ' ' + year + '</div></div>';
+            html += '<div class="calendar-grid">';
+            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(d => html += '<div class="calendar-day-head">' + d + '</div>');
+            
+            for (let i = fillDays; i > 0; i--) {
+                html += '<div class="calendar-day other-month"><span class="calendar-day-num">' + (prevMonthDays - i + 1) + '</span></div>';
+            }
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                const isToday = dateStr === todayStr;
+                const dayTasks = tasks.filter(t => t.due_date === dateStr);
+                
+                html += '<div class="calendar-day ' + (isToday ? 'today' : '') + '">';
+                html += '<span class="calendar-day-num">' + d + '</span>';
+                dayTasks.forEach(t => {
+                    html += '<div class="calendar-event status-' + t.state + '" title="' + t.title + '">' + t.title + '</div>';
+                });
+                html += '</div>';
+            }
+            
+            html += '</div></div>';
+            return html;
         }
 
         loadChecklist();

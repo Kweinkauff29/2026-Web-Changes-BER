@@ -142,6 +142,25 @@ function memberPageHTML(token) {
 
         /* Footer */
         .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-family: var(--mono); font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Calendar */
+        .calendar-section { margin-top: 40px; }
+        .calendar-container { border: 1px solid var(--ink); background: var(--canvas); width: 100%; margin-top: 12px; }
+        .calendar-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--ink); background: var(--panel); }
+        .calendar-title { font-family: var(--mono); font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+        .calendar-day-head { font-family: var(--mono); font-size: 9px; text-align: center; padding: 8px; border-bottom: 1px solid var(--ink); border-right: 1px solid var(--ink); background: #f9fafb; font-weight: 700; text-transform: uppercase; }
+        .calendar-day-head:last-child { border-right: none; }
+        .calendar-day { min-height: 80px; padding: 6px; border-bottom: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; position: relative; }
+        .calendar-day:nth-child(7n) { border-right: none; }
+        .calendar-day.other-month { background: #f9f9f9; color: #d1d5db; }
+        .calendar-day.today { background: rgba(2,132,199,0.03); }
+        .calendar-day.today .calendar-day-num { font-weight: 700; color: var(--blue); border-bottom: 1.5px solid var(--blue); display: inline-block; }
+        .calendar-day-num { font-family: var(--mono); font-size: 10px; margin-bottom: 4px; display: block; }
+        .calendar-event { font-size: 8.5px; padding: 2px 4px; border: 1px solid; border-radius: 1px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); line-height: 1.2; }
+        .calendar-event.status-pending { border-color: var(--blue); color: var(--blue); background: rgba(2,132,199,0.04); }
+        .calendar-event.status-complete { border-color: var(--green); color: var(--green); background: rgba(22,163,74,0.04); }
+        .calendar-event.status-overdue { border-color: var(--red); color: var(--red); background: rgba(220,38,38,0.04); }
     </style>
 </head>
 <body>
@@ -201,8 +220,47 @@ function memberPageHTML(token) {
                 + '</div></div>'
                 + '<div class="progress-section"><div class="progress-label">Onboarding Progress</div><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div><div class="progress-text">' + completed + ' of ' + tasks.length + ' steps complete (' + pct + '%)</div></div>'
                 + '<div class="tasks-title">Your Checklist</div>' + taskHTML
+                + '<div class="calendar-section"><div class="tasks-title">Scheduled Timeline</div>' + renderCalendar(tasks) + '</div>'
                 + '<div class="contact-card"><div class="contact-title">Need Help?</div><div class="contact-info">Contact us at <a href="mailto:info@ccreschool.com">info@ccreschool.com</a> or call <a href="tel:+12395551234">(239) 555-1234</a></div></div>'
                 + '<div class="footer">CCRE School \xB7 Member Experience Dashboard</div>';
+        }
+
+        function renderCalendar(tasks) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            
+            const firstDay = new Date(year, month, 1).getDay(); // 0 is Sunday
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+            const fillDays = firstDay === 0 ? 6 : firstDay - 1; // Monday start
+            
+            let html = '<div class="calendar-container">';
+            html += '<div class="calendar-header"><div class="calendar-title">' + monthNames[month] + ' ' + year + '</div></div>';
+            html += '<div class="calendar-grid">';
+            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(d => html += '<div class="calendar-day-head">' + d + '</div>');
+            
+            for (let i = fillDays; i > 0; i--) {
+                html += '<div class="calendar-day other-month"><span class="calendar-day-num">' + (prevMonthDays - i + 1) + '</span></div>';
+            }
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                const isToday = dateStr === todayStr;
+                const dayTasks = tasks.filter(t => t.due_date === dateStr);
+                
+                html += '<div class="calendar-day ' + (isToday ? 'today' : '') + '">';
+                html += '<span class="calendar-day-num">' + d + '</span>';
+                dayTasks.forEach(t => {
+                    html += '<div class="calendar-event status-' + t.state + '" title="' + t.title + '">' + t.title + '</div>';
+                });
+                html += '</div>';
+            }
+            
+            html += '</div></div>';
+            return html;
         }
 
         loadChecklist();
@@ -277,8 +335,27 @@ function swissTechCSS() {
         /* Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-overlay.active { display: flex; }
-        .modal { background: var(--canvas); border: 2px solid var(--ink); width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding: 28px; position: relative; }
+        .modal { background: var(--canvas); border: 2px solid var(--ink); width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; padding: 28px; position: relative; }
         .modal-close { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink); }
+
+        /* Calendar */
+        .calendar-container { margin-top: 24px; border: 1px solid var(--ink); background: var(--canvas); width: 100%; }
+        .calendar-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--ink); background: var(--panel); }
+        .calendar-title { font-family: var(--mono); font-size: 14px; font-weight: 700; text-transform: uppercase; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+        .calendar-day-head { font-family: var(--mono); font-size: 10px; text-align: center; padding: 8px; border-bottom: 1px solid var(--ink); border-right: 1px solid var(--ink); background: #f9fafb; font-weight: 700; text-transform: uppercase; }
+        .calendar-day-head:last-child { border-right: none; }
+        .calendar-day { min-height: 90px; padding: 6px; border-bottom: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; position: relative; transition: background 0.1s; }
+        .calendar-day:nth-child(7n) { border-right: none; }
+        .calendar-day.other-month { background: #f9f9f9; color: #9ca3af; }
+        .calendar-day.today { background: rgba(2,132,199,0.03); }
+        .calendar-day.today .calendar-day-num { font-weight: 700; color: var(--blue); border-bottom: 1.5px solid var(--blue); display: inline-block; }
+        .calendar-day-num { font-family: var(--mono); font-size: 11px; margin-bottom: 6px; display: block; }
+        .calendar-event { font-size: 9px; padding: 2px 4px; border: 1px solid; border-radius: 2px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); cursor: pointer; line-height: 1.2; }
+        .calendar-event:hover { opacity: 0.8; }
+        .calendar-event.status-pending { border-color: var(--blue); color: var(--blue); background: rgba(2,132,199,0.05); }
+        .calendar-event.status-complete { border-color: var(--green); color: var(--green); background: rgba(22,163,74,0.05); }
+        .calendar-event.status-overdue { border-color: var(--red); color: var(--red); background: rgba(220,38,38,0.05); }
     `;
 }
 var init_styles = __esm({
@@ -807,7 +884,7 @@ var src_default = {
         const member = await env.DB.prepare("SELECT * FROM members WHERE id = ?").bind(id).first();
         if (!member) return jsonResponse({ error: "Not found" }, 404);
         const { results: tasks } = await env.DB.prepare(
-          "SELECT * FROM member_tasks WHERE member_id = ? ORDER BY due_date, sort_order, id"
+          "SELECT * FROM member_tasks WHERE member_id = ? ORDER BY due_date, id"
         ).bind(id).all();
         const { results: touchpoints } = await env.DB.prepare(
           "SELECT * FROM touchpoints WHERE member_id = ? ORDER BY occurred_at DESC"
@@ -816,6 +893,48 @@ var src_default = {
           "SELECT * FROM member_notes WHERE member_id = ? ORDER BY created_at DESC"
         ).bind(id).all();
         return jsonResponse({ member, tasks, touchpoints, notes });
+      }
+      if (request.method === "GET" && path === "/api/admin/calendar") {
+        const { results: events } = await env.DB.prepare(`
+                    SELECT t.*, m.first_name, m.last_name, m.member_type 
+                    FROM member_tasks t
+                    JOIN members m ON t.member_id = m.id
+                    WHERE t.state != 'skipped'
+                    ORDER BY t.due_date ASC
+                `).all();
+        return jsonResponse({ events });
+      }
+      if (request.method === "GET" && path === "/api/admin/today") {
+        const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+        const { results: tasks } = await env.DB.prepare(`
+                    SELECT t.*, m.first_name, m.last_name 
+                    FROM member_tasks t
+                    JOIN members m ON t.member_id = m.id
+                    WHERE t.due_date = ? AND t.state = 'pending'
+                `).bind(today).all();
+        return jsonResponse({ tasks });
+      }
+      if (request.method === "GET" && path === "/api/admin/templates") {
+        const { results: templates } = await env.DB.prepare("SELECT * FROM workflow_templates ORDER BY member_type, sort_order").all();
+        return jsonResponse({ templates });
+      }
+      if (request.method === "POST" && path.match(/^\/api\/admin\/templates\/\d+$/)) {
+        const id = parseInt(path.split("/").pop());
+        const { title, description, day_offset } = await request.json();
+        await env.DB.prepare("UPDATE workflow_templates SET title = ?, description = ?, day_offset = ?, updated_at = datetime('now') WHERE id = ?").bind(title, description, day_offset, id).run();
+        return jsonResponse({ success: true });
+      }
+      if (request.method === "POST" && path.match(/^\/api\/admin\/tasks\/\d+\/reschedule$/)) {
+        const id = parseInt(path.split("/").pop());
+        const { due_date } = await request.json();
+        await env.DB.prepare("UPDATE member_tasks SET due_date = ?, updated_at = datetime('now') WHERE id = ?").bind(due_date, id).run();
+        return jsonResponse({ success: true });
+      }
+      if (request.method === "POST" && path.match(/^\/api\/admin\/members\/\d+\/notes$/)) {
+        const member_id = parseInt(path.split("/").pop());
+        const { body, author } = await request.json();
+        await env.DB.prepare("INSERT INTO member_notes (member_id, body, author) VALUES (?, ?, ?)").bind(member_id, body, author || "Admin").run();
+        return jsonResponse({ success: true });
       }
       if (request.method === "POST" && path === "/api/admin/members") {
         const body = await request.json();
@@ -933,67 +1052,7 @@ var src_default = {
         });
       }
       if (request.method === "POST" && path === "/api/internal/sync") {
-        if (!env.GROWTHZONE_API_KEY || !env.GROWTHZONE_BASE_URL) {
-          return jsonResponse({ error: "GrowthZone credentials not configured in environment." }, 500);
-        }
-        try {
-          const response = await fetch(`${env.GROWTHZONE_BASE_URL}/api/contacts?$top=100`, {
-            headers: {
-              "Authorization": `ApiKey ${env.GROWTHZONE_API_KEY}`,
-              "Accept": "application/json"
-            }
-          });
-          if (!response.ok) {
-            return jsonResponse({ error: `GZ API Error: ${response.status} ${response.statusText}`, details: await response.text() }, 500);
-          }
-          const data = await response.json();
-          let imported = 0;
-          let skipped = 0;
-          for (const contact of data.Results || []) {
-            if (contact.MembershipStatusTypeId !== 2 || contact.SystemContactTypeId !== 1) {
-              continue;
-            }
-            let memberType = "realtor";
-            const startDate = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-            const existing = await env.DB.prepare("SELECT id FROM members WHERE growthzone_contact_id = ?").bind(contact.ContactId).first();
-            let firstName = "";
-            let lastName = "";
-            if (contact.ContactName) {
-              const parts = contact.ContactName.split(" ");
-              firstName = parts[0] || "";
-              lastName = parts.slice(1).join(" ") || "";
-            }
-            if (!existing && firstName) {
-              const token = generateToken();
-              const now = (/* @__PURE__ */ new Date()).toISOString();
-              const result = await env.DB.prepare(`
-                                INSERT INTO members (growthzone_contact_id, public_token, first_name, last_name, email, phone, organization, member_type, status, start_date, created_at, updated_at)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
-                            `).bind(
-                contact.ContactId,
-                token,
-                firstName,
-                lastName,
-                contact.EmailAddress || null,
-                contact.Phone || null,
-                null,
-                // Organization not reliably in this payload for individuals
-                memberType,
-                startDate,
-                now,
-                now
-              ).run();
-              const memberId = result.meta.last_row_id;
-              await expandWorkflow(env.DB, memberId, memberType, startDate);
-              imported++;
-            } else {
-              skipped++;
-            }
-          }
-          return jsonResponse({ success: true, message: `GrowthZone sync complete. Imported ${imported}, skipped ${skipped} existing active contacts.` });
-        } catch (e) {
-          return jsonResponse({ error: e.message }, 500);
-        }
+        return await performGZSync(env);
       }
       return jsonResponse({ error: "Not Found" }, 404);
     } catch (err) {
@@ -1002,9 +1061,93 @@ var src_default = {
     }
   },
   async scheduled(event, env, ctx) {
-    console.log("Cron triggered: GrowthZone sync stub");
+    console.log("Cron triggered: GrowthZone sync");
+    ctx.waitUntil(performGZSync(env));
   }
 };
+async function performGZSync(env) {
+  if (!env.GROWTHZONE_API_KEY || !env.GROWTHZONE_BASE_URL) {
+    return jsonResponse({ error: "GrowthZone credentials not configured." }, 500);
+  }
+  const SYNC_START_DATE = "2026-03-16";
+  try {
+    const syncUrl = `${env.GROWTHZONE_BASE_URL}/api/memberships/all?$top=500&$orderby=MembershipId desc`;
+    const response = await fetch(syncUrl, {
+      headers: {
+        "Authorization": `ApiKey ${env.GROWTHZONE_API_KEY}`,
+        "Accept": "application/json"
+      }
+    });
+    if (!response.ok) {
+      return jsonResponse({ error: `GZ API Error: ${response.status} ${response.statusText}`, details: await response.text() }, 500);
+    }
+    const data = await response.json();
+    const results = data.Results || data.results || [];
+    let imported = 0;
+    let skipped = 0;
+    for (const membership of results) {
+      if (membership.MembershipStatusTypeId !== 2) continue;
+      const typeStr = (membership.Type || "").toUpperCase();
+      const nameStr = membership.Name || "";
+      const contactId = membership.ContactId;
+      const startDate = membership.StartDate ? membership.StartDate.split("T")[0] : (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+      if (startDate < SYNC_START_DATE) {
+        continue;
+      }
+      let memberType = null;
+      if (typeStr.includes("REALTOR") || typeStr.includes("MLS")) {
+        memberType = "realtor";
+      } else if (typeStr.includes("AFFILIATE")) {
+        memberType = "affiliate";
+      }
+      if (!memberType) {
+        continue;
+      }
+      const existing = await env.DB.prepare("SELECT id FROM members WHERE growthzone_contact_id = ?").bind(contactId).first();
+      if (existing) {
+        skipped++;
+        continue;
+      }
+      let email = null;
+      let phone = null;
+      try {
+        const contactRes = await fetch(`${env.GROWTHZONE_BASE_URL}/api/contacts/${contactId}`, {
+          headers: { "Authorization": `ApiKey ${env.GROWTHZONE_API_KEY}`, "Accept": "application/json" }
+        });
+        if (contactRes.ok) {
+          const cData = await contactRes.json();
+          email = cData.Email || cData.EmailAddress || null;
+          phone = cData.Phone || cData.PhoneNumber || null;
+        }
+      } catch (ce) {
+        console.error(`Failed to enrich contact ${contactId}: ${ce.message}`);
+      }
+      let firstName = "";
+      let lastName = "";
+      const parts = nameStr.trim().split(/\s+/);
+      if (parts.length > 1) {
+        firstName = parts[0];
+        lastName = parts.slice(1).join(" ");
+      } else {
+        firstName = nameStr;
+      }
+      const token = generateToken();
+      const now = (/* @__PURE__ */ new Date()).toISOString();
+      const result = await env.DB.prepare(`
+                INSERT INTO members (growthzone_contact_id, public_token, first_name, last_name, email, phone, member_type, status, start_date, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
+            `).bind(contactId, token, firstName, lastName, email, phone, memberType, startDate, now, now).run();
+      const memberId = result.meta.last_row_id;
+      await expandWorkflow(env.DB, memberId, memberType, startDate);
+      imported++;
+    }
+    return jsonResponse({ success: true, message: `GZ Sync complete. Imported ${imported}, skipped ${skipped}.` });
+  } catch (e) {
+    console.error("Sync Error:", e);
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+__name(performGZSync, "performGZSync");
 
 // ../../.nvm/versions/node/v20.19.4/lib/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
 init_checked_fetch();

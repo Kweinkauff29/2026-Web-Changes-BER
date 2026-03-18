@@ -59,7 +59,26 @@ export function swissTechCSS() {
         /* Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-overlay.active { display: flex; }
-        .modal { background: var(--canvas); border: 2px solid var(--ink); width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding: 28px; position: relative; }
+        .modal { background: var(--canvas); border: 2px solid var(--ink); width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; padding: 28px; position: relative; }
         .modal-close { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink); }
+
+        /* Calendar */
+        .calendar-container { margin-top: 24px; border: 1px solid var(--ink); background: var(--canvas); width: 100%; }
+        .calendar-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--ink); background: var(--panel); }
+        .calendar-title { font-family: var(--mono); font-size: 14px; font-weight: 700; text-transform: uppercase; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+        .calendar-day-head { font-family: var(--mono); font-size: 10px; text-align: center; padding: 8px; border-bottom: 1px solid var(--ink); border-right: 1px solid var(--ink); background: #f9fafb; font-weight: 700; text-transform: uppercase; }
+        .calendar-day-head:last-child { border-right: none; }
+        .calendar-day { min-height: 90px; padding: 6px; border-bottom: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; position: relative; transition: background 0.1s; }
+        .calendar-day:nth-child(7n) { border-right: none; }
+        .calendar-day.other-month { background: #f9f9f9; color: #9ca3af; }
+        .calendar-day.today { background: rgba(2,132,199,0.03); }
+        .calendar-day.today .calendar-day-num { font-weight: 700; color: var(--blue); border-bottom: 1.5px solid var(--blue); display: inline-block; }
+        .calendar-day-num { font-family: var(--mono); font-size: 11px; margin-bottom: 6px; display: block; }
+        .calendar-event { font-size: 9px; padding: 2px 4px; border: 1px solid; border-radius: 2px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); cursor: pointer; line-height: 1.2; }
+        .calendar-event:hover { opacity: 0.8; }
+        .calendar-event.status-pending { border-color: var(--blue); color: var(--blue); background: rgba(2,132,199,0.05); }
+        .calendar-event.status-complete { border-color: var(--green); color: var(--green); background: rgba(22,163,74,0.05); }
+        .calendar-event.status-overdue { border-color: var(--red); color: var(--red); background: rgba(220,38,38,0.05); }
     `;
 }
