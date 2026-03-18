@@ -1,0 +1,14 @@
+{
+  "name": "ccre-checklist-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply ccre-checklist-db",
+    "db:migrate:local": "wrangler d1 migrations apply ccre-checklist-db --local"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
