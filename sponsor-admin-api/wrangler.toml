@@ -1,0 +1,8 @@
+name = "sponsor-admin-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sponsor-db"
+database_id = "2ca6c139-6014-4243-85a1-fb47c3943241"

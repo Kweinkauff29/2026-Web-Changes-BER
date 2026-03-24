@@ -73,6 +73,7 @@ export function adminPageHTML() {
         <div class="logo"><span>CCRE</span> Dashboard</div>
         <a class="nav-item active" data-view="list">Members</a>
         <a class="nav-item" data-view="report">Touchpoint Report</a>
+        <a class="nav-item" href="https://sponsor-admin-api.bonitaspringsrealtors.workers.dev/admin">2026 Sponsors</a>
         <a class="nav-item" data-view="add">+ Add Member</a>
     </nav>
 
