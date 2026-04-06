@@ -87,6 +87,7 @@ const htmlContent = `<!DOCTYPE html>
         };
 
         let uploadedFiles = {};
+        let historicalData = { naples: {}, fortmyers: {}, bonita: {} };
         let templateImg = null;
         let templateLoaded = false;
         let data = {
@@ -105,7 +106,8 @@ const htmlContent = `<!DOCTYPE html>
             invSold: { x: 370, y: 528, fontSize: 57, label: 'Inv Sold' },
             price: { x: 848, y: 389, fontSize: 49, label: 'Price' },
             priceChange: { x: 861, y: 432, fontSize: 28, label: 'Price Change' },
-            homesForSale: { x: 855, y: 505, fontSize: 64, label: 'Homes For Sale' }
+            homesForSale: { x: 855, y: 505, fontSize: 64, label: 'Homes For Sale' },
+            inventoryHeader: { x: 274, y: 337, fontSize: 19, label: 'Inventory Header' }
         };
 
         async function init() {
@@ -251,6 +253,7 @@ const htmlContent = `<!DOCTYPE html>
         function processAllFiles() {
             const m = document.getElementById('month').value;
             const y = parseInt(document.getElementById('year').value);
+            historicalData = { naples: {}, fortmyers: {}, bonita: {} };
             Object.keys(uploadedFiles).forEach(t => processSheet(t, uploadedFiles[t].rows, m, y));
             renderInputs(); renderAll();
         }
@@ -321,6 +324,19 @@ const htmlContent = `<!DOCTYPE html>
                     return isAdditive ? d.sum : (d.sum / d.count);
                 };
 
+                for (let i = 4; i >= 0; i--) {
+                    const histYr = year - i;
+                    const val = getVal(histYr);
+                    if (val !== undefined) {
+                        if (!historicalData[r][histYr]) historicalData[r][histYr] = {};
+                        if (type === 'price') {
+                            historicalData[r][histYr][type] = '$' + Math.round(val).toLocaleString();
+                        } else {
+                            historicalData[r][histYr][type] = Math.round(val).toLocaleString();
+                        }
+                    }
+                }
+
                 const curr = getVal(year);
                 const prev = getVal(year - 1);
                 
@@ -382,12 +398,73 @@ const htmlContent = `<!DOCTYPE html>
                 return '<div class="file-row"><div class="dot ' + (f ? 'ok' : 'pending') + '"></div><div class="name">' + t + '</div><div class="fname">' + (f ? f.fileName.substring(0, 15) + '...' : '-') + '</div></div>';
             }).join('');
         }
-        function renderTabs() { document.getElementById('tabs').innerHTML = regions.map(r => '<button class="tab '+(activeTab===r?'active':'')+'" onclick="setTab(\\''+r+'\\')">'+regionConfig[r].title.split(' ')[0]+'</button>').join(''); }
-        function setTab(r) { activeTab = r; renderTabs(); renderInputs(); }
+        function renderTabs() { 
+            const tabContainer = document.getElementById('tabs');
+            let html = regions.map(r => '<button class="tab '+(activeTab===r?'active':'')+'" onclick="setTab(\\''+r+'\\')">'+regionConfig[r].title.split(' ')[0]+'</button>').join(''); 
+            html += '<button class="tab '+(activeTab===\'video\'?\'active\':\'\')+'" onclick="setTab(\\\'video\\\')">Video Info</button>';
+            tabContainer.innerHTML = html;
+        }
+        function setTab(r) { 
+            activeTab = r; 
+            renderTabs(); 
+            if (r === 'video') {
+                renderVideoInfo();
+            } else {
+                renderInputs(); 
+            }
+        }
         function renderInputs() {
             const d = data[activeTab];
             const fields = ['closedSales', 'medianDays', 'pendingSales', 'newListings', 'homesForSale', 'invNew', 'invSold', 'price', 'priceChange'];
             document.getElementById('manualInputs').innerHTML = '<div class="manual-input-grid">' + fields.map(k => '<div class="manual-input-group"><label>'+k+'</label><input type="text" value="'+d[k]+'" onchange="updateData(\\''+activeTab+'\\',\\''+k+'\\',this.value)"></div>').join('') + '</div>';
+        }
+
+        function renderVideoInfo() {
+            const mon = document.getElementById('month').value;
+            const yr = document.getElementById('year').value;
+            
+            let html = \`
+                <div style="font-size:12px; line-height:1.5; color:#334155;">
+                    <p style="margin-bottom:12px; font-style:italic; color:#64748b;">Copy and paste these templates and raw data for your videos.</p>
+            \`;
+
+            regions.forEach(r => {
+                const d = data[r];
+                const title = \`\${regionConfig[r].title.split('-')[0].replace(' MLS', '')} Housing Market Update (\${mon} \${yr}) | Prices, Inventory & Supply\`;
+                const desc = \`Southwest Florida real estate market update for \${mon} \${yr}. In this update, we break down the median sale price (\${d.price}), inventory (\${d.homesForSale} change), and \${d.invSold} closed sales for \${r === 'fortmyers' ? 'Fort Myers & Fort Myers Beach' : r.charAt(0).toUpperCase() + r.slice(1)}, with year-over-year comparisons.\`;
+                const tags = \`#SWFL #RealEstate #\${r.toUpperCase()} #MarketUpdate\`;
+                let rawData = \`Closed Sales: \${d.closedSales}\\nMedian Days: \${d.medianDays}\\nPending Sales: \${d.pendingSales}\\nNew Listings: \${d.newListings}\\nInventory New: \${d.invNew}\\nInventory Sold: \${d.invSold}\\nMedian Price: \${d.price} \${d.priceChange}\\nHomes For Sale: \${d.homesForSale}\\n\\n--- 5-YEAR HISTORY ---\\n\`;
+                const metricLabels = { price: 'Median Price', inventory: 'Homes for Sale', closedSales: 'Closed Sales' };
+                ['price', 'inventory', 'closedSales'].forEach(histType => {
+                    rawData += \`\${metricLabels[histType]}:\\n\`;
+                    for (let i = 4; i >= 0; i--) {
+                        const histYr = yr - i;
+                        const val = historicalData[r][histYr] && historicalData[r][histYr][histType] ? historicalData[r][histYr][histType] : 'N/A';
+                        rawData += \`  \${histYr}: \${val}\\n\`;
+                    }
+                });
+
+                html += \`
+                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #e2e8f0;">
+                        <h4 style="margin:0 0 8px; color:#0f172a; text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">\${r.toUpperCase()} \${r === 'fortmyers' ? '(CONSOLIDATED)' : ''}</h4>
+                        
+                        <label style="font-size:9px; font-weight:700; color:#64748b; display:block; margin-bottom:2px;">RAW INFOGRAPHIC DATA</label>
+                        <textarea readonly style="width:100%; font-size:11px; padding:6px; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:8px; background:white; height:240px;">\${rawData}</textarea>
+
+                        <label style="font-size:9px; font-weight:700; color:#64748b; display:block; margin-bottom:2px;">VIDEO TITLE</label>
+                        <textarea readonly style="width:100%; font-size:11px; padding:6px; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:8px; background:white; height:40px;">\${title}</textarea>
+                        
+                        <label style="font-size:9px; font-weight:700; color:#64748b; display:block; margin-bottom:2px;">DESCRIPTION</label>
+                        <textarea readonly style="width:100%; font-size:11px; padding:6px; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:8px; background:white; height:80px;">\${desc}</textarea>
+                        
+                        <label style="font-size:9px; font-weight:700; color:#64748b; display:block; margin-bottom:2px;">TAGS</label>
+                        <input readonly type="text" value="\${tags}" style="width:100%; font-size:11px; padding:6px; border:1px solid #cbd5e1; border-radius:4px; background:white;">
+                    </div>
+                \`;
+            });
+
+            html += '</div>';
+            document.getElementById('manualInputs').innerHTML = html;
         }
         function updateData(r,k,v) { data[r][k] = v; renderCanvas(r); }
         function renderPreviews() { document.getElementById('previews').innerHTML = regions.map(r => '<div class="preview-card"><h3><div class="dot" style="background:'+regionConfig[r].color+'"></div>'+regionConfig[r].title.split(' ')[0]+'</h3><canvas id="canvas-'+r+'"></canvas><div style="text-align:center"><button class="dl-btn" onclick="dl(\\''+r+'\\')">Download PNG</button></div></div>').join(''); }
@@ -485,8 +562,9 @@ const htmlContent = `<!DOCTYPE html>
             ctx.save();
             ctx.shadowColor = 'transparent';
             ctx.textAlign = 'left';
-            ctx.font = '700 16px Inter';
+            ctx.font = '700 ' + coordConfig.inventoryHeader.fontSize + 'px Inter';
             ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(mon + ' ' + yr, coordConfig.inventoryHeader.x, coordConfig.inventoryHeader.y);
             ctx.restore();
 
             // Inventory Signs (Bottom Left Block)
