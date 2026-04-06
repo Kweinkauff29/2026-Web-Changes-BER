@@ -78,17 +78,21 @@
         const regionConfig = {
             naples: { title: 'Naples Area Real Estate Activity', color: '#CC292B' }, // Red
             fortmyers: { title: 'Fort Myers Area Real Estate Activity', color: '#F5B21A' }, // Yellow/Orange
-            bonita: { title: 'Bonita Springs-Estero MLS Real Estate Activity', color: '#3DB6E4' } // Cyan/Blue
+            bonita: { title: 'Bonita Springs-Estero MLS Real Estate Activity', color: '#3DB6E4' }, // Cyan/Blue
+            bonita_only: { title: 'Bonita Springs Real Estate Activity', color: '#3DB6E4' },
+            estero_only: { title: 'Estero Real Estate Activity', color: '#3DB6E4' }
         };
 
         let uploadedFiles = {};
-        let historicalData = { naples: {}, fortmyers: {}, bonita: {} };
+        let historicalData = { naples: {}, fortmyers: {}, bonita: {}, bonita_only: {}, estero_only: {} };
         let templateImg = null;
         let templateLoaded = false;
         let data = {
             naples: { closedSales: '+14.5%', medianDays: '67', pendingSales: '+38.3%', newListings: '-9.4%', homesForSale: '+4.4%', invNew: '1,475', invSold: '530', price: '$530,000', priceChange: '(-7.4%)' },
             fortmyers: { closedSales: '+16.6%', medianDays: '53', pendingSales: '+27.9%', newListings: '-21.5%', homesForSale: '+3.3%', invNew: '1,035', invSold: '415', price: '$331,650', priceChange: '(-19.1%)' },
-            bonita: { closedSales: '+39.3%', medianDays: '62', pendingSales: '+40.9%', newListings: '-7.4%', homesForSale: '+7.8%', invNew: '498', invSold: '195', price: '$500,000', priceChange: '(-7.0%)' }
+            bonita: { closedSales: '+39.3%', medianDays: '62', pendingSales: '+40.9%', newListings: '-7.4%', homesForSale: '+7.8%', invNew: '498', invSold: '195', price: '$500,000', priceChange: '(-7.0%)' },
+            bonita_only: { closedSales: '-', medianDays: '-', pendingSales: '-', newListings: '-', homesForSale: '-', invNew: '-', invSold: '-', price: '-', priceChange: '-' },
+            estero_only: { closedSales: '-', medianDays: '-', pendingSales: '-', newListings: '-', homesForSale: '-', invNew: '-', invSold: '-', price: '-', priceChange: '-' }
         };
         let activeTab = 'naples';
 
@@ -248,7 +252,7 @@
         function processAllFiles() {
             const m = document.getElementById('month').value;
             const y = parseInt(document.getElementById('year').value);
-            historicalData = { naples: {}, fortmyers: {}, bonita: {} };
+            historicalData = { naples: {}, fortmyers: {}, bonita: {}, bonita_only: {}, estero_only: {} };
             Object.keys(uploadedFiles).forEach(t => processSheet(t, uploadedFiles[t].rows, m, y));
             renderInputs(); renderAll();
         }
@@ -260,7 +264,7 @@
             const monAbbr = month.substring(0,3).toLowerCase();
             
             // Data structure: { region: { year: { sum: 0, count: 0, values: [] } } }
-            const regionData = { naples: {}, fortmyers: {}, bonita: {} };
+            const regionData = { naples: {}, fortmyers: {}, bonita: {}, bonita_only: {}, estero_only: {} };
             
             // Helper to init year obj
             const initYear = (reg, yr) => {
@@ -277,15 +281,20 @@
                 const parsed = parseDate(dateVal);
                 if (!parsed) continue;
                 
-                // Check if this row's month matches
-                if (!parsed.m.toLowerCase().startsWith(monAbbr)) continue;
+                // If the spreadsheet provides a month, filter on it.
+                // If it only provides a year (e.g. 2022), ASSUME it corresponds to the month we're extracting.
+                if (!parsed.isYearOnly) {
+                    if (!parsed.m.toLowerCase().startsWith(monAbbr)) continue;
+                }
                 
                 // Column 1: City/Series name
                 const cityName = String(row[1] || '').toUpperCase();
                 let region = null;
+                let subRegion = null;
                 if (cityName.includes('NAPLES') && !cityName.includes('MARCO')) region = 'naples';
                 else if (cityName.includes('FORT MYERS')) region = 'fortmyers';
-                else if (cityName.includes('BONITA') || cityName.includes('ESTERO')) region = 'bonita';
+                else if (cityName.includes('BONITA')) { region = 'bonita'; subRegion = 'bonita_only'; }
+                else if (cityName.includes('ESTERO')) { region = 'bonita'; subRegion = 'estero_only'; }
                 
                 if (!region) continue;
                 
@@ -303,6 +312,13 @@
                     regionData[region][parsed.y].values.push(value);
                     regionData[region][parsed.y].sum += value;
                     regionData[region][parsed.y].count++;
+                    
+                    if (subRegion) {
+                        initYear(subRegion, parsed.y);
+                        regionData[subRegion][parsed.y].values.push(value);
+                        regionData[subRegion][parsed.y].sum += value;
+                        regionData[subRegion][parsed.y].count++;
+                    }
                 }
             }
             
@@ -312,7 +328,8 @@
             const isAdditive = ['closedSales', 'pendingSales', 'newListings', 'inventory'].includes(type);
 
             // Calculate and apply to data
-            regions.forEach(r => {
+            const allRegions = ['naples', 'fortmyers', 'bonita', 'bonita_only', 'estero_only'];
+            allRegions.forEach(r => {
                 const getVal = (yr) => {
                     const d = regionData[r][yr];
                     if (!d || d.count === 0) return undefined;
@@ -363,12 +380,30 @@
         }
 
         function parseDate(val) {
+            if (val === null || val === undefined) return null;
+            const strVal = String(val).trim();
+            
+            // 4-digit year format (e.g., 2022)
+            if (/^\d{4}$/.test(strVal)) {
+                return { isYearOnly: true, y: parseInt(strVal) };
+            }
+            
+            // MMM-YY or MMM-YYYY String Date format
+            const monthRegex = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[-/\s](\d{2}|\d{4})$/i;
+            const mMatch = strVal.match(monthRegex);
+            if (mMatch) {
+                let y = parseInt(mMatch[2]);
+                if (y < 100) y += 2000;
+                return { m: mMatch[1].substring(0,3), y: y };
+            }
+
             // Excel serial number
             if (!isNaN(val) && parseFloat(val) > 20000) {
                 const d = new Date((parseFloat(val) - 25569) * 86400 * 1000);
                 return { m: d.toLocaleString('default', { month: 'short' }), y: d.getFullYear() };
             }
-            // String date
+            
+            // Standard String date fallback
             const d = new Date(val);
             if (d instanceof Date && !isNaN(d)) {
                 return { m: d.toLocaleString('default', { month: 'short' }), y: d.getFullYear() };
@@ -423,11 +458,16 @@
                     <p style="margin-bottom:12px; font-style:italic; color:#64748b;">Copy and paste these templates and raw data for your videos.</p>
             `;
 
-            regions.forEach(r => {
+            const videoRegions = ['naples', 'fortmyers', 'bonita', 'bonita_only', 'estero_only'];
+            videoRegions.forEach(r => {
                 const d = data[r];
-                const title = `${regionConfig[r].title.split('-')[0].replace(' MLS', '')} Housing Market Update (${mon} ${yr}) | Prices, Inventory & Supply`;
-                const desc = `Southwest Florida real estate market update for ${mon} ${yr}. In this update, we break down the median sale price (${d.price}), inventory (${d.homesForSale} change), and ${d.invSold} closed sales for ${r === 'fortmyers' ? 'Fort Myers & Fort Myers Beach' : r.charAt(0).toUpperCase() + r.slice(1)}, with year-over-year comparisons.`;
-                const tags = `#SWFL #RealEstate #${r.toUpperCase()} #MarketUpdate`;
+                const titleBase = regionConfig[r].title.split('-')[0].replace(' MLS', '').trim();
+                const locName = r === 'fortmyers' ? 'Fort Myers & Fort Myers Beach' : r === 'bonita_only' ? 'Bonita Springs' : r === 'estero_only' ? 'Estero' : r.charAt(0).toUpperCase() + r.slice(1);
+                const tagLoc = r === 'fortmyers' ? 'FORTMYERS' : r === 'bonita_only' ? 'BONITASPRINGS' : r === 'estero_only' ? 'ESTERO' : r.toUpperCase();
+                
+                const title = `${titleBase} Housing Market Update (${mon} ${yr}) | Prices, Inventory & Supply`;
+                const desc = `Southwest Florida real estate market update for ${mon} ${yr}. In this update, we break down the median sale price (${d.price}), inventory (${d.homesForSale} change), and ${d.invSold} closed sales for ${locName}, with year-over-year comparisons.`;
+                const tags = `#SWFL #RealEstate #${tagLoc} #MarketUpdate`;
                 let rawData = `Closed Sales: ${d.closedSales}\nMedian Days: ${d.medianDays}\nPending Sales: ${d.pendingSales}\nNew Listings: ${d.newListings}\nInventory New: ${d.invNew}\nInventory Sold: ${d.invSold}\nMedian Price: ${d.price} ${d.priceChange}\nHomes For Sale: ${d.homesForSale}\n\n--- 5-YEAR HISTORY ---\n`;
                 const metricLabels = { price: 'Median Price', inventory: 'Homes for Sale', closedSales: 'Closed Sales' };
                 ['price', 'inventory', 'closedSales'].forEach(histType => {
@@ -439,9 +479,11 @@
                     }
                 });
 
+                const panelHeading = r === 'bonita_only' ? 'BONITA SPRINGS (ONLY)' : r === 'estero_only' ? 'ESTERO (ONLY)' : r === 'fortmyers' ? 'FORT MYERS (CONSOLIDATED)' : r.toUpperCase();
+
                 html += `
                     <div style="background:#f1f5f9; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #e2e8f0;">
-                        <h4 style="margin:0 0 8px; color:#0f172a; text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">${r.toUpperCase()} ${r === 'fortmyers' ? '(CONSOLIDATED)' : ''}</h4>
+                        <h4 style="margin:0 0 8px; color:#0f172a; text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">${panelHeading}</h4>
                         
                         <label style="font-size:9px; font-weight:700; color:#64748b; display:block; margin-bottom:2px;">RAW INFOGRAPHIC DATA</label>
                         <textarea readonly style="width:100%; font-size:11px; padding:6px; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:8px; background:white; height:240px;">${rawData}</textarea>
