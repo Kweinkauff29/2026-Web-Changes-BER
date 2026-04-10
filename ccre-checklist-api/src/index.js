@@ -197,10 +197,9 @@ export default {
                     .bind(member_type).first();
                 const nextOrder = (maxOrder?.m || 0) + 1;
 
-                await env.DB.prepare(`
                     INSERT INTO workflow_templates (template_key, member_type, step_key, title, description, day_offset, sort_order)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                `).bind(templateKey, member_type, stepKey, title || 'New Step', description || '', day_offset || 0, nextOrder).run();
+                `).bind(templateKey, member_type, stepKey, title || 'New Step', description || '', Number(day_offset) || 0, nextOrder).run();
                 
                 return jsonResponse({ success: true });
             }
@@ -221,8 +220,14 @@ export default {
 
                 if (body.title !== undefined) { updates.push('title = ?'); binds.push(body.title); }
                 if (body.description !== undefined) { updates.push('description = ?'); binds.push(body.description); }
-                if (body.day_offset !== undefined) { updates.push('day_offset = ?'); binds.push(body.day_offset); }
-                if (body.sort_order !== undefined) { updates.push('sort_order = ?'); binds.push(body.sort_order); }
+                if (body.day_offset !== undefined) { 
+                    updates.push('day_offset = ?'); 
+                    binds.push(Number(body.day_offset) || 0); 
+                }
+                if (body.sort_order !== undefined) { 
+                    updates.push('sort_order = ?'); 
+                    binds.push(Number(body.sort_order) || 0); 
+                }
                 
                 if (updates.length > 0) {
                     updates.push('updated_at = datetime(\'now\')');
