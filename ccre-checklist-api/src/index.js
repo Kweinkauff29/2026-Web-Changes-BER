@@ -181,15 +181,56 @@ export default {
 
             // ── ADMIN API: Template Management ──
             if (request.method === 'GET' && path === '/api/admin/templates') {
-                const { results: templates } = await env.DB.prepare('SELECT * FROM workflow_templates ORDER BY member_type, sort_order').all();
+                const { results: templates } = await env.DB.prepare('SELECT * FROM workflow_templates WHERE is_active = 1 ORDER BY member_type, sort_order').all();
                 return jsonResponse({ templates });
             }
 
+            // Create new template step
+            if (request.method === 'POST' && path === '/api/admin/templates') {
+                const body = await request.json();
+                const { member_type, title, day_offset, description } = body;
+                const templateKey = member_type + '_onboarding';
+                const stepKey = 'step_' + Date.now();
+                
+                // Get max sort_order for this type
+                const maxOrder = await env.DB.prepare('SELECT MAX(sort_order) as m FROM workflow_templates WHERE member_type = ?')
+                    .bind(member_type).first();
+                const nextOrder = (maxOrder?.m || 0) + 1;
+
+                await env.DB.prepare(`
+                    INSERT INTO workflow_templates (template_key, member_type, step_key, title, description, day_offset, sort_order)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                `).bind(templateKey, member_type, stepKey, title || 'New Step', description || '', day_offset || 0, nextOrder).run();
+                
+                return jsonResponse({ success: true });
+            }
+
+            // Delete template step
+            if (request.method === 'DELETE' && path.match(/^\/api\/admin\/templates\/\d+$/)) {
+                const id = parseInt(path.split('/').pop());
+                await env.DB.prepare('DELETE FROM workflow_templates WHERE id = ?').bind(id).run();
+                return jsonResponse({ success: true });
+            }
+
+            // Update template step (including sort_order)
             if (request.method === 'POST' && path.match(/^\/api\/admin\/templates\/\d+$/)) {
                 const id = parseInt(path.split('/').pop());
-                const { title, description, day_offset } = await request.json();
-                await env.DB.prepare('UPDATE workflow_templates SET title = ?, description = ?, day_offset = ?, updated_at = datetime(\'now\') WHERE id = ?')
-                    .bind(title, description, day_offset, id).run();
+                const body = await request.json();
+                const updates = [];
+                const binds = [];
+
+                if (body.title !== undefined) { updates.push('title = ?'); binds.push(body.title); }
+                if (body.description !== undefined) { updates.push('description = ?'); binds.push(body.description); }
+                if (body.day_offset !== undefined) { updates.push('day_offset = ?'); binds.push(body.day_offset); }
+                if (body.sort_order !== undefined) { updates.push('sort_order = ?'); binds.push(body.sort_order); }
+                
+                if (updates.length > 0) {
+                    updates.push('updated_at = datetime(\'now\')');
+                    const query = `UPDATE workflow_templates SET ${updates.join(', ')} WHERE id = ?`;
+                    binds.push(id);
+                    await env.DB.prepare(query).bind(...binds).run();
+                }
+                
                 return jsonResponse({ success: true });
             }
 
