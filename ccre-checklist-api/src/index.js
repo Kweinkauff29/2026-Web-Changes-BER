@@ -140,6 +140,18 @@ export default {
                 return jsonResponse({ member, tasks, touchpoints, notes });
             }
 
+            if (request.method === 'DELETE' && path.match(/^\/api\/admin\/members\/\d+$/)) {
+                const id = parseInt(path.split('/').pop());
+                
+                // Use a transaction or sequential deletes to clean up
+                await env.DB.prepare('DELETE FROM member_tasks WHERE member_id = ?').bind(id).run();
+                await env.DB.prepare('DELETE FROM member_notes WHERE member_id = ?').bind(id).run();
+                await env.DB.prepare('DELETE FROM touchpoints WHERE member_id = ?').bind(id).run();
+                await env.DB.prepare('DELETE FROM members WHERE id = ?').bind(id).run();
+                
+                return jsonResponse({ success: true });
+            }
+
             // ── ADMIN API: Global Calendar ──
             if (request.method === 'GET' && path === '/api/admin/calendar') {
                 const { results: events } = await env.DB.prepare(`
