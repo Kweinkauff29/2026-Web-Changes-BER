@@ -416,7 +416,8 @@ export default {
 
             // ── ADMIN API: Log Engagement Action ──
             if (request.method === 'POST' && path.match(/^\/api\/admin\/members\/\d+\/actions$/)) {
-                const memberId = parseInt(path.split('/').pop());
+                const match = path.match(/\/api\/admin\/members\/(\d+)\/actions/);
+                const memberId = match ? parseInt(match[1]) : NaN;
                 const { action_type, points, metadata } = await request.json();
                 
                 await env.DB.prepare('INSERT INTO member_engagement_actions (member_id, action_type, points, metadata_json) VALUES (?, ?, ?, ?)')
