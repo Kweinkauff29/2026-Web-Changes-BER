@@ -34,7 +34,10 @@ function generateToken() {
 
 // Expand workflow template into dated tasks for a member
 async function expandWorkflow(db, memberId, memberType, startDate) {
-    const templateKey = memberType === 'affiliate' ? 'affiliate_onboarding' : 'realtor_onboarding';
+    let templateKey = 'realtor_onboarding';
+    if (memberType === 'affiliate') templateKey = 'affiliate_onboarding';
+    else if (memberType === 'broker') templateKey = 'broker_onboarding';
+    
     const { results: steps } = await db.prepare(
         'SELECT * FROM workflow_templates WHERE template_key = ? AND is_active = 1 ORDER BY sort_order'
     ).bind(templateKey).all();
@@ -310,6 +313,7 @@ export default {
                 const dueTodayTasks = await env.DB.prepare("SELECT COUNT(*) as c FROM member_tasks WHERE state = 'pending' AND due_date = date('now')").first();
                 const realtorCount = await env.DB.prepare("SELECT COUNT(*) as c FROM members WHERE member_type = 'realtor'").first();
                 const affiliateCount = await env.DB.prepare("SELECT COUNT(*) as c FROM members WHERE member_type = 'affiliate'").first();
+                const brokerCount = await env.DB.prepare("SELECT COUNT(*) as c FROM members WHERE member_type = 'broker'").first();
 
                 return jsonResponse({
                     totalMembers: totalMembers.c,
@@ -317,8 +321,81 @@ export default {
                     overdueTasks: overdueTasks.c,
                     dueTodayTasks: dueTodayTasks.c,
                     realtorCount: realtorCount.c,
-                    affiliateCount: affiliateCount.c
+                    affiliateCount: affiliateCount.c,
+                    brokerCount: brokerCount.c
                 });
+            }
+
+            // ── ADMIN API: Executive Engagement Stats ──
+            if (request.method === 'GET' && path === '/api/admin/engagement-report') {
+                const results = await env.DB.prepare(`
+                    SELECT 
+                        COUNT(*) as total,
+                        SUM(CASE WHEN engagement_score >= 80 THEN 1 ELSE 0 END) as raving_fans,
+                        SUM(CASE WHEN engagement_score >= 60 AND engagement_score < 80 THEN 1 ELSE 0 END) as engaged,
+                        SUM(CASE WHEN engagement_score >= 40 AND engagement_score < 60 THEN 1 ELSE 0 END) as passive,
+                        SUM(CASE WHEN engagement_score < 40 THEN 1 ELSE 0 END) as at_risk
+                    FROM members
+                `).first();
+
+                // Monthly metrics (simplified for current data)
+                const monthStart = new Date();
+                monthStart.setDate(1);
+                const monthStr = monthStart.toISOString().split('T')[0];
+
+                const monthly = await env.DB.prepare(`
+                    SELECT 
+                        COUNT(*) as new_members,
+                        SUM(CASE WHEN member_type = 'realtor' THEN 1 ELSE 0 END) as realtors,
+                        SUM(CASE WHEN member_type = 'affiliate' THEN 1 ELSE 0 END) as affiliates,
+                        SUM(CASE WHEN member_type = 'broker' THEN 1 ELSE 0 END) as brokers
+                    FROM members 
+                    WHERE created_at >= ?
+                `).bind(monthStr).first();
+
+                return jsonResponse({
+                    momentum: results,
+                    monthly: monthly
+                });
+            }
+
+            // ── ADMIN API: Staff Scorecard ──
+            if (request.method === 'GET' && path === '/api/admin/staff-scorecards') {
+                const { results: scorecards } = await env.DB.prepare(`
+                    SELECT 
+                        staff_user,
+                        category,
+                        COUNT(*) as total_touchpoints,
+                        COUNT(DISTINCT member_id) as members_reached
+                    FROM touchpoints
+                    GROUP BY staff_user, category
+                `).all();
+                return jsonResponse({ scorecards });
+            }
+
+            // ── ADMIN API: Log Engagement Action ──
+            if (request.method === 'POST' && path.match(/^\/api\/admin\/members\/\d+\/actions$/)) {
+                const memberId = parseInt(path.split('/').pop());
+                const { action_type, points, metadata } = await request.json();
+                
+                await env.DB.prepare('INSERT INTO member_engagement_actions (member_id, action_type, points, metadata_json) VALUES (?, ?, ?, ?)')
+                    .bind(memberId, action_type, points, JSON.stringify(metadata || {})).run();
+                
+                // Update member total score
+                await env.DB.prepare(`
+                    UPDATE members SET 
+                        engagement_score = engagement_score + ?,
+                        engagement_level = CASE 
+                            WHEN engagement_score + ? >= 80 THEN 'Raving Fan'
+                            WHEN engagement_score + ? >= 60 THEN 'Engaged'
+                            WHEN engagement_score + ? >= 40 THEN 'Passive'
+                            ELSE 'At Risk'
+                        END,
+                        updated_at = datetime('now')
+                    WHERE id = ?
+                `).bind(points, points, points, points, memberId).run();
+
+                return jsonResponse({ success: true });
             }
 
             // ── GZ SYNC ──
