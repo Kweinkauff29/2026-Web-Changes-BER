@@ -197,6 +197,7 @@ export default {
                     .bind(member_type).first();
                 const nextOrder = (maxOrder?.m || 0) + 1;
 
+                await env.DB.prepare(`
                     INSERT INTO workflow_templates (template_key, member_type, step_key, title, description, day_offset, sort_order)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 `).bind(templateKey, member_type, stepKey, title || 'New Step', description || '', Number(day_offset) || 0, nextOrder).run();
