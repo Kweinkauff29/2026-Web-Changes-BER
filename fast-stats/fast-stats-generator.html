@@ -657,6 +657,11 @@
                 <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display:none">
             </div>
 
+            <!-- Reminder Note -->
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px; margin-bottom: 16px; font-size: 11px; color: #b45309; border-radius: 0 8px 8px 0;">
+                <strong>💡 Export Reminder:</strong> Please ensure your Domus Analytics files are exported with the <strong>Property Type split</strong> (Single Family, Condo, Land) included so metrics break down correctly.
+            </div>
+
             <!-- File Status -->
             <div id="fileStatus" class="file-status"></div>
 
@@ -1008,11 +1013,11 @@
             'newListings': { pattern: /new.?listing/i, col: 7 },
             'pendingSales': { pattern: /pending.?sale/i, col: 7 },
             'closedSales': { pattern: /closed.?sale/i, col: 7 },
-            'daysOnMarket': { pattern: /days.?on.?market/i, col: 6 },
-            'medianPrice': { pattern: /median.?sales?.?price|^sales.?price/i, col: 3 },
+            'daysOnMarket': { pattern: /days.?on.?market|median.?days/i, col: 6 },
+            'medianPrice': { pattern: /median.?sales?.?price|^sales.?price|^price/i, col: 3 },
             'soldVolume': { pattern: /sold.?dollar.?volume/i, col: 5 },
             'listPriceReceived': { pattern: /percent.?of.?list.?price|pct.?of.?list/i, col: 8 },
-            'monthsSupply': { pattern: /months?.?supply/i, col: 10 },
+            'monthsSupply': { pattern: /months?.?supply|supply.?of.?inventory/i, col: 10 },
             'inventory': { pattern: /^(?!.*supply).*inventory|homes?.?for.?sale/i, col: 7 }
         };
 
@@ -1043,6 +1048,12 @@
                         const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
                         const ws = wb.Sheets[wb.SheetNames[0]];
                         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+
+                        // Basic validation: check if rows have expected structure or contain error messages
+                        if (rows.length > 0 && rows[0].length === 1 && rows[0][0].toString().toLowerCase().includes('error')) {
+                            alert('Error in ' + file.name + ': File appears to contain a database error message instead of data.');
+                            return;
+                        }
 
                         if (metricKey) {
                             // Auto-detected
@@ -1115,42 +1126,30 @@
             statusDiv.innerHTML = html;
         }
 
+        // Extract and format value from a matching row
+        function extractValue(row, metricKey) {
+            const colIdx = metricConfig[metricKey].col;
+            let valStr = row[colIdx];
+
+            if (valStr === undefined || valStr === null) return 0;
+            if (typeof valStr === 'string') {
+                valStr = valStr.replace(/[$,%]/g, '');
+            }
+            let val = parseFloat(valStr) || 0;
+
+            // Percent Average column stores decimals (0.96) — convert to percent (96.0)
+            if (metricKey === 'listPriceReceived' && val > 0 && val < 1) {
+                val *= 100;
+            }
+            return val;
+        }
+
         // Global helper to get metric value (Updated for Multi-File One-Metric-Per-File)
         function getMetricValue(propType, metricKey, month, year) {
             try {
-                // Aggregation for 'all' property types
-                if (propType === 'all') {
-                    const sfVal = getMetricValue('singleFamily', metricKey, month, year);
-                    const condoVal = getMetricValue('condo', metricKey, month, year);
-                    const landVal = getMetricValue('land', metricKey, month, year);
-
-                    if (metricKey === 'medianPrice' || metricKey === 'daysOnMarket' || metricKey === 'listPriceReceived') {
-                        const sfCount = getMetricValue('singleFamily', 'closedSales', month, year);
-                        const condoCount = getMetricValue('condo', 'closedSales', month, year);
-                        const landCount = getMetricValue('land', 'closedSales', month, year);
-                        const totalCount = sfCount + condoCount + landCount;
-                        if (totalCount === 0) return 0;
-                        return ((sfVal * sfCount) + (condoVal * condoCount) + (landVal * landCount)) / totalCount;
-                    } else if (metricKey === 'monthsSupply') {
-                        const sfInv = getMetricValue('singleFamily', 'inventory', month, year);
-                        const condoInv = getMetricValue('condo', 'inventory', month, year);
-                        const landInv = getMetricValue('land', 'inventory', month, year);
-                        const totalInv = sfInv + condoInv + landInv;
-                        if (totalInv === 0) return 0;
-                        return ((sfVal * sfInv) + (condoVal * condoInv) + (landVal * landInv)) / totalInv;
-                    } else {
-                        return sfVal + condoVal + landVal;
-                    }
-                }
-
                 // 1. Get correct file rows for this metric
                 const rows = rawRowsData[metricKey];
                 if (!rows) return 0;
-
-                // DATA FORMAT IS COLUMNAR:
-                // Col 0: Date (e.g. "2025-Jan" or "2025-01-31 00:00:00")
-                // Col 1: Property Type (e.g. "Single Family Residence", "Residential Income")
-                // Col X: Value (defined in metricConfig)
 
                 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -1158,6 +1157,8 @@
                 function parseDateParts(dateStr) {
                     if (!dateStr) return { y: 0, m: 0 };
                     const s = dateStr.toString().trim();
+                    if (!s) return { y: 0, m: 0 };
+
                     // Format: "YYYY-Mon" (e.g. "2025-Jan")
                     const shortMatch = s.match(/^(\d{4})-(\w{3})$/);
                     if (shortMatch) {
@@ -1170,19 +1171,77 @@
                     if (isoMatch) {
                         return { y: parseInt(isoMatch[1]), m: parseInt(isoMatch[2]) };
                     }
+                    // Format: "M/D/YYYY" or "MM/DD/YYYY"
+                    const slashMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+                    if (slashMatch) {
+                        let y = parseInt(slashMatch[3]);
+                        if (y < 100) y += 2000;
+                        return { y: y, m: parseInt(slashMatch[1]) };
+                    }
+                    // Format: "Mon YYYY" (e.g. "Jan 2025")
+                    const monYearMatch = s.match(/^(\w{3})\s+(\d{4})$/);
+                    if (monYearMatch) {
+                        const y = parseInt(monYearMatch[2]);
+                        const mIdx = monthNames.indexOf(monYearMatch[1]);
+                        return { y, m: mIdx >= 0 ? mIdx + 1 : 0 };
+                    }
+
+                    // Fallback to JS Date
+                    const d = new Date(s);
+                    if (!isNaN(d.getTime())) {
+                        return { y: d.getFullYear(), m: d.getMonth() + 1 };
+                    }
+
                     return { y: 0, m: 0 };
                 }
 
-                // Find the row that matches both Date and Property Type
-                const matchingRow = rows.find(r => {
-                    if (!r[0] || !r[1]) return false;
+                // Find a row by date and property type string
+                const findRow = (typeMatchFn) => {
+                    return rows.find(r => {
+                        if (!r[0] || !r[1]) return false;
+                        const dp = parseDateParts(r[0]);
+                        if (dp.y !== year || dp.m !== month) return false;
+                        // Use trim() to avoid mismatch from trailing spaces
+                        return typeMatchFn(r[1].toString().toLowerCase().trim());
+                    });
+                };
 
-                    // Check Date (Col 0)
-                    const dp = parseDateParts(r[0]);
-                    if (dp.y !== year || dp.m !== month) return false;
+                // Aggregation for 'all' property types
+                if (propType === 'all') {
+                    // Try to find a direct 'All' or 'Total' row first
+                    const allRow = findRow(t => t === 'all' || t === 'total' || t.includes('all property') || t.includes('all properties'));
+                    if (allRow) {
+                        return extractValue(allRow, metricKey);
+                    }
 
-                    // Check Property Type (Col 1)
-                    const rowType = r[1].toString().toLowerCase();
+                    const sfVal = getMetricValue('singleFamily', metricKey, month, year);
+                    const condoVal = getMetricValue('condo', metricKey, month, year);
+                    const landVal = getMetricValue('land', metricKey, month, year);
+                    const resIncomeVal = getMetricValue('resIncome', metricKey, month, year);
+
+                    if (metricKey === 'medianPrice' || metricKey === 'daysOnMarket' || metricKey === 'listPriceReceived') {
+                        const sfCount = getMetricValue('singleFamily', 'closedSales', month, year);
+                        const condoCount = getMetricValue('condo', 'closedSales', month, year);
+                        const landCount = getMetricValue('land', 'closedSales', month, year);
+                        const resIncomeCount = getMetricValue('resIncome', 'closedSales', month, year);
+                        const totalCount = sfCount + condoCount + landCount + resIncomeCount;
+                        if (totalCount === 0) return 0;
+                        return ((sfVal * sfCount) + (condoVal * condoCount) + (landVal * landCount) + (resIncomeVal * resIncomeCount)) / totalCount;
+                    } else if (metricKey === 'monthsSupply') {
+                        const sfInv = getMetricValue('singleFamily', 'inventory', month, year);
+                        const condoInv = getMetricValue('condo', 'inventory', month, year);
+                        const landInv = getMetricValue('land', 'inventory', month, year);
+                        const resIncomeInv = getMetricValue('resIncome', 'inventory', month, year);
+                        const totalInv = sfInv + condoInv + landInv + resIncomeInv;
+                        if (totalInv === 0) return 0;
+                        return ((sfVal * sfInv) + (condoVal * condoInv) + (landVal * landInv) + (resIncomeVal * resIncomeInv)) / totalInv;
+                    } else {
+                        return sfVal + condoVal + landVal + resIncomeVal;
+                    }
+                }
+
+                // Find matching row for specific property type
+                let matchingRow = findRow(rowType => {
                     if (propType === 'singleFamily') {
                         return rowType.includes('single family');
                     }
@@ -1192,26 +1251,27 @@
                     if (propType === 'land') {
                         return rowType.includes('land') || rowType.includes('lot');
                     }
+                    if (propType === 'resIncome') {
+                        return rowType.includes('residential income') || rowType.includes('income') || rowType.includes('multi-family');
+                    }
                     return false;
                 });
 
+                // Fallback: If no specific property type row is found, check if the file contains ANY specific breakdown rows at all.
+                // If the file only contains aggregate 'All' or 'Total' rows, gracefully fall back to using the aggregate row value for this date so reports populate successfully.
+                if (!matchingRow && (propType === 'singleFamily' || propType === 'condo' || propType === 'land' || propType === 'resIncome')) {
+                    const hasAnySpecific = rows.some(r => {
+                        if (!r[1]) return false;
+                        const t = r[1].toString().toLowerCase();
+                        return t.includes('single family') || t.includes('condo') || t.includes('townhouse') || t.includes('land') || t.includes('lot') || t.includes('income');
+                    });
+                    if (!hasAnySpecific) {
+                        matchingRow = findRow(t => t === 'all' || t === 'total' || t.includes('all property') || t.includes('all properties'));
+                    }
+                }
+
                 if (!matchingRow) return 0;
-
-                // Extract Value from configured column
-                const colIdx = metricConfig[metricKey].col;
-                let valStr = matchingRow[colIdx];
-
-                if (valStr === undefined || valStr === null) return 0;
-                if (typeof valStr === 'string') {
-                    valStr = valStr.replace(/[$,%]/g, '');
-                }
-                let val = parseFloat(valStr) || 0;
-
-                // Percent Average column stores decimals (0.96) — convert to percent (96.0)
-                if (metricKey === 'listPriceReceived' && val > 0 && val < 1) {
-                    val *= 100;
-                }
-                return val;
+                return extractValue(matchingRow, metricKey);
 
             } catch (e) {
                 // console.warn('Error in getMetricValue', propType, metricKey, e);
