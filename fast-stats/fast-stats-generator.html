@@ -659,7 +659,7 @@
 
             <!-- Reminder Note -->
             <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px; margin-bottom: 16px; font-size: 11px; color: #b45309; border-radius: 0 8px 8px 0;">
-                <strong>💡 Export Reminder:</strong> Please ensure your Domus Analytics files are exported with the <strong>Property Type split</strong> (Single Family, Condo, Land) included so metrics break down correctly.
+                <strong>💡 Export Reminder:</strong> Please ensure your Domus Analytics files are exported with the <strong>Property Type split</strong> (Single Family, Condo, Land, Residential Income) included so metrics break down correctly.
             </div>
 
             <!-- File Status -->
@@ -1545,9 +1545,12 @@
             } else if (propType === 'land') {
                 title = "Land Market Overview";
                 subTitle += " Land properties only.";
+            } else if (propType === 'resIncome') {
+                title = "Residential Income Market Overview";
+                subTitle += " Residential Income properties only.";
             } else {
                 title = "Southwest Florida (Lee, Collier, Hendry)";
-                subTitle += " PropertyTypes: Single Family, Condo & Land.";
+                subTitle += " PropertyTypes: Single Family, Condo, Land & Residential Income.";
             }
 
             const page = document.createElement('div');
@@ -1735,6 +1738,7 @@
             const sfMonthData = years.map(y => getMetricValue('singleFamily', metricKey, monthIdx, y));
             const condoMonthData = years.map(y => getMetricValue('condo', metricKey, monthIdx, y));
             const landMonthData = years.map(y => getMetricValue('land', metricKey, monthIdx, y));
+            const resIncomeMonthData = years.map(y => getMetricValue('resIncome', metricKey, monthIdx, y));
 
             // YTD Data logic
             const getYtd = (prop, y) => {
@@ -1752,16 +1756,17 @@
             const sfYtdData = years.map(y => getYtd('singleFamily', y));
             const condoYtdData = years.map(y => getYtd('condo', y));
             const landYtdData = years.map(y => getYtd('land', y));
+            const resIncomeYtdData = years.map(y => getYtd('resIncome', y));
 
             // Config for Grouped Bars
-            const barConfig = (dataSF, dataCondo, dataLand) => ({
+            const barConfig = (dataSF, dataCondo, dataLand, dataResIncome) => ({
                 type: 'bar',
                 data: {
-                    labels: ['Single Family', 'Condo', 'Land'],
+                    labels: ['Single Family', 'Condo', 'Land', 'Res. Income'],
                     datasets: [
-                        { label: (year - 2).toString(), data: [dataSF[0], dataCondo[0], dataLand[0]], backgroundColor: '#4dc9e6' },
-                        { label: (year - 1).toString(), data: [dataSF[1], dataCondo[1], dataLand[1]], backgroundColor: '#00a6ce' },
-                        { label: year.toString(), data: [dataSF[2], dataCondo[2], dataLand[2]], backgroundColor: '#006b85' }
+                        { label: (year - 2).toString(), data: [dataSF[0], dataCondo[0], dataLand[0], dataResIncome[0]], backgroundColor: '#4dc9e6' },
+                        { label: (year - 1).toString(), data: [dataSF[1], dataCondo[1], dataLand[1], dataResIncome[1]], backgroundColor: '#00a6ce' },
+                        { label: year.toString(), data: [dataSF[2], dataCondo[2], dataLand[2], dataResIncome[2]], backgroundColor: '#006b85' }
                     ]
                 },
                 options: {
@@ -1775,14 +1780,15 @@
                 }
             });
 
-            new Chart(ctxMonth, barConfig(sfMonthData, condoMonthData, landMonthData));
-            new Chart(ctxYtd, barConfig(sfYtdData, condoYtdData, landYtdData));
+            new Chart(ctxMonth, barConfig(sfMonthData, condoMonthData, landMonthData, resIncomeMonthData));
+            new Chart(ctxYtd, barConfig(sfYtdData, condoYtdData, landYtdData, resIncomeYtdData));
 
             // Historical Line Chart
             const histLabels = [];
             const histSF = [];
             const histCondo = [];
             const histLand = [];
+            const histResIncome = [];
 
             for (let y = 2017; y <= year; y++) {
                 const endM = (y === year) ? monthIdx : 12;
@@ -1791,13 +1797,14 @@
                     histSF.push(getMetricValue('singleFamily', metricKey, m, y));
                     histCondo.push(getMetricValue('condo', metricKey, m, y));
                     histLand.push(getMetricValue('land', metricKey, m, y));
+                    histResIncome.push(getMetricValue('resIncome', metricKey, m, y));
                 }
             }
 
             // Trim leading zeros
             let startIndex = 0;
             for (let i = 0; i < histLabels.length; i++) {
-                if (histSF[i] > 0 || histCondo[i] > 0 || histLand[i] > 0) {
+                if (histSF[i] > 0 || histCondo[i] > 0 || histLand[i] > 0 || histResIncome[i] > 0) {
                     startIndex = i;
                     break;
                 }
@@ -1807,6 +1814,7 @@
                 histSF.splice(0, startIndex);
                 histCondo.splice(0, startIndex);
                 histLand.splice(0, startIndex);
+                histResIncome.splice(0, startIndex);
             }
 
             new Chart(ctxHist, {
@@ -1816,7 +1824,8 @@
                     datasets: [
                         { label: 'Single Family', data: histSF, borderColor: '#ca8a04', borderWidth: 2, pointRadius: 0, tension: 0.1 },
                         { label: 'Condo', data: histCondo, borderColor: '#4dc9e6', borderWidth: 2, pointRadius: 0, tension: 0.1 },
-                        { label: 'Land', data: histLand, borderColor: '#16a34a', borderWidth: 2, pointRadius: 0, tension: 0.1 }
+                        { label: 'Land', data: histLand, borderColor: '#16a34a', borderWidth: 2, pointRadius: 0, tension: 0.1 },
+                        { label: 'Res. Income', data: histResIncome, borderColor: '#9333ea', borderWidth: 2, pointRadius: 0, tension: 0.1 }
                     ]
                 },
                 options: {
@@ -1824,11 +1833,27 @@
                     plugins: { legend: { position: 'top' } },
                     scales: {
                         x: {
+                            grid: {
+                                drawOnChartArea: true,
+                                color: function(context) {
+                                    const index = context.index;
+                                    if (index === 0) return '#e5e7eb';
+                                    if (!histLabels || !histLabels[index] || !histLabels[index - 1]) return 'transparent';
+                                    const currYear = histLabels[index].split('-')[0];
+                                    const prevYear = histLabels[index - 1].split('-')[0];
+                                    return currYear !== prevYear ? '#e5e7eb' : 'transparent';
+                                }
+                            },
                             ticks: {
-                                maxTicksLimit: 12,
-                                callback: function (val, index) {
-                                    const label = this.getLabelForValue(val);
-                                    return label.split('-')[0];
+                                autoSkip: false,
+                                maxRotation: 0,
+                                callback: function (val) {
+                                    const index = parseInt(val);
+                                    if (isNaN(index) || !histLabels[index]) return '';
+                                    const currYear = histLabels[index].split('-')[0];
+                                    if (index === 0) return currYear;
+                                    const prevYear = histLabels[index - 1].split('-')[0];
+                                    return currYear !== prevYear ? currYear : '';
                                 }
                             }
                         },
@@ -1863,7 +1888,7 @@
                 if (el) pages.push(el);
             }
 
-            if (pages.length === 0 || (isLandscape && pages.length < 13)) {
+            if (pages.length === 0 || (isLandscape && pages.length < 14)) {
                 alert('Please click "Generate Report" first to prepare the data.');
                 btn.innerText = originalText;
                 return;
