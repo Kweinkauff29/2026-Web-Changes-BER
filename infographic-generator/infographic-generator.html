@@ -63,6 +63,10 @@
                 <div style="font-size:13px;color:#64748b">Drop <strong>spreadsheets</strong> here<br>or click to browse</div>
                 <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display:none">
             </div>
+            <!-- Reminder Note -->
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px; margin-bottom: 16px; font-size: 11px; color: #b45309; border-radius: 0 8px 8px 0;">
+                <strong>💡 Export Reminder:</strong> Please ensure your Domus Analytics files are exported with the <strong>Property Type split</strong> (Single Family, Condo, Land, Residential Income) included so metrics break down correctly.
+            </div>
             <div class="file-status" id="fileStatus"></div>
             <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin:20px 0 10px;padding-top:10px;border-top:1px solid #f1f5f9">Manual Adjustments</div>
             <div class="tabs" id="tabs"></div>
@@ -218,21 +222,24 @@
             // Remove extension and normalize
             const name = filename.split('.')[0].toLowerCase().trim();
             
-            // Strict matching for user's new naming convention (closedSales.xlsx -> closedSales)
-            if (name === 'closedsales') return 'closedSales';
-            if (name === 'mediandays') return 'medianDays';
-            if (name === 'pendingsales') return 'pendingSales';
-            if (name === 'newlistings') return 'newListings';
-            if (name === 'inventory') return 'inventory';
-            if (name === 'price') return 'price';
+            // Strict matching for user's naming conventions
+            if (name === 'closedsales' || name === 'closedsales1') return 'closedSales';
+            if (name === 'mediandays' || name === 'daysonmarket1') return 'medianDays';
+            if (name === 'pendingsales' || name === 'pendingsales1') return 'pendingSales';
+            if (name === 'newlistings' || name === 'newlistings1') return 'newListings';
+            if (name === 'inventory' || name === 'homesforsale1') return 'inventory';
+            if (name === 'price' || name === 'mediansalesprice1') return 'price';
             
-            // Robust fallback matching (e.g. "closedSales (1).xlsx" or "Closed Sales.xlsx")
+            // Robust fallback matching
             if (name.includes('closed') && name.includes('sales')) return 'closedSales';
+            if (name.includes('days') && name.includes('market')) return 'medianDays';
             if (name.includes('median') && name.includes('days')) return 'medianDays';
             if (name.includes('pending') && name.includes('sales')) return 'pendingSales';
             if (name.includes('new') && name.includes('listing')) return 'newListings';
-            if (name.includes('inventory')) return 'inventory';
-            if (name.includes('price')) return 'price';
+            if (name.includes('homes') && (name.includes('sale') || name.includes('for'))) return 'inventory';
+            if (name.includes('inventory') && !name.includes('supply')) return 'inventory';
+            if (name.includes('median') && name.includes('price')) return 'price';
+            if (name.includes('price') && !name.includes('list')) return 'price';
             
             return null;
         }
@@ -257,11 +264,21 @@
             renderInputs(); renderAll();
         }
 
-        // NEW: Row-based data parsing (each row = one city + one date)
+        // Row-based data parsing — supports both city-based and property-type-based data
         function processSheet(type, rows, month, year) {
             if (rows.length < 2) return;
             
             const monAbbr = month.substring(0,3).toLowerCase();
+            
+            // Metric to column mapping (matches Domus Analytics export format)
+            const metricColMap = {
+                'closedSales': 7,   // Listings column
+                'medianDays': 6,    // Median Integer column
+                'pendingSales': 7,  // Listings column
+                'newListings': 7,   // Listings column
+                'inventory': 7,     // Listings column
+                'price': 3          // Median Dollar column
+            };
             
             // Data structure: { region: { year: { sum: 0, count: 0, values: [] } } }
             const regionData = { naples: {}, fortmyers: {}, bonita: {}, bonita_only: {}, estero_only: {} };
@@ -282,28 +299,56 @@
                 if (!parsed) continue;
                 
                 // If the spreadsheet provides a month, filter on it.
-                // If it only provides a year (e.g. 2022), ASSUME it corresponds to the month we're extracting.
                 if (!parsed.isYearOnly) {
                     if (!parsed.m.toLowerCase().startsWith(monAbbr)) continue;
                 }
                 
-                // Column 1: City/Series name
-                const cityName = String(row[1] || '').toUpperCase();
+                // Column 1: City/Series name OR Property Type
+                const col1Name = String(row[1] || '').toUpperCase();
                 let region = null;
                 let subRegion = null;
-                if (cityName.includes('NAPLES') && !cityName.includes('MARCO')) region = 'naples';
-                else if (cityName.includes('FORT MYERS')) region = 'fortmyers';
-                else if (cityName.includes('BONITA')) { region = 'bonita'; subRegion = 'bonita_only'; }
-                else if (cityName.includes('ESTERO')) { region = 'bonita'; subRegion = 'estero_only'; }
+                
+                // Try city-based matching first
+                if (col1Name.includes('NAPLES') && !col1Name.includes('MARCO')) region = 'naples';
+                else if (col1Name.includes('FORT MYERS')) region = 'fortmyers';
+                else if (col1Name.includes('BONITA')) { region = 'bonita'; subRegion = 'bonita_only'; }
+                else if (col1Name.includes('ESTERO')) { region = 'bonita'; subRegion = 'estero_only'; }
+                
+                // If no city match, check if it's property-type data (BER format)
+                if (!region) {
+                    if (col1Name.includes('SINGLE FAMILY') ||
+                        col1Name.includes('CONDOMINIUM') ||
+                        col1Name.includes('CONDO') ||
+                        col1Name.includes('TOWNHOUSE') ||
+                        col1Name.includes('LAND') ||
+                        col1Name.includes('RESIDENTIAL INCOME') ||
+                        col1Name.includes('INCOME') ||
+                        col1Name.includes('MULTI')) {
+                        // BER area data — aggregate into bonita (combined) region
+                        region = 'bonita';
+                    }
+                }
                 
                 if (!region) continue;
                 
-                // Find the value (last non-null column)
+                // Extract value from the correct column for this metric type
                 let value = null;
-                for (let j = row.length - 1; j >= 2; j--) {
-                    if (row[j] !== null && row[j] !== undefined && row[j] !== '') {
-                        value = parseFloat(String(row[j]).replace(/[,$%]/g, ''));
-                        if (!isNaN(value)) break;
+                const targetCol = metricColMap[type];
+                if (targetCol !== undefined && targetCol < row.length) {
+                    const cellVal = row[targetCol];
+                    if (cellVal !== null && cellVal !== undefined && cellVal !== '') {
+                        value = parseFloat(String(cellVal).replace(/[,$%]/g, ''));
+                        if (isNaN(value)) value = null;
+                    }
+                }
+                // Fallback: try last non-null column
+                if (value === null) {
+                    for (let j = row.length - 1; j >= 2; j--) {
+                        if (row[j] !== null && row[j] !== undefined && row[j] !== '') {
+                            value = parseFloat(String(row[j]).replace(/[,$%]/g, ''));
+                            if (!isNaN(value)) break;
+                            else value = null;
+                        }
                     }
                 }
                 
