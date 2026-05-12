@@ -1338,24 +1338,27 @@
             // 4. Land Market Overview
             renderOverviewPage(container, 'land', 4);
 
-            // Pages 5-12: Metric Details
+            // 5. Residential Income Market Overview
+            renderOverviewPage(container, 'resIncome', 5);
+
+            // Pages 6-13: Metric Details
             const detailMetrics = [
-                { key: 'newListings', page: 5 },
-                { key: 'pendingSales', page: 6 },
-                { key: 'closedSales', page: 7 },
-                { key: 'daysOnMarket', page: 8 },
-                { key: 'medianPrice', page: 9 },
-                { key: 'listPriceReceived', page: 10 },
-                { key: 'inventory', page: 11 },
-                { key: 'monthsSupply', page: 12 }
+                { key: 'newListings', page: 6 },
+                { key: 'pendingSales', page: 7 },
+                { key: 'closedSales', page: 8 },
+                { key: 'daysOnMarket', page: 9 },
+                { key: 'medianPrice', page: 10 },
+                { key: 'listPriceReceived', page: 11 },
+                { key: 'inventory', page: 12 },
+                { key: 'monthsSupply', page: 13 }
             ];
 
             detailMetrics.forEach(m => {
                 renderMetricPage(container, m.key, m.page);
             });
 
-            // 13. Southwest Florida Overview
-            renderOverviewPage(container, 'all', 13);
+            // 14. Southwest Florida Overview
+            renderOverviewPage(container, 'all', 14);
         }
 
 
@@ -1459,15 +1462,16 @@
                             <li class="toc-item"><span>Single Family Market Overview</span> <span class="toc-page">2</span></li>
                             <li class="toc-item"><span>Condo Market Overview</span> <span class="toc-page">3</span></li>
                             <li class="toc-item"><span>Land Market Overview</span> <span class="toc-page">4</span></li>
-                            <li class="toc-item"><span>New Listings</span> <span class="toc-page">5</span></li>
-                            <li class="toc-item"><span>Pending Sales</span> <span class="toc-page">6</span></li>
-                            <li class="toc-item"><span>Closed Sales</span> <span class="toc-page">7</span></li>
-                            <li class="toc-item"><span>Days on Market Until Sale</span> <span class="toc-page">8</span></li>
-                            <li class="toc-item"><span>Median Sales Price</span> <span class="toc-page">9</span></li>
-                            <li class="toc-item"><span>Percent of List Price Received</span> <span class="toc-page">10</span></li>
-                            <li class="toc-item"><span>Inventory of Homes for Sale</span> <span class="toc-page">11</span></li>
-                            <li class="toc-item"><span>Months Supply of Inventory</span> <span class="toc-page">12</span></li>
-                            <li class="toc-item"><span>Bonita Springs-Estero</span> <span class="toc-page">13</span></li>
+                            <li class="toc-item"><span>Residential Income Market Overview</span> <span class="toc-page">5</span></li>
+                            <li class="toc-item"><span>New Listings</span> <span class="toc-page">6</span></li>
+                            <li class="toc-item"><span>Pending Sales</span> <span class="toc-page">7</span></li>
+                            <li class="toc-item"><span>Closed Sales</span> <span class="toc-page">8</span></li>
+                            <li class="toc-item"><span>Days on Market Until Sale</span> <span class="toc-page">9</span></li>
+                            <li class="toc-item"><span>Median Sales Price</span> <span class="toc-page">10</span></li>
+                            <li class="toc-item"><span>Percent of List Price Received</span> <span class="toc-page">11</span></li>
+                            <li class="toc-item"><span>Inventory of Homes for Sale</span> <span class="toc-page">12</span></li>
+                            <li class="toc-item"><span>Months Supply of Inventory</span> <span class="toc-page">13</span></li>
+                            <li class="toc-item"><span>Bonita Springs-Estero</span> <span class="toc-page">14</span></li>
                         </ul>
                     </div>
                 </div>
