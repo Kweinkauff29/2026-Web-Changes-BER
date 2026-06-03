@@ -146,6 +146,13 @@ export default {
             if (request.method === 'DELETE' && path.match(/^\/api\/admin\/members\/\d+$/)) {
                 const id = parseInt(path.split('/').pop());
                 
+                // Get growthzone_contact_id to prevent repopulation on future syncs
+                const member = await env.DB.prepare('SELECT growthzone_contact_id FROM members WHERE id = ?').bind(id).first();
+                if (member && member.growthzone_contact_id) {
+                    await env.DB.prepare('INSERT OR IGNORE INTO deleted_members (growthzone_contact_id) VALUES (?)')
+                        .bind(member.growthzone_contact_id).run();
+                }
+
                 // Use a transaction or sequential deletes to clean up
                 await env.DB.prepare('DELETE FROM member_tasks WHERE member_id = ?').bind(id).run();
                 await env.DB.prepare('DELETE FROM member_notes WHERE member_id = ?').bind(id).run();
@@ -154,6 +161,7 @@ export default {
                 
                 return jsonResponse({ success: true });
             }
+
 
             // ── ADMIN API: Global Calendar ──
             if (request.method === 'GET' && path === '/api/admin/calendar') {
@@ -279,6 +287,11 @@ export default {
 
                 const memberId = result.meta.last_row_id;
                 await expandWorkflow(env.DB, memberId, body.member_type || 'realtor', startDate);
+
+                if (body.growthzone_contact_id) {
+                    await env.DB.prepare('DELETE FROM deleted_members WHERE growthzone_contact_id = ?')
+                        .bind(body.growthzone_contact_id).run();
+                }
 
                 return jsonResponse({ success: true, id: memberId, public_token: token });
             }
@@ -524,6 +537,13 @@ async function performGZSync(env) {
 
             // 2. Check if already in DB
             const existing = await env.DB.prepare('SELECT id, email, phone FROM members WHERE growthzone_contact_id = ?').bind(contactId).first();
+            
+            // Check if member has been deleted previously
+            const wasDeleted = await env.DB.prepare('SELECT 1 FROM deleted_members WHERE growthzone_contact_id = ?').bind(contactId).first();
+            if (wasDeleted) {
+                skipped++;
+                continue;
+            }
             
             // 3. ENRICH DATA (from expanded Contact property or fetch if needed)
             let email = existing ? existing.email : null;
