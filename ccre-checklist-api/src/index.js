@@ -486,8 +486,8 @@ async function performGZSync(env) {
     const SYNC_START_DATE = '2026-03-16';
 
     try {
-        // Fetch active memberships from GrowthZone with expanded Contact info
-        const syncUrl = `${env.GROWTHZONE_BASE_URL}/api/memberships/all?$top=500&$expand=Contact&$orderby=MembershipId desc`;
+        // Fetch active memberships from GrowthZone
+        const syncUrl = `${env.GROWTHZONE_BASE_URL}/api/memberships/all?$top=500&$orderby=MembershipId desc`;
         
         const response = await fetch(syncUrl, {
             headers: {
@@ -536,66 +536,60 @@ async function performGZSync(env) {
             }
 
             // 2. Check if already in DB
-            const existing = await env.DB.prepare('SELECT id, email, phone FROM members WHERE growthzone_contact_id = ?').bind(contactId).first();
-            
+            // 2. Check if already in DB
+            const existing = await env.DB.prepare('SELECT id, email, phone, organization FROM members WHERE growthzone_contact_id = ?').bind(contactId).first();
+
             // Check if member has been deleted previously
             const wasDeleted = await env.DB.prepare('SELECT 1 FROM deleted_members WHERE growthzone_contact_id = ?').bind(contactId).first();
             if (wasDeleted) {
                 skipped++;
                 continue;
             }
-            
-            // 3. ENRICH DATA (from expanded Contact property or fetch if needed)
-            let email = existing ? existing.email : null;
+
+            // 3. ENRICH DATA via /api/contacts/personsummary/{ContactId}
+            // The $expand=Contact on memberships doesn't work, and /api/contacts/{id} 404s.
+            // The $filter-based /api/contacts?$filter=ContactId eq X ignores the filter
+            // and returns the first record in the entire directory (wrong data).
+            // The only reliable endpoint is /api/contacts/personsummary/{ContactId}.
+            let email = null;
             let phone = existing ? existing.phone : null;
+            let organization = null;
 
-            const contact = membership.Contact;
-            if (contact) {
-                email = email || contact.Email || contact.EmailAddress || contact.PrimaryEmail || null;
-                phone = phone || contact.Phone || contact.PhoneNumber || contact.PrimaryPhone || null;
-            }
-
-            // Fallback enrichment if expand failed to provide data or for existing members missing it
-            if (!email || !phone) {
-                try {
-                    // Try direct ID fetch first
-                    const contactUrl = `${env.GROWTHZONE_BASE_URL}/api/contacts/${contactId}`;
-                    let contactRes = await fetch(contactUrl, {
-                        headers: { 'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`, 'Accept': 'application/json' }
-                    });
-                    
-                    let cData = null;
-                    if (contactRes.ok) {
-                        cData = await contactRes.json();
-                    } else if (contactRes.status === 404) {
-                        // TRY FILTER FALLBACK if direct ID fetch 404s
-                        const filterUrl = `${env.GROWTHZONE_BASE_URL}/api/contacts?$filter=ContactId eq ${contactId}`;
-                        const filterRes = await fetch(filterUrl, {
-                            headers: { 'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`, 'Accept': 'application/json' }
-                        });
-                        if (filterRes.ok) {
-                            const fData = await filterRes.json();
-                            const results = fData.Results || fData.results || [];
-                            if (results.length > 0) cData = results[0];
-                        }
+            try {
+                const psUrl = `${env.GROWTHZONE_BASE_URL}/api/contacts/personsummary/${contactId}`;
+                const psRes = await fetch(psUrl, {
+                    headers: {
+                        'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`,
+                        'Accept': 'application/json'
                     }
+                });
 
-                    if (cData) {
-                        email = email || cData.Email || cData.EmailAddress || cData.PrimaryEmail || null;
-                        phone = phone || cData.Phone || cData.PhoneNumber || cData.PrimaryPhone || null;
+                if (psRes.ok) {
+                    const ps = await psRes.json();
+                    // PrimaryEmailAddress is the real individual email
+                    if (ps.PrimaryEmailAddress) {
+                        email = ps.PrimaryEmailAddress;
                     }
-                } catch (ce) {
-                    // Fail silently
+                    // PrimaryOrg provides the brokerage/organization name
+                    if (ps.PrimaryOrg && ps.PrimaryOrg.Name) {
+                        organization = ps.PrimaryOrg.Name;
+                    }
+                    // personsummary doesn't expose phone; keep existing if we have it
                 }
+            } catch (enrichErr) {
+                // Fail silently — we'll store what we have
             }
 
-            // Sync update if existing and we have new data
-            if (existing && (email !== existing.email || phone !== existing.phone)) {
-                await env.DB.prepare('UPDATE members SET email = ?, phone = ?, updated_at = datetime(\'now\') WHERE id = ?')
-                    .bind(email, phone, existing.id).run();
-            }
-
+            // Update existing members with fresh data from GrowthZone
             if (existing) {
+                const needsUpdate = (email && email !== existing.email) || 
+                                   (organization && organization !== existing.organization) ||
+                                   (phone && phone !== existing.phone);
+                if (needsUpdate) {
+                    await env.DB.prepare(
+                        'UPDATE members SET email = COALESCE(?, email), phone = COALESCE(?, phone), organization = COALESCE(?, organization), updated_at = datetime(\'now\') WHERE id = ?'
+                    ).bind(email, phone, organization, existing.id).run();
+                }
                 skipped++;
                 continue;
             }
@@ -616,9 +610,9 @@ async function performGZSync(env) {
             const now = new Date().toISOString();
             
             const result = await env.DB.prepare(`
-                INSERT INTO members (growthzone_contact_id, public_token, first_name, last_name, email, phone, member_type, status, start_date, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
-            `).bind(contactId, token, firstName, lastName, email, phone, memberType, startDate, now, now).run();
+                INSERT INTO members (growthzone_contact_id, public_token, first_name, last_name, email, phone, organization, member_type, status, start_date, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
+            `).bind(contactId, token, firstName, lastName, email, phone, organization, memberType, startDate, now, now).run();
 
             const memberId = result.meta.last_row_id;
             await expandWorkflow(env.DB, memberId, memberType, startDate);
