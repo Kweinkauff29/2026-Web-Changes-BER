@@ -514,9 +514,6 @@ async function performGZSync(env) {
         let skipped = 0;
 
         for (const membership of results) {
-            // Filter by active status in code since OData filter might be ignored
-            if (membership.MembershipStatusTypeId !== 2) continue;
-
             const typeStr = (membership.Type || "").toUpperCase();
             const nameStr = (membership.Name || "");
             const contactId = membership.ContactId;
@@ -540,8 +537,12 @@ async function performGZSync(env) {
             }
 
             // 2. Check if already in DB
-            // 2. Check if already in DB
             const existing = await env.DB.prepare('SELECT id, email, phone, organization FROM members WHERE growthzone_contact_id = ?').bind(contactId).first();
+
+            // Filter out non-active memberships only if they are not already in the database
+            if (!existing && membership.MembershipStatusTypeId !== 2) {
+                continue;
+            }
 
             // Check if member has been deleted previously
             const wasDeleted = await env.DB.prepare('SELECT 1 FROM deleted_members WHERE growthzone_contact_id = ?').bind(contactId).first();
@@ -550,17 +551,17 @@ async function performGZSync(env) {
                 continue;
             }
 
-            // 3. ENRICH DATA via /api/contacts/personsummary/{ContactId}
+            // 3. ENRICH DATA via /api/contacts/person/{ContactId}
             // The $expand=Contact on memberships doesn't work, and /api/contacts/{id} 404s.
-            // The $filter-based /api/contacts?$filter=ContactId eq X ignores the filter
-            // and returns the first record in the entire directory (wrong data).
-            // The only reliable endpoint is /api/contacts/personsummary/{ContactId}.
+            // The $filter-based /api/contacts?$filter=ContactId eq X ignores the filter.
+            // The only reliable endpoint for full individual details (email, phone, organization)
+            // is /api/contacts/person/{ContactId}.
             let email = null;
-            let phone = existing ? existing.phone : null;
+            let phone = null;
             let organization = null;
 
             try {
-                const psUrl = `${env.GROWTHZONE_BASE_URL}/api/contacts/personsummary/${contactId}`;
+                const psUrl = `${env.GROWTHZONE_BASE_URL}/api/contacts/person/${contactId}`;
                 const psRes = await fetch(psUrl, {
                     headers: {
                         'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`,
@@ -570,15 +571,29 @@ async function performGZSync(env) {
 
                 if (psRes.ok) {
                     const ps = await psRes.json();
-                    // PrimaryEmailAddress is the real individual email
-                    if (ps.PrimaryEmailAddress) {
-                        email = ps.PrimaryEmailAddress;
+                    
+                    // 1. Get email
+                    const emailComm = ps.ContactList?.find(c => c.CommType === 'email');
+                    if (emailComm && emailComm.Value) {
+                        email = emailComm.Value.trim();
                     }
-                    // PrimaryOrg provides the brokerage/organization name
-                    if (ps.PrimaryOrg && ps.PrimaryOrg.Name) {
-                        organization = ps.PrimaryOrg.Name;
+                    
+                    // 2. Get phone
+                    const phoneComm = ps.ContactList?.find(c => c.CommType === 'phone');
+                    if (phoneComm && phoneComm.Value) {
+                        const rawPhone = phoneComm.Value.replace(/\D/g, '');
+                        if (rawPhone.length === 10) {
+                            phone = `(${rawPhone.substring(0, 3)}) ${rawPhone.substring(3, 6)}-${rawPhone.substring(6)}`;
+                        } else {
+                            phone = phoneComm.Value.trim();
+                        }
                     }
-                    // personsummary doesn't expose phone; keep existing if we have it
+                    
+                    // 3. Get organization (brokerage)
+                    const orgRole = ps.OrganizationsAndRoles?.find(o => o.Name);
+                    if (orgRole && orgRole.Name) {
+                        organization = orgRole.Name.trim();
+                    }
                 }
             } catch (enrichErr) {
                 // Fail silently — we'll store what we have
@@ -586,12 +601,18 @@ async function performGZSync(env) {
 
             // Update existing members with fresh data from GrowthZone
             if (existing) {
-                const needsUpdate = (email && email !== existing.email) || 
-                                   (organization && organization !== existing.organization) ||
-                                   (phone && phone !== existing.phone);
+                // If the existing database record has the known incorrect fallback values,
+                // treat them as null so we can overwrite them even if the new value is null.
+                const currentEmail = existing.email === 'nace1031@comcast.net' ? null : existing.email;
+                const currentPhone = existing.phone === '(888) 659-1031' ? null : existing.phone;
+                const currentOrg = existing.organization;
+
+                const needsUpdate = (email !== currentEmail) || 
+                                   (organization !== currentOrg) ||
+                                   (phone !== currentPhone);
                 if (needsUpdate) {
                     await env.DB.prepare(
-                        'UPDATE members SET email = COALESCE(?, email), phone = COALESCE(?, phone), organization = COALESCE(?, organization), updated_at = datetime(\'now\') WHERE id = ?'
+                        'UPDATE members SET email = ?, phone = ?, organization = ?, updated_at = datetime(\'now\') WHERE id = ?'
                     ).bind(email, phone, organization, existing.id).run();
                 }
                 skipped++;
