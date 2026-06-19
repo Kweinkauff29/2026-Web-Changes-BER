@@ -222,30 +222,34 @@ export default {
 
             // Update template step (including sort_order)
             if (request.method === 'POST' && path.match(/^\/api\/admin\/templates\/\d+$/)) {
-                const id = parseInt(path.split('/').pop());
-                const body = await request.json();
-                const updates = [];
-                const binds = [];
+                try {
+                    const id = parseInt(path.split('/').pop());
+                    const body = await request.json();
+                    const updates = [];
+                    const binds = [];
 
-                if (body.title !== undefined) { updates.push('title = ?'); binds.push(body.title); }
-                if (body.description !== undefined) { updates.push('description = ?'); binds.push(body.description); }
-                if (body.day_offset !== undefined) { 
-                    updates.push('day_offset = ?'); 
-                    binds.push(Number(body.day_offset) || 0); 
+                    if (body.title !== undefined) { updates.push('title = ?'); binds.push(body.title); }
+                    if (body.description !== undefined) { updates.push('description = ?'); binds.push(body.description); }
+                    if (body.day_offset !== undefined) { 
+                        updates.push('day_offset = ?'); 
+                        binds.push(Number(body.day_offset) || 0); 
+                    }
+                    if (body.sort_order !== undefined) { 
+                        updates.push('sort_order = ?'); 
+                        binds.push(Number(body.sort_order) || 0); 
+                    }
+                    
+                    if (updates.length > 0) {
+                        updates.push('updated_at = datetime(\'now\')');
+                        const query = `UPDATE workflow_templates SET ${updates.join(', ')} WHERE id = ?`;
+                        binds.push(id);
+                        await env.DB.prepare(query).bind(...binds).run();
+                    }
+                    
+                    return jsonResponse({ success: true });
+                } catch (e) {
+                    return jsonResponse({ success: false, error: e.message }, 500);
                 }
-                if (body.sort_order !== undefined) { 
-                    updates.push('sort_order = ?'); 
-                    binds.push(Number(body.sort_order) || 0); 
-                }
-                
-                if (updates.length > 0) {
-                    updates.push('updated_at = datetime(\'now\')');
-                    const query = `UPDATE workflow_templates SET ${updates.join(', ')} WHERE id = ?`;
-                    binds.push(id);
-                    await env.DB.prepare(query).bind(...binds).run();
-                }
-                
-                return jsonResponse({ success: true });
             }
 
             // ── ADMIN API: Reschedule Task ──
