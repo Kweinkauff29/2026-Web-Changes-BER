@@ -91,6 +91,7 @@ const htmlContent = `<!DOCTYPE html>
         let uploadedFiles = {};
         let historicalData = { naples: {}, fortmyers: {}, bonita: {}, bonita_only: {}, estero_only: {} };
         let templateImg = null;
+        let logoImg = null;
         let templateLoaded = false;
         let data = {
             naples: { closedSales: '+14.5%', medianDays: '67', pendingSales: '+38.3%', newListings: '-9.4%', homesForSale: '+4.4%', invNew: '1,475', invSold: '530', price: '$530,000', priceChange: '(-7.4%)' },
@@ -125,6 +126,7 @@ const htmlContent = `<!DOCTYPE html>
             
             try {
                 templateImg = await loadImage(TEMPLATE_BASE64);
+                logoImg = await loadImage('https://coconutcoastrealtors.org/wp-content/uploads/2026/04/CCOR-Horz-Logo-no-tag-clr-scaled-1.gif');
                 templateLoaded = true;
                 
                 // Init Defaults based on image width
@@ -548,6 +550,19 @@ const htmlContent = `<!DOCTYPE html>
             canvas.height = H;
 
             ctx.drawImage(templateImg, 0, 0, W, H);
+
+            // Clear the old logo
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(705, 5, 305, 67);
+
+            // Draw the new logo
+            if (logoImg) {
+                const logoH = 55;
+                const logoW = Math.round(logoH * (logoImg.width / logoImg.height));
+                const logoX = W - 18 - logoW;
+                const logoY = Math.round((72 - logoH) / 2);
+                ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+            }
 
             // Text Styles
             ctx.shadowColor = 'rgba(0,0,0,0.4)';
