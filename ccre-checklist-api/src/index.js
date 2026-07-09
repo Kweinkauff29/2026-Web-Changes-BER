@@ -468,6 +468,74 @@ export default {
                 return await performGZSync(env);
             }
 
+            // ── INTERNAL API: Enrich Contact by Name ──
+            if (request.method === 'GET' && path === '/api/internal/enrich-contact') {
+                const name = url.searchParams.get('name');
+                if (!name) return jsonResponse({ error: 'Name parameter required' }, 400);
+
+                const syncUrl = `${env.GROWTHZONE_BASE_URL}/api/memberships/all?$top=500&$orderby=MembershipId desc`;
+                const response = await fetch(syncUrl, {
+                    headers: {
+                        'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    return jsonResponse({ error: 'Failed to fetch memberships from GrowthZone' }, 500);
+                }
+
+                const data = await response.json();
+                const memberships = data.Results || [];
+                
+                const targetName = name.trim().toLowerCase();
+                const matched = memberships.find(m => m.Name && m.Name.trim().toLowerCase() === targetName);
+
+                if (!matched) {
+                    return jsonResponse({ error: 'Contact not found in recent memberships' }, 404);
+                }
+
+                const contactId = matched.ContactId;
+                const psUrl = `${env.GROWTHZONE_BASE_URL}/api/contacts/person/${contactId}`;
+                const psRes = await fetch(psUrl, {
+                    headers: {
+                        'Authorization': `ApiKey ${env.GROWTHZONE_API_KEY}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!psRes.ok) {
+                    return jsonResponse({ error: 'Failed to fetch contact details from GrowthZone' }, 500);
+                }
+
+                const ps = await psRes.json();
+                let email = null;
+                let phone = null;
+                let organization = null;
+
+                const emailComm = ps.ContactList?.find(c => c.CommType === 'email');
+                if (emailComm && emailComm.Value) {
+                    email = emailComm.Value.trim();
+                }
+
+                const phoneComm = ps.ContactList?.find(c => c.CommType === 'phone');
+                if (phoneComm && phoneComm.Value) {
+                    const rawPhone = phoneComm.Value.replace(/\D/g, '');
+                    if (rawPhone.length === 10) {
+                        phone = `(${rawPhone.substring(0, 3)}) ${rawPhone.substring(3, 6)}-${rawPhone.substring(6)}`;
+                    } else {
+                        phone = phoneComm.Value.trim();
+                    }
+                }
+
+                const orgRole = ps.OrganizationsAndRoles?.find(o => o.Name);
+                if (orgRole && orgRole.Name) {
+                    organization = orgRole.Name.trim();
+                }
+
+                return jsonResponse({ email, phone, organization });
+            }
+
             return jsonResponse({ error: 'Not Found' }, 404);
 
         } catch (err) {
